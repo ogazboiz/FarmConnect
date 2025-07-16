@@ -8,11 +8,42 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
-import { Plus, MapPin, Calendar, Droplets, Thermometer, Leaf, TrendingUp, Eye, Edit, X, ExternalLink, Shield, Clock, Hash } from "lucide-react"
+import { Plus, MapPin, Calendar, Droplets, Thermometer, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash } from "lucide-react"
+
+type CropType = {
+  id: number
+  name: string
+  variety: string
+  planted: string
+  location: string
+  stage: string
+  progress: number
+  health: string
+  nextAction: string
+  image: string
+  soil: {
+    ph: number
+    nitrogen: string
+    phosphorus: string
+    potassium: string
+  }
+  weather: {
+    temperature: string
+    humidity: string
+    rainfall: string
+  }
+  nftId: string
+  contractAddress: string
+  blockchainData: {
+    totalTransactions: number
+    lastUpdate: string
+    carbonCredits: number
+    sustainabilityScore: number
+  }
+}
 
 export function CropTrackingPage() {
-  const [selectedCrop, setSelectedCrop] = useState<any>(null)
+  const [selectedCrop, setSelectedCrop] = useState<CropType | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const crops = [
     {
@@ -205,7 +236,7 @@ export function CropTrackingPage() {
     return allRecords.filter(record => record.cropId === cropId)
   }
 
-  const openCropDetails = (crop: any) => {
+  const openCropDetails = (crop: CropType) => {
     setSelectedCrop(crop)
     setIsDetailsOpen(true)
   }
@@ -444,7 +475,7 @@ export function CropTrackingPage() {
             <DialogTitle className="text-2xl text-emerald-100 flex items-center gap-3">
               <Leaf className="w-6 h-6 text-emerald-400" />
               {selectedCrop?.name} Details
-              <Badge className={`${getStageColor(selectedCrop?.stage)} border ml-auto`}>
+              <Badge className={`${getStageColor(selectedCrop?.stage || "")} border ml-auto`}>
                 {selectedCrop?.stage}
               </Badge>
             </DialogTitle>

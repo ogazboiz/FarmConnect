@@ -92,7 +92,7 @@ export function DashboardPage() {
                 Farmer John!
               </span>
             </h1>
-            <p className="text-xl text-emerald-200/80">Here's what's happening on your farm today.</p>
+            <p className="text-xl text-emerald-200/80">Here&apos;s what&apos;s happening on your farm today.</p>
           </div>
 
           {/* Stats Grid */}

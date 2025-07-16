@@ -6,13 +6,11 @@ import { motion } from "framer-motion"
 import { Footer } from "../layout/footer"
 import { Header } from "../layout/header"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Leaf, Users, Award, Shield, Globe, Coins, TrendingUp, CheckCircle, Sparkles } from "lucide-react"
 
 export function HomePage() {
   const [isConnected, setIsConnected] = useState(false)
-  const router = useRouter()
 
   const handleWalletConnect = () => {
     setIsConnected(true)
@@ -483,7 +481,7 @@ export function HomePage() {
                 { number: "0%", label: "Setup Fees" },
                 { number: "< 5min", label: "Getting Started" },
                 { number: "∞", label: "Growth Potential" }
-              ].map((stat, index) => (
+              ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className="text-2xl md:text-3xl font-bold text-yellow-300 mb-1">{stat.number}</div>
                   <div className="text-emerald-200 text-sm font-medium">{stat.label}</div>
