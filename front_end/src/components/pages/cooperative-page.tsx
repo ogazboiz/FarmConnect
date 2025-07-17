@@ -97,7 +97,7 @@ export function CooperativePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
-      <Header isConnected={true} />
+      <Header />
 
       <div className="pt-24 pb-16 px-4">
         <div className="container mx-auto">
