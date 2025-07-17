@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Footer } from "../layout/footer"
@@ -8,13 +8,37 @@ import { Header } from "../layout/header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Leaf, Users, Award, Shield, Globe, Coins, TrendingUp, CheckCircle, Sparkles } from "lucide-react"
+import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
+import { useDisconnect } from "@reown/appkit/react"
+import { useWalletInfo } from "@reown/appkit/react"
+import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
 
 export function HomePage() {
-  const [isConnected, setIsConnected] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
-  const handleWalletConnect = () => {
-    setIsConnected(true)
-    // Just connect the wallet, don't navigate away from home page
+  // AppKit hooks
+  const { address: appkitAddress, isConnected: appkitIsConnected } = useAppKitAccount()
+  const { open, close } = useAppKit()
+  const { walletInfo } = useWalletInfo()
+  const { disconnect: appkitDisconnect } = useDisconnect()
+
+  // Wagmi hooks
+  const { address: wagmiAddress, isConnected: wagmiIsConnected, connector } = useAccount()
+  const { disconnect: wagmiDisconnect } = useWagmiDisconnect()
+
+  // Get actual connection state
+  const address = appkitAddress || wagmiAddress
+  const isConnected = appkitIsConnected || wagmiIsConnected
+
+  useEffect(() => setMounted(true), [])
+
+  const handleWalletConnect = async () => {
+    try {
+      await open()
+    } catch (error: unknown) {
+      console.error("Connection error:", error instanceof Error ? error.message : String(error))
+    }
   }
 
   const handleWatchDemo = () => {
@@ -76,7 +100,7 @@ export function HomePage() {
         {/* Enhanced overlay for better contrast */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/80 via-emerald-800/70 to-green-800/80"></div>
         
-        <Header isConnected={isConnected} onWalletConnect={handleWalletConnect} />
+        <Header onWalletConnect={handleWalletConnect} />
         
         <div className="container mx-auto text-center h-screen flex flex-col items-center justify-center relative z-10">
           <motion.div
@@ -108,14 +132,34 @@ export function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <Button
-                onClick={handleWalletConnect}
-                size="lg"
-                className="bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-emerald-400/30"
-              >
-                Start Farming on Blockchain
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              {!mounted ? (
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-emerald-400/30"
+                >
+                  Start Farming on Blockchain
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              ) : isConnected ? (
+                <Button
+                  onClick={() => router.push('/dashboard')}
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-emerald-400/30"
+                >
+                  Go to Dashboard
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleWalletConnect}
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-emerald-400/30"
+                >
+                  Start Farming on Blockchain
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              )}
+              
               <Button
                 variant="outline"
                 size="lg"
@@ -449,14 +493,33 @@ export function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-              <Button
-                onClick={handleWalletConnect}
-                size="lg"
-                className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500 text-emerald-900 font-bold px-10 py-4 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 border border-yellow-300"
-              >
-                Start Your Journey
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              {!mounted ? (
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500 text-emerald-900 font-bold px-10 py-4 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 border border-yellow-300"
+                >
+                  Start Your Journey
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              ) : isConnected ? (
+                <Button
+                  onClick={() => router.push('/dashboard')}
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500 text-emerald-900 font-bold px-10 py-4 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 border border-yellow-300"
+                >
+                  Go to Dashboard
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleWalletConnect}
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500 text-emerald-900 font-bold px-10 py-4 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 border border-yellow-300"
+                >
+                  Start Your Journey
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              )}
               
               <Button
                 variant="outline"
