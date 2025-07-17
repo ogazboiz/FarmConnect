@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@reown/appkit-adapter-ethers": "^1.7.15",
-    "@reown/appkit-adapter-wagmi": "^1.7.15",
-    "lucide-react": "^0.525.0",
-    "wagmi": "^2.15.7"
-  }
-}
