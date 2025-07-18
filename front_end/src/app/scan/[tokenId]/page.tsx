@@ -14,22 +14,27 @@ import { Progress } from "@/components/ui/progress"
 import { 
   ArrowLeft, MapPin, User, Hash, Star, Share, QrCode, 
   Leaf, ExternalLink, CheckCircle, Shield,
-  Eye, Loader2, Wallet, Lock
+  Eye, Loader2, Wallet, Lock, Gift, AlertCircle
 } from "lucide-react"
 import { 
   useCropBatch, 
   useCropNFT, 
   useGreenPointsBalance,
 } from "@/hooks/useAgriDAO"
+import { useReadContract } from "wagmi"
+import { CropNFTABI, getContractAddresses } from "@/config"
 import { ConnectWalletModal } from "@/components/consumer/ConnectWalletModal"
 import { useGlobalRefresh } from "@/contexts/RefreshContext"
+
+const contracts = getContractAddresses()
 
 export default function CropScanPage() {
   const params = useParams()
   const router = useRouter()
   const { address } = useAccount()
-  const [hasScanned, setHasScanned] = useState(false)
-  const [hasRated, setHasRated] = useState(false)
+  
+  // State for UI interactions
+  const [hasViewed, setHasViewed] = useState(false)
   const [selectedRating, setSelectedRating] = useState(0)
   const [isInteracting, setIsInteracting] = useState(false)
   const [showConnectModal, setShowConnectModal] = useState(false)
@@ -40,18 +45,65 @@ export default function CropScanPage() {
   const cropNFT = useCropNFT()
   const greenBalance = useGreenPointsBalance(address)
   
-  // Global refresh context
+  // Blockchain state for user interactions
+  const { data: hasScannedContract } = useReadContract({
+    address: contracts.CROP_NFT,
+    abi: CropNFTABI,
+    functionName: 'hasScanned',
+    args: tokenId && address ? [tokenId, address] : undefined,
+    query: {
+      enabled: !!(tokenId && address),
+      cacheTime: 1000,
+      staleTime: 0,
+    },
+  })
+
+  const { data: hasRatedContract } = useReadContract({
+    address: contracts.CROP_NFT,
+    abi: CropNFTABI,
+    functionName: 'hasRated',
+    args: tokenId && address ? [tokenId, address] : undefined,
+    query: {
+      enabled: !!(tokenId && address),
+      cacheTime: 1000,
+      staleTime: 0,
+    },
+  })
+
+  const { data: userRating } = useReadContract({
+    address: contracts.CROP_NFT,
+    abi: CropNFTABI,
+    functionName: 'ratings',
+    args: tokenId && address ? [tokenId, address] : undefined,
+    query: {
+      enabled: !!(tokenId && address),
+      cacheTime: 1000,
+      staleTime: 0,
+    },
+  })
+
   const { triggerRefreshWithDelay } = useGlobalRefresh()
-  
-  // Track processed transaction hashes to avoid duplicate refreshes
   const [processedTxHashes, setProcessedTxHashes] = useState<Set<string>>(new Set())
+
+  // Auto-view product on page load (no wallet required)
+  useEffect(() => {
+    if (tokenId && !hasViewed) {
+      setHasViewed(true)
+      console.log('Product viewed (no wallet required)')
+    }
+  }, [tokenId, hasViewed])
+
+  // Update selectedRating when userRating changes
+  useEffect(() => {
+    if (userRating && Number(userRating) > 0) {
+      setSelectedRating(Number(userRating))
+    }
+  }, [userRating])
 
   // Force refresh function with retry logic
   const forceRefreshCrop = () => {
     console.log('Forcing crop data refresh...')
     setRefreshTrigger(prev => prev + 1)
-    
-    // Retry with delay to account for blockchain propagation
     setTimeout(() => {
       console.log('Executing delayed crop refresh retry...')
       setRefreshTrigger(prev => prev + 1)
@@ -60,39 +112,20 @@ export default function CropScanPage() {
 
   // Watch for transaction success to trigger refetch
   useEffect(() => {
-    console.log('CropNFT transaction watcher triggered:', {
-      isSuccess: cropNFT.isSuccess,
-      hash: cropNFT.hash,
-      isConfirming: cropNFT.isConfirming,
-      isPending: cropNFT.isPending,
-      processedHashes: Array.from(processedTxHashes)
-    })
-
     if (cropNFT.isSuccess && cropNFT.hash && !processedTxHashes.has(cropNFT.hash)) {
       console.log('CropNFT transaction confirmed, refreshing UI:', cropNFT.hash)
-      
-      // Show success toast
       toast.success('Transaction confirmed! UI updating... ✅')
-      
-      // Mark this hash as processed
       setProcessedTxHashes(prev => new Set(prev).add(cropNFT.hash!))
-      
-      // Trigger global refresh (which will update header and this page)
-      triggerRefreshWithDelay(2000) // 2 second delay
-      
-      // Also trigger local refresh for immediate feedback
+      triggerRefreshWithDelay(2000)
       setTimeout(() => {
         console.log('Executing delayed crop refresh after transaction confirmation')
         forceRefreshCrop()
-        
-        // Refresh the crop batch data specifically
         if (cropBatch.refetch) {
           cropBatch.refetch()
         }
-      }, 2000) // 2 second delay
+      }, 2000)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cropNFT.isSuccess, cropNFT.hash, cropNFT.isConfirming, cropNFT.isPending, triggerRefreshWithDelay, processedTxHashes])
+  }, [cropNFT.isSuccess, cropNFT.hash, triggerRefreshWithDelay, processedTxHashes, cropBatch])
 
   // Refetch crop data when refreshTrigger changes
   useEffect(() => {
@@ -103,42 +136,45 @@ export default function CropScanPage() {
         cropBatch.refetch()
       }, 500)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger])
+  }, [refreshTrigger, cropBatch])
 
-  // Auto-scan on page load if wallet connected
-  useEffect(() => {
-    const autoScan = async () => {
-      if (tokenId && address && !hasScanned) {
-        setIsInteracting(true)
-        try {
-          await cropNFT.scanProduct(tokenId)
-          setHasScanned(true)
-        } catch (error) {
-          console.error('Auto-scan failed:', error)
-        } finally {
-          setIsInteracting(false)
-        }
-      }
+  // Claim scan points (requires wallet)
+  const handleClaimScanPoints = async () => {
+    if (!address) {
+      setShowConnectModal(true)
+      return
     }
-    autoScan()
-  }, [tokenId, address, hasScanned, cropNFT])
+    if (!tokenId || hasScannedContract) return
+    setIsInteracting(true)
+    try {
+      await cropNFT.scanProduct(tokenId)
+      toast.success('🎉 You earned 10 GREEN points for scanning!')
+    } catch (error) {
+      console.error('Scan claim failed:', error)
+      toast.error('Failed to claim scan points. Please try again.')
+    } finally {
+      setIsInteracting(false)
+    }
+  }
 
   const handleRating = async (rating: number) => {
     if (!address) {
       setShowConnectModal(true)
       return
     }
-    
-    if (!tokenId || hasRated) return
-    
+    if (!tokenId || hasRatedContract) return
+    if (!hasScannedContract) {
+      toast.error('You must scan the product before rating it!')
+      return
+    }
     setIsInteracting(true)
     try {
       await cropNFT.rateProduct(tokenId, BigInt(rating))
       setSelectedRating(rating)
-      setHasRated(true)
+      toast.success('🎉 You earned 20 GREEN points for rating!')
     } catch (error) {
       console.error('Rating failed:', error)
+      toast.error('Failed to submit rating. Please try again.')
     } finally {
       setIsInteracting(false)
     }
@@ -149,14 +185,15 @@ export default function CropScanPage() {
       setShowConnectModal(true)
       return
     }
-    
     if (!tokenId) return
-    
+    if (!hasScannedContract) {
+      toast.error('You must scan the product before sharing it!')
+      return
+    }
     setIsInteracting(true)
     try {
       await cropNFT.shareProduct(tokenId)
-      
-      // Native share API
+      toast.success('🎉 You earned 25 GREEN points for sharing!')
       if (navigator.share && cropBatch.data) {
         await navigator.share({
           title: `${cropBatch.data.cropType} from ${cropBatch.data.location}`,
@@ -164,31 +201,12 @@ export default function CropScanPage() {
           url: window.location.href
         })
       } else {
-        // Fallback copy to clipboard
         await navigator.clipboard.writeText(window.location.href)
-        alert('Link copied to clipboard!')
+        toast.info('Link copied to clipboard!')
       }
     } catch (error) {
       console.error('Share failed:', error)
-    } finally {
-      setIsInteracting(false)
-    }
-  }
-
-  const handleManualScan = async () => {
-    if (!address) {
-      setShowConnectModal(true)
-      return
-    }
-    
-    if (!tokenId || hasScanned) return
-    
-    setIsInteracting(true)
-    try {
-      await cropNFT.scanProduct(tokenId)
-      setHasScanned(true)
-    } catch (error) {
-      console.error('Manual scan failed:', error)
+      toast.error('Failed to share. Please try again.')
     } finally {
       setIsInteracting(false)
     }
@@ -197,21 +215,15 @@ export default function CropScanPage() {
   // Helper functions
   const getImageUrl = (imageString: string) => {
     if (!imageString) return null
-    
     if (imageString.startsWith('ipfs://')) {
-      // Use gateway.pinata.cloud which is configured in next.config.ts
       return imageString.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
     }
-    
     if (imageString.startsWith('https://')) {
       return imageString
     }
-    
     if (imageString.startsWith('baf') || imageString.startsWith('Qm')) {
-      // Use gateway.pinata.cloud for raw IPFS hashes
       return `https://gateway.pinata.cloud/ipfs/${imageString}`
     }
-    
     return null
   }
 
@@ -230,7 +242,6 @@ export default function CropScanPage() {
     const now = Date.now() / 1000
     const created = Number(createdAt)
     const daysPassed = (now - created) / (24 * 60 * 60)
-    
     switch (status?.toLowerCase()) {
       case "planted": return Math.min(daysPassed * 2, 20)
       case "growing": return Math.min(20 + daysPassed * 1.5, 50)
@@ -250,9 +261,9 @@ export default function CropScanPage() {
     })
   }
 
-  const calculateAverageRating = (ratingSum: bigint, ratingCount: bigint) => {
-    if (ratingCount === BigInt(0)) return 0
-    return Number(ratingSum) / Number(ratingCount)
+  const calculateAverageRating = (averageRating: bigint, totalRatings: bigint) => {
+    if (totalRatings === BigInt(0)) return 0
+    return Number(averageRating) / 100
   }
 
   // Loading state
@@ -287,7 +298,7 @@ export default function CropScanPage() {
               <CardContent className="py-16 text-center">
                 <div className="mb-4 text-red-300">❌ Crop Not Found</div>
                 <h3 className="mb-2 text-xl font-semibold text-red-200">Invalid QR Code</h3>
-                <p className="mb-6 text-red-300/80">The crop you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+                <p className="mb-6 text-red-300/80">The crop you're looking for doesn't exist or has been removed.</p>
                 <div className="flex justify-center gap-2">
                   <Button 
                     onClick={() => router.back()}
@@ -338,7 +349,9 @@ export default function CropScanPage() {
             
             <div>
               <h1 className="text-2xl font-bold text-white">Product Details</h1>
-              <p className="text-emerald-200/80">Scanned from QR Code</p>
+              <p className="text-emerald-200/80">
+                {hasViewed ? 'Product Information Available' : 'Scanned from QR Code'}
+              </p>
             </div>
 
             {/* User Points */}
@@ -351,67 +364,96 @@ export default function CropScanPage() {
             )}
           </div>
 
-          {/* Connect Wallet Banner */}
-          {!address && (
-            <Card className="mb-6 bg-emerald-800/40 border-emerald-600/40 backdrop-blur-sm">
+          {/* Reward Opportunities Banner - Only show if wallet not connected */}
+          {!address && hasViewed && (
+            <Card className="mb-6 bg-gradient-to-r from-emerald-600/20 to-green-600/20 border-emerald-500/40 backdrop-blur-sm">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Wallet className="w-5 h-5 text-emerald-400" />
+                  <Gift className="w-6 h-6 text-emerald-400" />
                   <div className="flex-1">
-                    <h3 className="font-medium text-emerald-200">Connect Your Wallet</h3>
-                    <p className="text-sm text-emerald-300/80">Connect your wallet to scan products and earn GREEN points for every interaction!</p>
+                    <h3 className="font-medium text-emerald-200">🎉 Earn Rewards for Engagement!</h3>
+                    <p className="text-sm text-emerald-300/80">
+                      Connect your wallet to claim <strong>10 points for scanning</strong>, <strong>20 points for rating</strong>, and <strong>25 points for sharing</strong> this product!
+                    </p>
                   </div>
                   <Button 
                     onClick={() => setShowConnectModal(true)}
                     className="text-white bg-emerald-600 hover:bg-emerald-700"
                   >
-                    Connect Wallet
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Connect to Earn
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Scan Success Banner */}
-          {hasScanned && (
-            <Card className="mb-6 bg-green-900/40 border-green-600/40 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
-                  <div>
-                    <h3 className="font-medium text-green-200">Product Scanned Successfully!</h3>
-                    <p className="text-sm text-green-300/80">You earned 10 GREEN points for scanning this product</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Action Status Banners - Only show if wallet connected */}
+          {address && (
+            <div className="mb-6 space-y-3">
+              {/* Scan Points Status */}
+              {!hasScannedContract && (
+                <Card className="bg-emerald-800/40 border-emerald-600/40 backdrop-blur-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <QrCode className="w-5 h-5 text-emerald-400" />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-emerald-200">🎁 Claim Your Scan Reward</h3>
+                        <p className="text-sm text-emerald-300/80">
+                          You can earn 10 GREEN points by claiming your scan reward for this product
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleClaimScanPoints}
+                        disabled={isInteracting}
+                        className="text-white bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {isInteracting ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Gift className="w-4 h-4 mr-2" />
+                        )}
+                        Claim 10 Points
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-          {/* Manual Scan Button (if not auto-scanned) */}
-          {address && !hasScanned && (
-            <Card className="mb-6 bg-emerald-800/40 border-emerald-600/40 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <QrCode className="w-5 h-5 text-emerald-400" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-emerald-200">Scan This Product</h3>
-                    <p className="text-sm text-emerald-300/80">Scan to verify authenticity and earn 10 GREEN points</p>
-                  </div>
-                  <Button 
-                    onClick={handleManualScan}
-                    disabled={isInteracting}
-                    className="text-white bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    {isInteracting ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <QrCode className="w-4 h-4 mr-2" />
-                    )}
-                    Scan Product
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Success Banner for completed scan */}
+              {hasScannedContract && (
+                <Card className="bg-green-900/40 border-green-600/40 backdrop-blur-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-400" />
+                      <div>
+                        <h3 className="font-medium text-green-200">✅ Scan Reward Claimed!</h3>
+                        <p className="text-sm text-green-300/80">
+                          You earned 10 GREEN points for scanning this product
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Already Rated Banner */}
+              {hasRatedContract && (
+                <Card className="bg-blue-900/40 border-blue-600/40 backdrop-blur-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Star className="w-5 h-5 text-yellow-400" />
+                      <div>
+                        <h3 className="font-medium text-blue-200">Thank You for Your Rating!</h3>
+                        <p className="text-sm text-blue-300/80">
+                          You rated this product {selectedRating} star{selectedRating !== 1 ? 's' : ''} and earned 20 GREEN points
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -496,7 +538,14 @@ export default function CropScanPage() {
                   {/* Rating Section */}
                   <div className="pt-4 border-t border-emerald-600/30">
                     <p className="mb-3 text-sm text-emerald-200">
-                      {address ? 'Rate this product (+20 GREEN points)' : 'Connect wallet to rate'}
+                      {!address 
+                        ? 'Connect wallet to rate (+20 GREEN points)' 
+                        : !hasScannedContract
+                          ? 'Scan product first to unlock rating'
+                          : hasRatedContract
+                            ? 'Thank you for rating this product!'
+                            : 'Rate this product (+20 GREEN points)'
+                      }
                     </p>
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
@@ -505,47 +554,45 @@ export default function CropScanPage() {
                             key={rating}
                             variant="ghost"
                             size="sm"
-                            disabled={!address || hasRated || isInteracting}
+                            disabled={!address || hasRatedContract || !hasScannedContract || isInteracting}
                             onClick={() => handleRating(rating)}
                             className={`p-1 hover:bg-emerald-700/30 ${
                               selectedRating >= rating 
                                 ? 'text-yellow-400' 
-                                : hasRated 
+                                : hasRatedContract
                                   ? 'text-emerald-600/50'
-                                  : 'text-emerald-400/70 hover:text-yellow-400'
-                            } ${!address ? 'cursor-not-allowed' : ''}`}
+                                  : !hasScannedContract
+                                    ? 'text-emerald-600/30'
+                                    : 'text-emerald-400/70 hover:text-yellow-400'
+                            } ${!address || !hasScannedContract ? 'cursor-not-allowed' : ''}`}
                           >
                             <Star className="w-4 h-4 fill-current" />
                           </Button>
                         ))}
                       </div>
                       {!address && <Lock className="w-4 h-4 text-emerald-400/50" />}
+                      {address && !hasScannedContract && <QrCode className="w-4 h-4 text-emerald-400/50" />}
                     </div>
-                    {hasRated && (
-                      <p className="mt-2 text-sm text-green-300">
-                        ✅ Thank you! You earned 20 GREEN points.
-                      </p>
-                    )}
                   </div>
 
                   {/* Share Button */}
                   <Button
                     onClick={handleShare}
-                    disabled={!address || isInteracting}
+                    disabled={!address || !hasScannedContract || isInteracting}
                     className={`w-full ${
-                      address 
+                      address && hasScannedContract 
                         ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white'
                         : 'bg-emerald-800/50 text-emerald-400/70 cursor-not-allowed border border-emerald-700/40'
                     }`}
                   >
                     {isInteracting ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : address ? (
+                    ) : address && hasScannedContract ? (
                       <Share className="w-4 h-4 mr-2" />
                     ) : (
                       <Lock className="w-4 h-4 mr-2" />
                     )}
-                    {address ? 'Share Story (+25 pts)' : 'Connect to Share'}
+                    {address && hasScannedContract ? 'Share Story (+25 pts)' : 'Connect & Scan to Share'}
                   </Button>
                 </div>
               </Card>
@@ -569,8 +616,6 @@ export default function CropScanPage() {
                       <div className="text-2xl font-bold text-white">{progress.toFixed(0)}%</div>
                     </div>
                   </div>
-                  
-                  {/* Progress Bar */}
                   <Progress value={progress} className="h-3 bg-emerald-700/30" />
                 </div>
               </Card>
@@ -623,13 +668,11 @@ export default function CropScanPage() {
                           <p className="text-sm text-emerald-300/80">Verified Farmer</p>
                         </div>
                       </div>
-                      
                       <div className="p-3 border rounded-lg bg-emerald-700/30 border-emerald-600/40">
                         <p className="text-sm text-emerald-200">
                           💚 <strong>Direct Impact:</strong> Supporting sustainable farming through blockchain transparency.
                         </p>
                       </div>
-
                       <Button 
                         variant="outline"
                         size="sm"
@@ -665,7 +708,6 @@ export default function CropScanPage() {
                       ) : (
                         <p className="italic text-emerald-300/80">No certifications added yet</p>
                       )}
-                      
                       <div className="p-3 border rounded-lg bg-blue-800/30 border-blue-600/40">
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-blue-300" />
@@ -675,7 +717,6 @@ export default function CropScanPage() {
                           Complete transparency and authenticity on Mantle blockchain.
                         </p>
                       </div>
-
                       <Button 
                         variant="outline"
                         size="sm"

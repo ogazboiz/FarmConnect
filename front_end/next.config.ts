@@ -23,12 +23,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.mypinata.cloud',
-        port: '',
-        pathname: '/ipfs/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'cloudflare-ipfs.com',
         port: '',
         pathname: '/ipfs/**',
@@ -38,6 +32,18 @@ const nextConfig: NextConfig = {
         hostname: 'dweb.link',
         port: '',
         pathname: '/ipfs/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.istockphoto.com',
+        port: '',
+        pathname: '/id/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/images/**',
       }
     ],
   },
