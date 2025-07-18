@@ -16,6 +16,7 @@ import { useDisconnect } from "@reown/appkit/react"
 import { useWalletInfo } from "@reown/appkit/react"
 import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
 import { useFarmTokenBalance, useGreenPointsBalance } from "@/hooks/useAgriDAO"
+import { useGlobalRefresh } from "@/contexts/RefreshContext"
 
 interface HeaderProps {
   onWalletConnect?: () => void
@@ -85,6 +86,28 @@ export function Header({ onWalletConnect }: HeaderProps) {
   // Get real balances
   const farmBalance = useFarmTokenBalance(address)
   const greenBalance = useGreenPointsBalance(address)
+
+  // Global refresh context
+  const { refreshTrigger } = useGlobalRefresh()
+
+  // Force refresh balances when global refresh is triggered
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      console.log('Header received global refresh trigger:', refreshTrigger)
+      
+      // Add a small delay for the header refresh to allow blockchain state to settle
+      setTimeout(() => {
+        console.log('Header executing balance refresh')
+        if (farmBalance.refetch) {
+          farmBalance.refetch()
+        }
+        if (greenBalance.refetch) {
+          greenBalance.refetch()
+        }
+      }, 500) // 500ms delay for header refresh
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]) // Intentionally excluding balance objects to avoid infinite loops
 
   // Determine which navigation to show based on connection state and current path
   const getCurrentNav = () => {

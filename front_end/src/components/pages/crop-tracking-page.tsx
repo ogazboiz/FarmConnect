@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Plus, MapPin, Calendar, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share, User, RefreshCw } from "lucide-react"
+import { Plus, MapPin, Calendar, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share, RefreshCw } from "lucide-react"
 import { useAccount } from "wagmi"
 import { 
   useFarmerCrops, 
@@ -23,6 +23,7 @@ import {
   parseTokenAmount 
 } from "@/hooks/useAgriDAO"
 import { QRCodeGenerator } from "@/components/farmer/QRCodeGenerator"
+import { useGlobalRefresh } from "@/contexts/RefreshContext"
 
 export default function CropTrackingPage() {
   const { address, isConnected } = useAccount()
@@ -74,6 +75,9 @@ export default function CropTrackingPage() {
   const farmerCrops = useFarmerCrops(address)
   const totalSupply = useCropNFTTotalSupply()
   const cropNFT = useCropNFT()
+  
+  // Global refresh context
+  const { triggerRefreshWithDelay } = useGlobalRefresh()
   
   // Get selected crop details
   const selectedCropBatch = useCropBatch(selectedCropId || undefined)
@@ -137,13 +141,16 @@ export default function CropTrackingPage() {
       // Mark this hash as processed
       setProcessedTxHashes(prev => new Set(prev).add(cropNFT.hash!))
       
-      // Add a delay to allow blockchain state to propagate before refetching
+      // Trigger global refresh (which will update header and this page)
+      triggerRefreshWithDelay(2000) // 2 second delay
+      
+      // Also trigger local refresh for immediate feedback
       setTimeout(() => {
         console.log('Executing delayed refresh after transaction confirmation')
         forceRefreshCrops()
       }, 2000) // 2 second delay
     }
-  }, [cropNFT.isSuccess, cropNFT.hash, cropNFT.isConfirming, cropNFT.isPending, forceRefreshCrops, processedTxHashes])
+  }, [cropNFT.isSuccess, cropNFT.hash, cropNFT.isConfirming, cropNFT.isPending, forceRefreshCrops, processedTxHashes, triggerRefreshWithDelay])
 
   // Additional watcher for hash changes to trigger immediate refresh
   useEffect(() => {

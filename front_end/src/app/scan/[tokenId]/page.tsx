@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
+import { toast } from 'react-hot-toast'
 import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -21,6 +22,7 @@ import {
   useGreenPointsBalance,
 } from "@/hooks/useAgriDAO"
 import { ConnectWalletModal } from "@/components/consumer/ConnectWalletModal"
+import { useGlobalRefresh } from "@/contexts/RefreshContext"
 
 export default function CropScanPage() {
   const params = useParams()
@@ -31,11 +33,78 @@ export default function CropScanPage() {
   const [selectedRating, setSelectedRating] = useState(0)
   const [isInteracting, setIsInteracting] = useState(false)
   const [showConnectModal, setShowConnectModal] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const tokenId = params?.tokenId ? BigInt(params.tokenId as string) : undefined
   const cropBatch = useCropBatch(tokenId)
   const cropNFT = useCropNFT()
   const greenBalance = useGreenPointsBalance(address)
+  
+  // Global refresh context
+  const { triggerRefreshWithDelay } = useGlobalRefresh()
+  
+  // Track processed transaction hashes to avoid duplicate refreshes
+  const [processedTxHashes, setProcessedTxHashes] = useState<Set<string>>(new Set())
+
+  // Force refresh function with retry logic
+  const forceRefreshCrop = () => {
+    console.log('Forcing crop data refresh...')
+    setRefreshTrigger(prev => prev + 1)
+    
+    // Retry with delay to account for blockchain propagation
+    setTimeout(() => {
+      console.log('Executing delayed crop refresh retry...')
+      setRefreshTrigger(prev => prev + 1)
+    }, 3000)
+  }
+
+  // Watch for transaction success to trigger refetch
+  useEffect(() => {
+    console.log('CropNFT transaction watcher triggered:', {
+      isSuccess: cropNFT.isSuccess,
+      hash: cropNFT.hash,
+      isConfirming: cropNFT.isConfirming,
+      isPending: cropNFT.isPending,
+      processedHashes: Array.from(processedTxHashes)
+    })
+
+    if (cropNFT.isSuccess && cropNFT.hash && !processedTxHashes.has(cropNFT.hash)) {
+      console.log('CropNFT transaction confirmed, refreshing UI:', cropNFT.hash)
+      
+      // Show success toast
+      toast.success('Transaction confirmed! UI updating... ✅')
+      
+      // Mark this hash as processed
+      setProcessedTxHashes(prev => new Set(prev).add(cropNFT.hash!))
+      
+      // Trigger global refresh (which will update header and this page)
+      triggerRefreshWithDelay(2000) // 2 second delay
+      
+      // Also trigger local refresh for immediate feedback
+      setTimeout(() => {
+        console.log('Executing delayed crop refresh after transaction confirmation')
+        forceRefreshCrop()
+        
+        // Refresh the crop batch data specifically
+        if (cropBatch.refetch) {
+          cropBatch.refetch()
+        }
+      }, 2000) // 2 second delay
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cropNFT.isSuccess, cropNFT.hash, cropNFT.isConfirming, cropNFT.isPending, triggerRefreshWithDelay, processedTxHashes])
+
+  // Refetch crop data when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0 && cropBatch.refetch) {
+      console.log('Crop refetch triggered, trigger value:', refreshTrigger)
+      setTimeout(() => {
+        console.log('Executing crop refetch')
+        cropBatch.refetch()
+      }, 500)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger])
 
   // Auto-scan on page load if wallet connected
   useEffect(() => {
@@ -275,7 +344,7 @@ export default function CropScanPage() {
             {/* User Points */}
             {address && (
               <div className="ml-auto">
-                <Badge className="bg-emerald-800/40 text-emerald-300 border-emerald-600/40 px-3 py-1">
+                <Badge className="px-3 py-1 bg-emerald-800/40 text-emerald-300 border-emerald-600/40">
                   💚 {greenBalance.formatted || '0'} GREEN Points
                 </Badge>
               </div>
@@ -347,7 +416,7 @@ export default function CropScanPage() {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Left Column - Image and Quick Actions */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="space-y-4 lg:col-span-1">
               {/* Crop Image */}
               <Card className="overflow-hidden bg-emerald-800/40 border-emerald-700/40 backdrop-blur-sm">
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-800/60 to-green-800/60">
@@ -377,7 +446,7 @@ export default function CropScanPage() {
                   {/* Organic Badge */}
                   {crop.isOrganic && (
                     <div className="absolute top-3 left-3">
-                      <Badge className="bg-green-800/80 text-green-200 border-green-600/40 px-2 py-1 backdrop-blur-sm">
+                      <Badge className="px-2 py-1 text-green-200 bg-green-800/80 border-green-600/40 backdrop-blur-sm">
                         🌿 Organic
                       </Badge>
                     </div>
@@ -386,7 +455,7 @@ export default function CropScanPage() {
                   {/* Rating Badge */}
                   {crop.ratingCount && crop.ratingCount > BigInt(0) && (
                     <div className="absolute bottom-3 right-3">
-                      <Badge className="bg-yellow-800/80 text-yellow-200 border-yellow-600/40 px-2 py-1 backdrop-blur-sm">
+                      <Badge className="px-2 py-1 text-yellow-200 bg-yellow-800/80 border-yellow-600/40 backdrop-blur-sm">
                         ⭐ {averageRating.toFixed(1)} ({crop.ratingCount.toString()})
                       </Badge>
                     </div>
@@ -404,7 +473,7 @@ export default function CropScanPage() {
                         <Eye className="w-4 h-4" />
                         <span className="font-semibold">{crop.scanCount?.toString() || '0'}</span>
                       </div>
-                      <p className="text-xs text-emerald-400/80 mt-1">Scans</p>
+                      <p className="mt-1 text-xs text-emerald-400/80">Scans</p>
                     </div>
                     <div>
                       <div className="flex items-center justify-center gap-1 text-emerald-300">
@@ -413,19 +482,19 @@ export default function CropScanPage() {
                           {Number(crop.ratingCount) > 0 ? averageRating.toFixed(1) : '-'}
                         </span>
                       </div>
-                      <p className="text-xs text-emerald-400/80 mt-1">Rating</p>
+                      <p className="mt-1 text-xs text-emerald-400/80">Rating</p>
                     </div>
                     <div>
                       <div className="flex items-center justify-center gap-1 text-emerald-300">
                         <Hash className="w-4 h-4" />
                         <span className="font-semibold">#{tokenId.toString()}</span>
                       </div>
-                      <p className="text-xs text-emerald-400/80 mt-1">ID</p>
+                      <p className="mt-1 text-xs text-emerald-400/80">ID</p>
                     </div>
                   </div>
 
                   {/* Rating Section */}
-                  <div className="border-t border-emerald-600/30 pt-4">
+                  <div className="pt-4 border-t border-emerald-600/30">
                     <p className="mb-3 text-sm text-emerald-200">
                       {address ? 'Rate this product (+20 GREEN points)' : 'Connect wallet to rate'}
                     </p>
@@ -483,20 +552,20 @@ export default function CropScanPage() {
             </div>
 
             {/* Right Column - Detailed Information */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="space-y-4 lg:col-span-2">
               {/* Header Card */}
               <Card className="bg-emerald-800/40 border-emerald-700/40 backdrop-blur-sm">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h1 className="text-3xl font-bold text-white mb-2">{crop.cropType}</h1>
+                      <h1 className="mb-2 text-3xl font-bold text-white">{crop.cropType}</h1>
                       <div className="flex items-center gap-2 text-emerald-300/80">
                         <MapPin className="w-4 h-4" />
                         <span>{crop.location}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-emerald-400 text-sm">Growth Progress</div>
+                      <div className="text-sm text-emerald-400">Growth Progress</div>
                       <div className="text-2xl font-bold text-white">{progress.toFixed(0)}%</div>
                     </div>
                   </div>
@@ -507,27 +576,27 @@ export default function CropScanPage() {
               </Card>
 
               {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Basic Details */}
                 <Card className="bg-emerald-800/40 border-emerald-700/40 backdrop-blur-sm">
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-emerald-200 mb-4">Product Details</h3>
+                    <h3 className="mb-4 text-lg font-semibold text-emerald-200">Product Details</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-emerald-300/80">Quantity</span>
-                        <span className="text-emerald-100 font-medium">{crop.quantity?.toString()} units</span>
+                        <span className="font-medium text-emerald-100">{crop.quantity?.toString()} units</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-emerald-300/80">Created</span>
-                        <span className="text-emerald-100 font-medium">{formatDate(crop.createdAt)}</span>
+                        <span className="font-medium text-emerald-100">{formatDate(crop.createdAt)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-emerald-300/80">Harvest Date</span>
-                        <span className="text-emerald-100 font-medium">{formatDate(crop.harvestDate)}</span>
+                        <span className="font-medium text-emerald-100">{formatDate(crop.harvestDate)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-emerald-300/80">Type</span>
-                        <span className="text-emerald-100 font-medium">
+                        <span className="font-medium text-emerald-100">
                           {crop.isOrganic ? '🌿 Organic' : '🌾 Conventional'}
                         </span>
                       </div>
@@ -538,7 +607,7 @@ export default function CropScanPage() {
                 {/* Farmer Information */}
                 <Card className="bg-emerald-800/40 border-emerald-700/40 backdrop-blur-sm">
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-emerald-200 mb-4 flex items-center gap-2">
+                    <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-emerald-200">
                       <User className="w-5 h-5" />
                       Farmer Details
                     </h3>
@@ -555,7 +624,7 @@ export default function CropScanPage() {
                         </div>
                       </div>
                       
-                      <div className="p-3 rounded-lg bg-emerald-700/30 border border-emerald-600/40">
+                      <div className="p-3 border rounded-lg bg-emerald-700/30 border-emerald-600/40">
                         <p className="text-sm text-emerald-200">
                           💚 <strong>Direct Impact:</strong> Supporting sustainable farming through blockchain transparency.
                         </p>
@@ -577,7 +646,7 @@ export default function CropScanPage() {
                 {/* Certifications */}
                 <Card className="bg-emerald-800/40 border-emerald-700/40 backdrop-blur-sm md:col-span-2">
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-emerald-200 mb-4 flex items-center gap-2">
+                    <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-emerald-200">
                       <Shield className="w-5 h-5" />
                       Certifications & Verification
                     </h3>
@@ -587,17 +656,17 @@ export default function CropScanPage() {
                           {crop.certifications.split(',').map((cert: string, index: number) => (
                             <Badge 
                               key={index} 
-                              className="bg-blue-800/40 text-blue-200 border-blue-600/40"
+                              className="text-blue-200 bg-blue-800/40 border-blue-600/40"
                             >
                               ✅ {cert.trim()}
                             </Badge>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-emerald-300/80 italic">No certifications added yet</p>
+                        <p className="italic text-emerald-300/80">No certifications added yet</p>
                       )}
                       
-                      <div className="p-3 rounded-lg bg-blue-800/30 border border-blue-600/40">
+                      <div className="p-3 border rounded-lg bg-blue-800/30 border-blue-600/40">
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-blue-300" />
                           <span className="font-medium text-blue-200">Blockchain Verified</span>
@@ -610,7 +679,7 @@ export default function CropScanPage() {
                       <Button 
                         variant="outline"
                         size="sm"
-                        className="border-blue-600/40 text-blue-300 hover:bg-blue-700/30"
+                        className="text-blue-300 border-blue-600/40 hover:bg-blue-700/30"
                         onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId}`, '_blank')}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />

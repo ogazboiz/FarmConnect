@@ -7,48 +7,54 @@ const contracts = getContractAddresses();
 
 // Farm Token Hooks
 export const useFarmToken = () => {
-  const { writeContract, data: hash } = useWriteContract();
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const mint = async (to: string, amount: bigint) => {
     try {
+      console.log('Submitting mint transaction...');
       writeContract({
         address: contracts.FARM_TOKEN,
         abi: FarmTokenABI,
         functionName: 'mint',
         args: [to, amount],
       });
+      toast.success('Transaction submitted! Waiting for confirmation...');
     } catch (error) {
       toast.error('Failed to mint FARM tokens');
-      console.error(error);
+      console.error('mint error:', error);
     }
   };
 
   const transfer = async (to: string, amount: bigint) => {
     try {
+      console.log('Submitting transfer transaction...');
       writeContract({
         address: contracts.FARM_TOKEN,
         abi: FarmTokenABI,
         functionName: 'transfer',
         args: [to, amount],
       });
+      toast.success('Transaction submitted! Waiting for confirmation...');
     } catch (error) {
       toast.error('Failed to transfer FARM tokens');
-      console.error(error);
+      console.error('transfer error:', error);
     }
   };
 
   const approve = async (spender: string, amount: bigint) => {
     try {
+      console.log('Submitting approve transaction...');
       writeContract({
         address: contracts.FARM_TOKEN,
         abi: FarmTokenABI,
         functionName: 'approve',
         args: [spender, amount],
       });
+      toast.success('Transaction submitted! Waiting for confirmation...');
     } catch (error) {
       toast.error('Failed to approve FARM tokens');
-      console.error(error);
+      console.error('approve error:', error);
     }
   };
 
@@ -56,6 +62,7 @@ export const useFarmToken = () => {
     mint,
     transfer,
     approve,
+    isPending,
     isConfirming,
     isSuccess,
     hash,
@@ -71,6 +78,8 @@ export const useFarmTokenBalance = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
+      cacheTime: 5000,
+      staleTime: 0,
     },
   });
 
@@ -159,6 +168,8 @@ export const useGreenPointsBalance = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
+      cacheTime: 5000,
+      staleTime: 0,
     },
   });
 
@@ -387,36 +398,38 @@ export const useCropNFTTotalSupply = () => {
 
 // Farmer DAO Hooks
 export const useFarmerDAO = () => {
-  const { writeContract, data: hash } = useWriteContract();
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const joinDAO = async (farmLocation: string) => {
     try {
+      console.log('Submitting joinDAO transaction...');
       writeContract({
         address: contracts.FARMER_DAO,
         abi: FarmerDAOABI,
         functionName: 'joinDAO',
         args: [farmLocation],
       });
-      toast.success('Joined Farmer DAO! Welcome to the community! 🤝');
+      toast.success('Transaction submitted! Waiting for confirmation... 🤝');
     } catch (error) {
       toast.error('Failed to join DAO');
-      console.error(error);
+      console.error('joinDAO error:', error);
     }
   };
 
   const stakeTokens = async (amount: bigint) => {
     try {
+      console.log('Submitting stakeTokens transaction...');
       writeContract({
         address: contracts.FARMER_DAO,
         abi: FarmerDAOABI,
         functionName: 'stakeTokens',
         args: [amount],
       });
-      toast.success('Tokens staked! You can now vote in DAO proposals! 🗳️');
+      toast.success('Transaction submitted! Waiting for confirmation... 🗳️');
     } catch (error) {
       toast.error('Failed to stake tokens');
-      console.error(error);
+      console.error('stakeTokens error:', error);
     }
   };
 
@@ -428,46 +441,49 @@ export const useFarmerDAO = () => {
     recipient: string
   ) => {
     try {
+      console.log('Submitting createProposal transaction...');
       writeContract({
         address: contracts.FARMER_DAO,
         abi: FarmerDAOABI,
         functionName: 'createProposal',
         args: [title, description, amount, proposalType, recipient],
       });
-      toast.success('Proposal created! Community voting begins now! 📝');
+      toast.success('Transaction submitted! Waiting for confirmation... 📝');
     } catch (error) {
       toast.error('Failed to create proposal');
-      console.error(error);
+      console.error('createProposal error:', error);
     }
   };
 
   const vote = async (proposalId: bigint, support: boolean) => {
     try {
+      console.log('Submitting vote transaction...');
       writeContract({
         address: contracts.FARMER_DAO,
         abi: FarmerDAOABI,
         functionName: 'vote',
         args: [proposalId, support],
       });
-      toast.success(`Vote cast: ${support ? 'YES' : 'NO'}! Your voice matters! 🗳️`);
+      toast.success(`Transaction submitted! Waiting for confirmation... 🗳️`);
     } catch (error) {
       toast.error('Failed to cast vote');
-      console.error(error);
+      console.error('vote error:', error);
     }
   };
 
   const executeProposal = async (proposalId: bigint) => {
     try {
+      console.log('Submitting executeProposal transaction...');
       writeContract({
         address: contracts.FARMER_DAO,
         abi: FarmerDAOABI,
         functionName: 'executeProposal',
         args: [proposalId],
       });
-      toast.success('Proposal executed! Democracy in action! ⚡');
+      toast.success('Transaction submitted! Waiting for confirmation... ⚡');
     } catch (error) {
       toast.error('Failed to execute proposal');
-      console.error(error);
+      console.error('executeProposal error:', error);
     }
   };
 
@@ -477,10 +493,55 @@ export const useFarmerDAO = () => {
     createProposal,
     vote,
     executeProposal,
+    isPending,
     isConfirming,
     isSuccess,
     hash,
   };
+};
+
+// Hook to read DAO member staked balance
+export const useStakedBalance = (address?: string) => {
+  return useReadContract({
+    address: contracts.FARMER_DAO,
+    abi: FarmerDAOABI,
+    functionName: 'stakedBalance',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
+    },
+  });
+};
+
+// Hook to read total staked tokens in DAO
+export const useTotalStaked = () => {
+  return useReadContract({
+    address: contracts.FARMER_DAO,
+    abi: FarmerDAOABI,
+    functionName: 'totalStaked',
+    query: {
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
+    },
+  });
+};
+
+// Hook to read treasury balance
+export const useTreasuryBalance = () => {
+  return useReadContract({
+    address: contracts.FARMER_DAO,
+    abi: FarmerDAOABI,
+    functionName: 'treasuryBalance',
+    query: {
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
+    },
+  });
 };
 
 // Hook to read DAO member data
@@ -492,6 +553,9 @@ export const useDAOMember = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
     },
   });
 };
@@ -505,13 +569,16 @@ export const useProposal = (proposalId?: bigint) => {
     args: proposalId ? [proposalId] : undefined,
     query: {
       enabled: !!proposalId,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
     },
   });
 };
 
 // Agri Bounties Hooks
 export const useAgriBounties = () => {
-  const { writeContract, data: hash } = useWriteContract();
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const createBounty = async (
@@ -522,46 +589,49 @@ export const useAgriBounties = () => {
     durationInDays: bigint
   ) => {
     try {
+      console.log('Submitting createBounty transaction...');
       writeContract({
         address: contracts.AGRI_BOUNTIES,
         abi: AgriBountiesABI,
         functionName: 'createBounty',
         args: [title, requirements, category, reward, durationInDays],
       });
-      toast.success('Bounty created! Innovation challenge is live! 🎯');
+      toast.success('Transaction submitted! Waiting for confirmation... 🎯');
     } catch (error) {
       toast.error('Failed to create bounty');
-      console.error(error);
+      console.error('createBounty error:', error);
     }
   };
 
   const submitToBounty = async (bountyId: bigint, submissionData: string) => {
     try {
+      console.log('Submitting submitToBounty transaction...');
       writeContract({
         address: contracts.AGRI_BOUNTIES,
         abi: AgriBountiesABI,
         functionName: 'submitToBounty',
         args: [bountyId, submissionData],
       });
-      toast.success('Solution submitted! Good luck in the competition! 🔬');
+      toast.success('Transaction submitted! Waiting for confirmation... 🔬');
     } catch (error) {
       toast.error('Failed to submit solution');
-      console.error(error);
+      console.error('submitToBounty error:', error);
     }
   };
 
   const completeBounty = async (bountyId: bigint, submissionId: bigint) => {
     try {
+      console.log('Submitting completeBounty transaction...');
       writeContract({
         address: contracts.AGRI_BOUNTIES,
         abi: AgriBountiesABI,
         functionName: 'completeBounty',
         args: [bountyId, submissionId],
       });
-      toast.success('Bounty completed! Winner selected and rewarded! 🏆');
+      toast.success('Transaction submitted! Waiting for confirmation... 🏆');
     } catch (error) {
       toast.error('Failed to complete bounty');
-      console.error(error);
+      console.error('completeBounty error:', error);
     }
   };
 
@@ -569,6 +639,7 @@ export const useAgriBounties = () => {
     createBounty,
     submitToBounty,
     completeBounty,
+    isPending,
     isConfirming,
     isSuccess,
     hash,
@@ -584,6 +655,9 @@ export const useBounty = (bountyId?: bigint) => {
     args: bountyId ? [bountyId] : undefined,
     query: {
       enabled: !!bountyId,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
     },
   });
 };
