@@ -84,53 +84,53 @@ export default function ConsumerMarketplacePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative">
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
+      <div className="px-4 pt-24 pb-16">
         <div className="container mx-auto">
           {/* Header Section */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">
-              <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-4xl font-bold text-white">
+              <span className="text-transparent bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text">
                 🛒 Crop Marketplace
               </span>
             </h1>
             
             {address ? (
               <div className="space-y-2">
-                <p className="text-xl text-slate-600">
+                <p className="text-xl text-emerald-200/80">
                   Discover crops and earn GREEN points for every interaction!
                 </p>
                 <div className="flex justify-center gap-4">
-                  <Badge variant="outline" className="text-green-700 border-green-300 bg-green-50">
+                  <Badge variant="outline" className="text-emerald-300 border-emerald-600/40 bg-emerald-800/30">
                     💚 {greenBalance.formatted || '0'} GREEN Points
                   </Badge>
-                  <Badge variant="outline" className="text-emerald-700 border-emerald-300 bg-emerald-50">
+                  <Badge variant="outline" className="text-emerald-300 border-emerald-600/40 bg-emerald-800/30">
                     🌾 {filteredCrops.length} Crops Available
                   </Badge>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-xl text-slate-600">
+                <p className="text-xl text-emerald-200/80">
                   Discover the story behind your food from farmers worldwide
                 </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-2xl mx-auto">
+                <div className="max-w-2xl p-4 mx-auto border rounded-lg bg-emerald-800/40 border-emerald-600/40">
                   <div className="flex items-center gap-3">
-                    <Wallet className="w-5 h-5 text-yellow-600" />
+                    <Wallet className="w-5 h-5 text-emerald-400" />
                     <div className="text-left">
-                      <p className="text-yellow-800 font-medium">
+                      <p className="font-medium text-emerald-200">
                         💡 Connect your wallet to earn GREEN points!
                       </p>
-                      <p className="text-yellow-700 text-sm">
+                      <p className="text-sm text-emerald-300/80">
                         Scan products, rate quality, and support farmers directly
                       </p>
                     </div>
                     <Button 
                       onClick={() => setShowConnectModal(true)}
                       size="sm"
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      className="text-white bg-emerald-600 hover:bg-emerald-700"
                     >
                       Connect
                     </Button>
@@ -141,17 +141,17 @@ export default function ConsumerMarketplacePage() {
           </div>
 
           {/* Search and Filters */}
-          <Card className="mb-8 bg-white/80 backdrop-blur-sm border border-emerald-200">
+          <Card className="mb-8 border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 {/* Search */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Search className="absolute w-4 h-4 left-3 top-3 text-emerald-400" />
                   <Input
                     placeholder="Search crops or location..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-emerald-300 focus:border-emerald-500"
+                    className="pl-10 bg-emerald-700/30 border-emerald-600/40 text-emerald-100 placeholder:text-emerald-300/50 focus:border-emerald-500"
                   />
                 </div>
                 
@@ -159,7 +159,7 @@ export default function ConsumerMarketplacePage() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="p-2 border border-emerald-300 rounded-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className="p-2 border rounded-md bg-emerald-700/30 border-emerald-600/40 text-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                 >
                   <option value="all">All Status</option>
                   <option value="planted">Planted</option>
@@ -173,7 +173,7 @@ export default function ConsumerMarketplacePage() {
                 <select
                   value={filterOrganic}
                   onChange={(e) => setFilterOrganic(e.target.value)}
-                  className="p-2 border border-emerald-300 rounded-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className="p-2 border rounded-md bg-emerald-700/30 border-emerald-600/40 text-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                 >
                   <option value="all">All Types</option>
                   <option value="organic">Organic Only</option>
@@ -184,7 +184,7 @@ export default function ConsumerMarketplacePage() {
                 <Button 
                   onClick={refetch}
                   variant="outline"
-                  className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  className="border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30 bg-emerald-800/20"
                 >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Refresh
@@ -197,20 +197,20 @@ export default function ConsumerMarketplacePage() {
           {loading && (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-emerald-500" />
-                <h3 className="text-lg font-medium text-slate-700 mb-2">Loading Marketplace...</h3>
-                <p className="text-slate-500">Discovering crops from farmers worldwide...</p>
+                <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-emerald-400" />
+                <h3 className="mb-2 text-lg font-medium text-emerald-200">Loading Marketplace...</h3>
+                <p className="text-emerald-300/80">Discovering crops from farmers worldwide...</p>
               </div>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="text-center py-8">
-                <div className="text-red-600 mb-4">❌ Error loading crops</div>
-                <p className="text-red-700 mb-4">{error}</p>
-                <Button onClick={refetch} variant="outline" className="border-red-300 text-red-700">
+            <Card className="bg-red-900/40 border-red-600/40">
+              <CardContent className="py-8 text-center">
+                <div className="mb-4 text-red-300">❌ Error loading crops</div>
+                <p className="mb-4 text-red-200/80">{error}</p>
+                <Button onClick={refetch} variant="outline" className="text-red-300 border-red-600/40 hover:bg-red-800/30">
                   Try Again
                 </Button>
               </CardContent>
@@ -219,18 +219,18 @@ export default function ConsumerMarketplacePage() {
 
           {/* Empty State */}
           {!loading && !error && filteredCrops.length === 0 && (
-            <Card className="bg-slate-50 border-slate-200">
-              <CardContent className="text-center py-16">
-                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <ShoppingCart className="w-8 h-8 text-slate-400" />
+            <Card className="bg-emerald-800/30 border-emerald-700/40">
+              <CardContent className="py-16 text-center">
+                <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-700/40">
+                  <ShoppingCart className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-700 mb-2">No Crops Found</h3>
-                <p className="text-slate-500 mb-4">
+                <h3 className="mb-2 text-xl font-semibold text-emerald-200">No Crops Found</h3>
+                <p className="mb-4 text-emerald-300/80">
                   {searchTerm || filterStatus !== 'all' || filterOrganic !== 'all' 
                     ? 'Try adjusting your search or filters' 
                     : 'No crops have been added to the marketplace yet'}
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex justify-center gap-2">
                   <Button 
                     onClick={() => {
                       setSearchTerm('')
@@ -238,10 +238,14 @@ export default function ConsumerMarketplacePage() {
                       setFilterOrganic('all')
                     }}
                     variant="outline"
+                    className="border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30"
                   >
                     Clear Filters
                   </Button>
-                  <Button onClick={refetch}>
+                  <Button 
+                    onClick={refetch}
+                    className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  >
                     Refresh
                   </Button>
                 </div>
@@ -252,7 +256,7 @@ export default function ConsumerMarketplacePage() {
           {/* Crops Grid */}
           {!loading && !error && filteredCrops.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
                 {filteredCrops.map((crop: any) => (
                   <ConsumerCropCard
                     key={crop.tokenId.toString()}
@@ -277,33 +281,33 @@ export default function ConsumerMarketplacePage() {
 
           {/* How It Works Section */}
           {!loading && (
-            <Card className="mt-12 bg-gradient-to-r from-emerald-600 to-green-600 text-white">
+            <Card className="mt-12 text-white bg-gradient-to-r from-emerald-600 to-green-600">
               <CardHeader>
-                <CardTitle className="text-white text-center text-2xl">
+                <CardTitle className="text-2xl text-center text-white">
                   🌱 How to Earn GREEN Points
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                       <QrCode className="w-6 h-6" />
                     </div>
-                    <h3 className="font-semibold mb-2">1. Scan Products</h3>
+                    <h3 className="mb-2 font-semibold">1. Scan Products</h3>
                     <p className="text-emerald-100">Scan any crop to learn about its journey and earn 10 GREEN points</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                       <Star className="w-6 h-6" />
                     </div>
-                    <h3 className="font-semibold mb-2">2. Rate Quality</h3>
+                    <h3 className="mb-2 font-semibold">2. Rate Quality</h3>
                     <p className="text-emerald-100">Rate products after trying them and earn 20 GREEN points</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                       <Share className="w-6 h-6" />
                     </div>
-                    <h3 className="font-semibold mb-2">3. Share Stories</h3>
+                    <h3 className="mb-2 font-semibold">3. Share Stories</h3>
                     <p className="text-emerald-100">Share farmer stories on social media and earn 25 GREEN points</p>
                   </div>
                 </div>

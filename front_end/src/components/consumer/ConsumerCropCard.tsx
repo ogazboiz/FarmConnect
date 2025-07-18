@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -70,12 +70,12 @@ export function ConsumerCropCard({
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "planted": return "bg-yellow-100 text-yellow-800 border-yellow-300"
-      case "growing": return "bg-green-100 text-green-800 border-green-300"
-      case "flowering": return "bg-purple-100 text-purple-800 border-purple-300"
-      case "fruiting": return "bg-orange-100 text-orange-800 border-orange-300"
-      case "harvested": return "bg-blue-100 text-blue-800 border-blue-300"
-      default: return "bg-gray-100 text-gray-800 border-gray-300"
+      case "planted": return "bg-yellow-800/80 text-yellow-200 border-yellow-600/40"
+      case "growing": return "bg-green-800/80 text-green-200 border-green-600/40"
+      case "flowering": return "bg-purple-800/80 text-purple-200 border-purple-600/40"
+      case "fruiting": return "bg-orange-800/80 text-orange-200 border-orange-600/40"
+      case "harvested": return "bg-blue-800/80 text-blue-200 border-blue-600/40"
+      default: return "bg-gray-800/80 text-gray-200 border-gray-600/40"
     }
   }
 
@@ -125,9 +125,9 @@ export function ConsumerCropCard({
   const scanCount = Number(crop.scanCount)
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 bg-white/90 backdrop-blur-sm border border-emerald-200 hover:border-emerald-300">
+    <Card className="group hover:shadow-xl transition-all duration-300 bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 hover:border-emerald-600/60 overflow-hidden">
       {/* Crop Image */}
-      <div className="aspect-square bg-gradient-to-br from-emerald-100 to-green-100 relative overflow-hidden rounded-t-lg">
+      <div className="aspect-[4/3] bg-gradient-to-br from-emerald-800/60 to-green-800/60 relative overflow-hidden">
         {imageUrl ? (
           <img 
             src={imageUrl} 
@@ -139,121 +139,111 @@ export function ConsumerCropCard({
             }}
           />
         ) : null}
-        <div className={`w-full h-full flex items-center justify-center bg-emerald-100 ${imageUrl ? 'hidden' : ''}`}>
-          <Leaf className="w-16 h-16 text-emerald-400" />
+        <div className={`w-full h-full flex items-center justify-center bg-emerald-800/60 ${imageUrl ? 'hidden' : ''}`}>
+          <Leaf className="w-12 h-12 text-emerald-400" />
         </div>
         
         {/* Status Badge */}
-        <div className="absolute top-3 right-3">
-          <Badge className={`${getStatusColor(crop.status)} border backdrop-blur-sm text-xs`}>
+        <div className="absolute top-2 right-2">
+          <Badge className={`${getStatusColor(crop.status)} border backdrop-blur-sm text-xs px-2 py-0.5`}>
             {crop.status}
           </Badge>
         </div>
         
         {/* Organic Badge */}
         {crop.isOrganic && (
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+          <div className="absolute top-2 left-2">
+            <Badge className="bg-green-800/80 text-green-200 border-green-600/40 text-xs px-2 py-0.5">
               🌿 Organic
             </Badge>
           </div>
         )}
 
         {/* Popularity Indicators */}
-        <div className="absolute bottom-3 left-3 flex gap-1">
+        <div className="absolute bottom-2 left-2 flex gap-1">
           {scanCount > 50 && (
-            <Badge className="bg-red-100 text-red-800 border-red-300 text-xs">
-              🔥 Trending
+            <Badge className="bg-red-800/80 text-red-200 border-red-600/40 text-xs px-1.5 py-0.5">
+              🔥
             </Badge>
           )}
           {scanCount > 100 && (
-            <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
-              ⭐ Popular
+            <Badge className="bg-purple-800/80 text-purple-200 border-purple-600/40 text-xs px-1.5 py-0.5">
+              ⭐
             </Badge>
           )}
           {scanCount === 0 && (
-            <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
-              🆕 New
+            <Badge className="bg-blue-800/80 text-blue-200 border-blue-600/40 text-xs px-1.5 py-0.5">
+              🆕
             </Badge>
           )}
         </div>
       </div>
 
-      <CardHeader className="pb-3">
+      <div className="p-4 space-y-3">
+        {/* Header */}
         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-emerald-100 group-hover:text-emerald-200 transition-colors text-base truncate">
               {crop.cropType}
-            </CardTitle>
-            <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
-              <MapPin className="w-3 h-3" />
-              <span>{crop.location}</span>
+            </h3>
+            <div className="flex items-center gap-1 text-xs text-emerald-300/80 mt-0.5">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{crop.location}</span>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleViewDetails}
-            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+            className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-700/30 p-1 h-auto ml-2"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3.5 h-3.5" />
           </Button>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <div className="flex items-center justify-center gap-1">
-              <Eye className="w-3 h-3 text-slate-500" />
-              <span className="text-sm font-medium text-slate-700">{scanCount}</span>
-            </div>
-            <p className="text-xs text-slate-500">Scans</p>
+        {/* Compact Stats */}
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1 text-emerald-300/80">
+            <Eye className="w-3 h-3" />
+            <span>{scanCount}</span>
           </div>
           
-          <div>
-            <div className="flex items-center justify-center gap-1">
-              <Star className="w-3 h-3 text-yellow-500" />
-              <span className="text-sm font-medium text-slate-700">
-                {Number(crop.ratingCount) > 0 ? averageRating.toFixed(1) : '-'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">Rating</p>
+          <div className="flex items-center gap-1 text-emerald-300/80">
+            <Star className="w-3 h-3 text-yellow-400" />
+            <span>
+              {Number(crop.ratingCount) > 0 ? averageRating.toFixed(1) : '-'}
+            </span>
           </div>
           
-          <div>
-            <div className="flex items-center justify-center gap-1">
-              <Hash className="w-3 h-3 text-slate-500" />
-              <span className="text-sm font-medium text-slate-700">#{crop.tokenId}</span>
-            </div>
-            <p className="text-xs text-slate-500">NFT ID</p>
+          <div className="flex items-center gap-1 text-emerald-300/80">
+            <Hash className="w-3 h-3" />
+            <span>#{crop.tokenId}</span>
           </div>
         </div>
 
-        {/* Farmer Info */}
-        <div className="bg-emerald-50 p-3 rounded-lg">
+        {/* Farmer Info - Compact */}
+        <div className="bg-emerald-700/30 p-2 rounded-md border border-emerald-600/30">
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-emerald-600" />
-            <div>
-              <p className="text-sm font-medium text-emerald-800">
+            <User className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-emerald-200 truncate">
                 {crop.farmer.slice(0, 6)}...{crop.farmer.slice(-4)}
               </p>
-              <p className="text-xs text-emerald-600">Verified Farmer</p>
+              <p className="text-xs text-emerald-400/80">Verified</p>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Action Buttons - Compact */}
+        <div className="flex gap-2">
           <Button
             onClick={handleScan}
             disabled={!userAddress || isInteracting}
             size="sm"
-            className={`${
+            className={`flex-1 h-8 text-xs ${
               userAddress 
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-emerald-800/50 text-emerald-400/70 cursor-not-allowed border border-emerald-700/40'
             }`}
           >
             {!userAddress ? (
@@ -273,21 +263,21 @@ export function ConsumerCropCard({
             onClick={handleViewDetails}
             variant="outline"
             size="sm"
-            className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            className="flex-1 h-8 text-xs border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30"
           >
-            View Details
+            Details
           </Button>
         </div>
 
-        {/* Rewards Info */}
+        {/* Rewards Info - Compact */}
         {userAddress && (
-          <div className="bg-green-50 p-2 rounded text-center">
-            <p className="text-xs text-green-700">
-              💚 Scan: +10 pts • Rate: +20 pts • Share: +25 pts
+          <div className="bg-emerald-700/20 p-1.5 rounded text-center border border-emerald-600/30">
+            <p className="text-xs text-emerald-300/90">
+              💚 +10 • ⭐ +20 • 🔗 +25 pts
             </p>
           </div>
         )}
-      </CardContent>
+      </div>
     </Card>
   )
 }

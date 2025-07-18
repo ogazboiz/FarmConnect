@@ -173,7 +173,7 @@ export const useGreenPointsBalance = (address?: string) => {
 
 // Crop NFT Hooks
 export const useCropNFT = () => {
-  const { writeContract, data: hash } = useWriteContract();
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const createCropBatch = async (
@@ -184,106 +184,113 @@ export const useCropNFT = () => {
     cropImage: string
   ) => {
     try {
+      console.log('Submitting createCropBatch transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'createCropBatch',
         args: [cropType, location, isOrganic, quantity, cropImage],
       });
-      toast.success('Crop batch created successfully! 🌾');
+      toast.success('Transaction submitted! Waiting for confirmation... 🌾');
     } catch (error) {
       toast.error('Failed to create crop batch');
-      console.error(error);
+      console.error('createCropBatch error:', error);
     }
   };
 
   const scanProduct = async (tokenId: bigint) => {
     try {
+      console.log('Submitting scanProduct transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'scanProduct',
         args: [tokenId],
       });
-      toast.success('Product scanned! You earned GREEN points! 📱');
+      toast.success('Transaction submitted! Waiting for confirmation... 📱');
     } catch (error) {
       toast.error('Failed to scan product');
-      console.error(error);
+      console.error('scanProduct error:', error);
     }
   };
 
   const rateProduct = async (tokenId: bigint, rating: bigint) => {
     try {
+      console.log('Submitting rateProduct transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'rateProduct',
         args: [tokenId, rating],
       });
-      toast.success(`Rated ${rating} stars! You earned more GREEN points! ⭐`);
+      toast.success(`Transaction submitted! Waiting for confirmation... ⭐`);
     } catch (error) {
       toast.error('Failed to rate product');
-      console.error(error);
+      console.error('rateProduct error:', error);
     }
   };
 
   const shareProduct = async (tokenId: bigint) => {
     try {
+      console.log('Submitting shareProduct transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'shareProduct',
         args: [tokenId],
       });
-      toast.success('Product shared! You earned maximum GREEN points! 📤');
+      toast.success('Transaction submitted! Waiting for confirmation... 📤');
     } catch (error) {
       toast.error('Failed to share product');
-      console.error(error);
+      console.error('shareProduct error:', error);
     }
   };
 
   const updateStatus = async (tokenId: bigint, newStatus: string) => {
     try {
+      console.log('Submitting updateStatus transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'updateStatus',
         args: [tokenId, newStatus],
       });
-      toast.success(`Status updated to: ${newStatus}`);
+      toast.success(`Transaction submitted! Waiting for confirmation...`);
     } catch (error) {
       toast.error('Failed to update status');
-      console.error(error);
+      console.error('updateStatus error:', error);
     }
   };
 
   const addCertification = async (tokenId: bigint, certification: string) => {
     try {
+      console.log('Submitting addCertification transaction...');
       writeContract({
         address: contracts.CROP_NFT,
         abi: CropNFTABI,
         functionName: 'addCertification',
         args: [tokenId, certification],
       });
-      toast.success('Certification added successfully! ✅');
+      toast.success('Transaction submitted! Waiting for confirmation... ✅');
     } catch (error) {
       toast.error('Failed to add certification');
-      console.error(error);
+      console.error('addCertification error:', error);
     }
   };
 
   const updateCropImage = async (tokenId: bigint, newImage: string) => {
   try {
+    console.log('Submitting updateCropImage transaction...');
     writeContract({
       address: contracts.CROP_NFT,
       abi: CropNFTABI,
       functionName: 'updateCropImage',
       args: [tokenId, newImage],
     });
-    toast.success('Crop image updated successfully! 📸');
+    toast.success('Transaction submitted! Waiting for confirmation... 📸');
   } catch (error) {
     toast.error('Failed to update crop image');
-    console.error(error);
+    console.error('updateCropImage error:', error);
   }
 };
 
@@ -295,6 +302,7 @@ export const useCropNFT = () => {
     updateStatus,
     addCertification,
     updateCropImage,
+    isPending,
     isConfirming,
     isSuccess,
     hash,
@@ -310,6 +318,9 @@ export const useCropBatch = (tokenId?: bigint) => {
     args: tokenId ? [tokenId] : undefined,
     query: {
       enabled: !!tokenId,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
     },
   });
 };
@@ -323,6 +334,9 @@ export const useFarmerCrops = (farmerAddress?: string) => {
     args: farmerAddress ? [farmerAddress] : undefined,
     query: {
       enabled: !!farmerAddress,
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
     },
   });
 
@@ -363,6 +377,11 @@ export const useCropNFTTotalSupply = () => {
     address: contracts.CROP_NFT,
     abi: CropNFTABI,
     functionName: 'totalSupply',
+    query: {
+      // Reduce cache time to ensure fresh data after transactions
+      cacheTime: 5000, // 5 seconds
+      staleTime: 0, // Always consider stale to force refetch
+    },
   });
 };
 

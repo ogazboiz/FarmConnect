@@ -1,7 +1,8 @@
 // src/app/dashboard/crops/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { toast } from 'react-hot-toast'
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Plus, MapPin, Calendar, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share, User } from "lucide-react"
+import { Plus, MapPin, Calendar, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share, User, RefreshCw } from "lucide-react"
 import { useAccount } from "wagmi"
 import { 
   useFarmerCrops, 
@@ -77,12 +78,90 @@ export default function CropTrackingPage() {
   // Get selected crop details
   const selectedCropBatch = useCropBatch(selectedCropId || undefined)
 
+  // Cache invalidation function - more specific to avoid over-fetching
+  const invalidateQueries = useCallback(() => {
+    console.log('Invalidating queries - refetching farmer crops and total supply')
+    // Refetch farmer crops specifically
+    farmerCrops.refetch()
+    totalSupply.refetch()
+    if (selectedCropId) {
+      selectedCropBatch.refetch()
+    }
+    console.log('Queries invalidated')
+  }, [farmerCrops, totalSupply, selectedCropBatch, selectedCropId])
+
+  // Force refetch all crop cards after mutations with retry mechanism
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const forceRefreshCrops = useCallback(async () => {
+    console.log('Force refresh crops triggered - updating refresh trigger and invalidating queries')
+    setRefreshTrigger(prev => {
+      const newValue = prev + 1
+      console.log('Refresh trigger updated from', prev, 'to', newValue)
+      return newValue
+    })
+    
+    // Initial refresh
+    invalidateQueries()
+    
+    // Retry mechanism - sometimes blockchain state takes time to propagate
+    setTimeout(() => {
+      console.log('Retry refresh #1 after 3 seconds')
+      invalidateQueries()
+    }, 3000)
+    
+    setTimeout(() => {
+      console.log('Retry refresh #2 after 6 seconds')
+      invalidateQueries()
+    }, 6000)
+  }, [invalidateQueries])
+
+  // Track processed transaction hashes to avoid duplicate refreshes
+  const [processedTxHashes, setProcessedTxHashes] = useState<Set<string>>(new Set())
+
+  // Watch for transaction success to trigger refetch
+  useEffect(() => {
+    console.log('Transaction watcher triggered:', {
+      isSuccess: cropNFT.isSuccess,
+      hash: cropNFT.hash,
+      isConfirming: cropNFT.isConfirming,
+      isPending: cropNFT.isPending,
+      processedHashes: Array.from(processedTxHashes)
+    })
+
+    if (cropNFT.isSuccess && cropNFT.hash && !processedTxHashes.has(cropNFT.hash)) {
+      console.log('Transaction confirmed, refreshing UI:', cropNFT.hash)
+      
+      // Show success toast
+      toast.success('Transaction confirmed! UI updating... ✅')
+      
+      // Mark this hash as processed
+      setProcessedTxHashes(prev => new Set(prev).add(cropNFT.hash!))
+      
+      // Add a delay to allow blockchain state to propagate before refetching
+      setTimeout(() => {
+        console.log('Executing delayed refresh after transaction confirmation')
+        forceRefreshCrops()
+      }, 2000) // 2 second delay
+    }
+  }, [cropNFT.isSuccess, cropNFT.hash, cropNFT.isConfirming, cropNFT.isPending, forceRefreshCrops, processedTxHashes])
+
+  // Additional watcher for hash changes to trigger immediate refresh
+  useEffect(() => {
+    if (cropNFT.hash && !cropNFT.isConfirming && cropNFT.isSuccess) {
+      console.log('Hash confirmed, checking for refresh:', cropNFT.hash)
+      if (!processedTxHashes.has(cropNFT.hash)) {
+        console.log('Hash not processed yet, will be handled by main watcher')
+      }
+    }
+  }, [cropNFT.hash, cropNFT.isConfirming, cropNFT.isSuccess, processedTxHashes])
+
   const handleCreateCrop = async () => {
     if (!newCrop.cropType || !newCrop.location || !newCrop.quantity) {
       return
     }
 
     try {
+      console.log('Creating crop batch...')
       const quantity = parseTokenAmount(newCrop.quantity, 0) // No decimals for quantity
       await cropNFT.createCropBatch(
         newCrop.cropType,
@@ -91,6 +170,8 @@ export default function CropTrackingPage() {
         quantity,
         newCrop.cropImage || 'ipfs://default-crop-image'
       )
+      
+      console.log('Crop batch creation initiated, waiting for confirmation...')
       
       // Reset form
       setNewCrop({
@@ -101,6 +182,7 @@ export default function CropTrackingPage() {
         cropImage: ''
       })
       setIsCreateModalOpen(false)
+      // Refresh will be handled automatically by useEffect when transaction succeeds
     } catch (error) {
       console.error('Error creating crop:', error)
     }
@@ -134,9 +216,12 @@ export default function CropTrackingPage() {
     if (!statusUpdate.tokenId || !statusUpdate.newStatus) return
 
     try {
+      console.log('Updating status for token:', statusUpdate.tokenId, 'to:', statusUpdate.newStatus)
       await cropNFT.updateStatus(statusUpdate.tokenId, statusUpdate.newStatus)
+      console.log('Status update initiated, waiting for confirmation...')
       setStatusUpdate({ tokenId: null, newStatus: '' })
       setIsUpdateStatusOpen(false)
+      // Refresh will be handled automatically by useEffect when transaction succeeds
     } catch (error) {
       console.error('Error updating status:', error)
     }
@@ -146,9 +231,12 @@ export default function CropTrackingPage() {
     if (!certificationData.tokenId || !certificationData.certification) return
 
     try {
+      console.log('Adding certification for token:', certificationData.tokenId)
       await cropNFT.addCertification(certificationData.tokenId, certificationData.certification)
+      console.log('Certification addition initiated, waiting for confirmation...')
       setCertificationData({ tokenId: null, certification: '' })
       setIsAddCertificationOpen(false)
+      // Refresh will be handled automatically by useEffect when transaction succeeds
     } catch (error) {
       console.error('Error adding certification:', error)
     }
@@ -158,13 +246,16 @@ export default function CropTrackingPage() {
     if (!imageUpdate.tokenId || !imageUpdate.newImage) return
 
     try {
+      console.log('Updating image for token:', imageUpdate.tokenId)
       if (cropNFT.updateCropImage) {
         await cropNFT.updateCropImage(imageUpdate.tokenId, imageUpdate.newImage)
+        console.log('Image update initiated, waiting for confirmation...')
       } else {
         console.error('updateCropImage function not available in hook')
       }
       setImageUpdate({ tokenId: null, newImage: '' })
       setIsUpdateImageOpen(false)
+      // Refresh will be handled automatically by useEffect when transaction succeeds
     } catch (error) {
       console.error('Error updating image:', error)
     }
@@ -258,13 +349,13 @@ export default function CropTrackingPage() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+      <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
         <Header />
-        <div className="pt-24 pb-16 px-4">
+        <div className="px-4 pt-24 pb-16">
           <div className="container mx-auto">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <h2 className="text-2xl font-semibold text-emerald-100 mb-2">Connect Your Wallet</h2>
+                <h2 className="mb-2 text-2xl font-semibold text-emerald-100">Connect Your Wallet</h2>
                 <p className="text-emerald-200/80">Please connect your wallet to view and manage your crops on the blockchain</p>
               </div>
             </div>
@@ -276,16 +367,16 @@ export default function CropTrackingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
+      <div className="px-4 pt-24 pb-16">
         <div className="container mx-auto">
           {/* Header Section */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-emerald-100 mb-2">
-                <span className="bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent">
+              <h1 className="mb-2 text-4xl font-bold text-emerald-100">
+                <span className="text-transparent bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text">
                   🌾 My Crops Dashboard
                 </span>
               </h1>
@@ -294,36 +385,47 @@ export default function CropTrackingPage() {
                 Total Crops in System: {totalSupply.data?.toString() || "Loading..."}
               </p>
             </div>
-            <Button 
-              className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-xl font-semibold"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Crop
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                className="bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
+                onClick={forceRefreshCrops}
+                disabled={farmerCrops.isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${farmerCrops.isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button 
+                className="font-semibold text-white shadow-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Crop
+              </Button>
+            </div>
           </div>
 
           {/* Loading State */}
           {farmerCrops.isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-emerald-300" />
+                <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-emerald-300" />
                 <p className="text-emerald-200/80">Loading your crops from the blockchain...</p>
               </div>
             </div>
           ) : farmerCrops.count === 0 ? (
             /* Empty State */
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-emerald-700/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-700/50">
                     <Plus className="w-8 h-8 text-emerald-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-emerald-100 mb-2">No Crops Yet</h3>
-                  <p className="text-emerald-200/80 mb-4">Create your first crop batch to start tracking on the blockchain</p>
+                  <h3 className="mb-2 text-xl font-semibold text-emerald-100">No Crops Yet</h3>
+                  <p className="mb-4 text-emerald-200/80">Create your first crop batch to start tracking on the blockchain</p>
                   <Button 
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+                    className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Create First Crop
@@ -334,11 +436,12 @@ export default function CropTrackingPage() {
           ) : (
             <>
               {/* Crops Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 xl:grid-cols-3">
                 {farmerCrops.data.map((tokenId: bigint) => (
                   <CropCard 
-                    key={tokenId.toString()} 
+                    key={`${tokenId.toString()}-${refreshTrigger}`} 
                     tokenId={tokenId}
+                    refreshTrigger={refreshTrigger}
                     onViewDetails={openCropDetails}
                     onScan={handleScanProduct}
                     onRate={handleRateProduct}
@@ -357,9 +460,9 @@ export default function CropTrackingPage() {
               </div>
 
               {/* Blockchain Records */}
-              <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+              <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
                 <CardHeader>
-                  <CardTitle className="text-emerald-100 flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-emerald-100">
                     <TrendingUp className="w-5 h-5 text-emerald-400" />
                     Your Blockchain Records
                   </CardTitle>
@@ -369,7 +472,7 @@ export default function CropTrackingPage() {
                     {farmerCrops.data.slice(0, 3).map((tokenId: bigint, index: number) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300"
+                        className="flex items-center justify-between p-4 transition-colors duration-300 border rounded-lg bg-emerald-900/30 border-emerald-700/30 hover:bg-emerald-800/40"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -401,7 +504,7 @@ export default function CropTrackingPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+                    className="w-full mt-4 bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
                     onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${address}`, '_blank')}
                   >
                     View All Records on Explorer
@@ -468,13 +571,13 @@ export default function CropTrackingPage() {
                 placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
                 className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
               />
-              <p className="text-xs text-emerald-300/70 mt-1">
+              <p className="mt-1 text-xs text-emerald-300/70">
                 Use your Pinata IPFS URL or any HTTPS image URL
               </p>
             </div>
             <Button 
               onClick={handleCreateCrop}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              className="w-full text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
               disabled={cropNFT.isConfirming || !newCrop.cropType || !newCrop.location || !newCrop.quantity}
             >
               {cropNFT.isConfirming ? (
@@ -503,7 +606,7 @@ export default function CropTrackingPage() {
                 id="newStatus"
                 value={statusUpdate.newStatus}
                 onChange={(e) => setStatusUpdate({...statusUpdate, newStatus: e.target.value})}
-                className="w-full bg-emerald-800/50 border border-emerald-600 text-emerald-100 rounded-md px-3 py-2"
+                className="w-full px-3 py-2 border rounded-md bg-emerald-800/50 border-emerald-600 text-emerald-100"
               >
                 <option value="">Select status...</option>
                 <option value="planted">Planted</option>
@@ -515,7 +618,7 @@ export default function CropTrackingPage() {
             </div>
             <Button 
               onClick={handleUpdateStatus}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              className="w-full text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
               disabled={cropNFT.isConfirming || !statusUpdate.newStatus}
             >
               {cropNFT.isConfirming ? (
@@ -550,7 +653,7 @@ export default function CropTrackingPage() {
             </div>
             <Button 
               onClick={handleAddCertification}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              className="w-full text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
               disabled={cropNFT.isConfirming || !certificationData.certification}
             >
               {cropNFT.isConfirming ? (
@@ -582,18 +685,18 @@ export default function CropTrackingPage() {
                 placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
                 className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
               />
-              <p className="text-xs text-emerald-300/70 mt-1">
+              <p className="mt-1 text-xs text-emerald-300/70">
                 Use your Pinata IPFS URL or any HTTPS image URL
               </p>
             </div>
             {imageUpdate.newImage && (
               <div className="space-y-2">
                 <Label className="text-emerald-200">Preview</Label>
-                <div className="aspect-video w-full max-w-xs mx-auto overflow-hidden rounded-lg">
+                <div className="w-full max-w-xs mx-auto overflow-hidden rounded-lg aspect-video">
                   <img 
                     src={getImageUrl(imageUpdate.newImage) || imageUpdate.newImage} 
                     alt="Preview" 
-                    className="w-full h-full object-cover"
+                    className="object-cover w-full h-full"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
                     }}
@@ -603,7 +706,7 @@ export default function CropTrackingPage() {
             )}
             <Button 
               onClick={handleUpdateImage}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              className="w-full text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
               disabled={cropNFT.isConfirming || !imageUpdate.newImage}
             >
               {cropNFT.isConfirming ? (
@@ -657,6 +760,7 @@ export default function CropTrackingPage() {
 // Individual Crop Card Component
 function CropCard({ 
   tokenId, 
+  refreshTrigger,
   onViewDetails, 
   onScan, 
   onRate, 
@@ -672,6 +776,7 @@ function CropCard({
   userAddress
 }: { 
   tokenId: bigint
+  refreshTrigger?: number
   onViewDetails: (id: bigint) => void
   onScan: (id: bigint) => void
   onRate: (id: bigint, rating: number) => void
@@ -688,9 +793,25 @@ function CropCard({
 }) {
   const cropBatch = useCropBatch(tokenId)
 
+  // Refetch when refreshTrigger changes, but with debouncing to avoid excessive calls
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      console.log('CropCard refetch triggered for token:', tokenId.toString(), 'trigger:', refreshTrigger)
+      const timer = setTimeout(() => {
+        if (cropBatch.refetch) {
+          console.log('Executing CropCard refetch for token:', tokenId.toString())
+          cropBatch.refetch()
+        }
+      }, 500) // Debounce refetch calls
+      
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]) // Intentionally excluding cropBatch to avoid infinite loops
+
   if (cropBatch.isLoading) {
     return (
-      <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+      <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
         <CardContent className="flex items-center justify-center h-48">
           <Loader2 className="w-6 h-6 animate-spin text-emerald-300" />
         </CardContent>
@@ -700,7 +821,7 @@ function CropCard({
 
   if (!cropBatch.data) {
     return (
-      <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+      <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
         <CardContent className="flex items-center justify-center h-48">
           <p className="text-emerald-200/80">Failed to load crop data</p>
         </CardContent>
@@ -714,13 +835,13 @@ function CropCard({
   const imageUrl = getImageUrl(crop.cropImage)
 
   return (
-    <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
-      <div className="aspect-video bg-gradient-to-br from-emerald-900/50 to-green-900/50 rounded-t-lg relative overflow-hidden">
+    <Card className="transition-all duration-300 transform border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl hover:scale-105 group">
+      <div className="relative overflow-hidden rounded-t-lg aspect-video bg-gradient-to-br from-emerald-900/50 to-green-900/50">
         {imageUrl ? (
           <img 
             src={imageUrl} 
             alt={crop.cropType} 
-            className="w-full h-full object-cover"
+            className="object-cover w-full h-full"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
               e.currentTarget.nextElementSibling?.classList.remove('hidden')
@@ -735,7 +856,7 @@ function CropCard({
         </div>
         {crop.isOrganic && (
           <div className="absolute top-3 left-3">
-            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+            <Badge className="text-xs text-green-800 bg-green-100 border-green-300">
               🌿 Organic
             </Badge>
           </div>
@@ -744,12 +865,12 @@ function CropCard({
 
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-emerald-100 text-lg">{crop.cropType}</CardTitle>
+          <CardTitle className="text-lg text-emerald-100">{crop.cropType}</CardTitle>
           <div className="flex gap-1">
             <Button 
               size="sm" 
               variant="ghost" 
-              className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              className="w-8 h-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
               onClick={() => onViewDetails(tokenId)}
             >
               <Eye className="w-4 h-4" />
@@ -757,7 +878,7 @@ function CropCard({
             <Button 
               size="sm" 
               variant="ghost" 
-              className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              className="w-8 h-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
               onClick={() => onScan(tokenId)}
             >
               <QrCode className="w-4 h-4" />
@@ -766,7 +887,7 @@ function CropCard({
               <Button 
                 size="sm" 
                 variant="ghost" 
-                className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+                className="w-8 h-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
                 onClick={() => onUpdateStatus(tokenId)}
                 title="Update Status"
               >
@@ -784,7 +905,7 @@ function CropCard({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-emerald-200/80">Growth Progress</span>
-            <span className="text-emerald-100 font-medium">{progress.toFixed(0)}%</span>
+            <span className="font-medium text-emerald-100">{progress.toFixed(0)}%</span>
           </div>
           <Progress value={progress} className="h-2 bg-emerald-900/50" />
         </div>
@@ -816,7 +937,7 @@ function CropCard({
               size="sm"
               variant="ghost"
               onClick={() => onRate(tokenId, 5)}
-              className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
             >
               <Star className="w-3 h-3" />
             </Button>
@@ -824,7 +945,7 @@ function CropCard({
               size="sm"
               variant="ghost"
               onClick={() => onShare(tokenId)}
-              className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
             >
               <Share className="w-3 h-3" />
             </Button>
@@ -833,7 +954,7 @@ function CropCard({
 
         <Button
           variant="outline"
-          className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+          className="w-full bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
           onClick={() => onViewDetails(tokenId)}
         >
           View Details
@@ -847,7 +968,7 @@ function CropCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                className="flex-1 text-xs bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onUpdateStatus(tokenId)}
               >
                 <Edit className="w-3 h-3 mr-1" />
@@ -856,7 +977,7 @@ function CropCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                className="flex-1 text-xs bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onAddCertification(tokenId)}
               >
                 <Hash className="w-3 h-3 mr-1" />
@@ -865,7 +986,7 @@ function CropCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                className="flex-1 text-xs bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onUpdateImage(tokenId)}
               >
                 <Eye className="w-3 h-3 mr-1" />
@@ -876,7 +997,7 @@ function CropCard({
             {/* QR Generator Button - Prominent */}
             <Button
               variant="outline"
-              className="w-full border-yellow-600/50 text-yellow-200 hover:bg-yellow-800/60 bg-transparent hover:border-yellow-500"
+              className="w-full text-yellow-200 bg-transparent border-yellow-600/50 hover:bg-yellow-800/60 hover:border-yellow-500"
               onClick={() => onGenerateQR(tokenId, crop.cropType)}
             >
               <QrCode className="w-4 h-4 mr-2" />
@@ -928,9 +1049,9 @@ function CropDetailsModal({
   }
 
   return (
-    <div className="space-y-6 mt-4 h-full overflow-y-auto pr-2">
+    <div className="h-full pr-2 mt-4 space-y-6 overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="text-2xl text-emerald-100 flex items-center gap-3">
+        <DialogTitle className="flex items-center gap-3 text-2xl text-emerald-100">
           <Leaf className="w-6 h-6 text-emerald-400" />
           {cropBatch.cropType} Details
           <Badge className={`${getStageColor(cropBatch.status)} border ml-auto`}>
@@ -943,17 +1064,17 @@ function CropDetailsModal({
       {imageUrl && (
         <Card className="bg-emerald-800/40 border-emerald-700/40">
           <CardHeader>
-            <CardTitle className="text-emerald-100 flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-emerald-100">
               <Eye className="w-5 h-5 text-emerald-400" />
               Crop Image
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video w-full max-w-2xl mx-auto overflow-hidden rounded-lg">
+            <div className="w-full max-w-2xl mx-auto overflow-hidden rounded-lg aspect-video">
               <img 
                 src={imageUrl} 
                 alt={cropBatch.cropType} 
-                className="w-full h-full object-cover"
+                className="object-cover w-full h-full"
                 onError={(e) => {
                   e.currentTarget.parentElement?.classList.add('hidden')
                 }}
@@ -966,35 +1087,35 @@ function CropDetailsModal({
       {/* Basic Information */}
       <Card className="bg-emerald-800/40 border-emerald-700/40">
         <CardHeader>
-          <CardTitle className="text-emerald-100 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-emerald-100">
             <MapPin className="w-5 h-5 text-emerald-400" />
             Basic Information
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Crop Type</p>
-            <p className="text-emerald-100 font-medium">{cropBatch.cropType}</p>
+            <p className="font-medium text-emerald-100">{cropBatch.cropType}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Location</p>
-            <p className="text-emerald-100 font-medium">{cropBatch.location}</p>
+            <p className="font-medium text-emerald-100">{cropBatch.location}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Quantity</p>
-            <p className="text-emerald-100 font-medium">{cropBatch.quantity?.toString()} units</p>
+            <p className="font-medium text-emerald-100">{cropBatch.quantity?.toString()} units</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Organic</p>
-            <p className="text-emerald-100 font-medium">{cropBatch.isOrganic ? "Yes" : "No"}</p>
+            <p className="font-medium text-emerald-100">{cropBatch.isOrganic ? "Yes" : "No"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Status</p>
-            <p className="text-emerald-100 font-medium capitalize">{cropBatch.status}</p>
+            <p className="font-medium capitalize text-emerald-100">{cropBatch.status}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Created</p>
-            <p className="text-emerald-100 font-medium">{formatDate(cropBatch.createdAt)}</p>
+            <p className="font-medium text-emerald-100">{formatDate(cropBatch.createdAt)}</p>
           </div>
         </CardContent>
       </Card>
@@ -1002,28 +1123,28 @@ function CropDetailsModal({
       {/* Engagement Data Card */}
       <Card className="bg-emerald-800/40 border-emerald-700/40">
         <CardHeader>
-          <CardTitle className="text-emerald-100 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-emerald-100">
             <Star className="w-5 h-5 text-emerald-400" />
             Engagement & Ratings
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <p className="text-sm text-emerald-200/80">Total Scans</p>
-              <p className="text-emerald-100 font-medium text-lg">
+              <p className="text-lg font-medium text-emerald-100">
                 {engagementData.data?.totalScans?.toString() || '0'}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-emerald-200/80">Total Ratings</p>
-              <p className="text-emerald-100 font-medium text-lg">
+              <p className="text-lg font-medium text-emerald-100">
                 {engagementData.data?.totalRatings?.toString() || '0'}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-emerald-200/80">Average Rating</p>
-              <p className="text-emerald-100 font-medium text-lg">
+              <p className="text-lg font-medium text-emerald-100">
                 {engagementData.data?.averageRating ? 
                   (Number(engagementData.data.averageRating) / 100).toFixed(1) + '/5' : 
                   'No ratings'
@@ -1032,7 +1153,7 @@ function CropDetailsModal({
             </div>
             <div className="space-y-2">
               <p className="text-sm text-emerald-200/80">Social Shares</p>
-              <p className="text-emerald-100 font-medium text-lg">
+              <p className="text-lg font-medium text-emerald-100">
                 {engagementData.data?.socialShares?.toString() || '0'}
               </p>
             </div>
@@ -1043,20 +1164,20 @@ function CropDetailsModal({
       {/* Blockchain Information */}
       <Card className="bg-emerald-800/40 border-emerald-700/40">
         <CardHeader>
-          <CardTitle className="text-emerald-100 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-emerald-100">
             <Shield className="w-5 h-5 text-emerald-400" />
             Blockchain Information
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">NFT Token ID</p>
             <div className="flex items-center gap-2">
-              <p className="text-emerald-100 font-mono text-sm">#{tokenId.toString()}</p>
+              <p className="font-mono text-sm text-emerald-100">#{tokenId.toString()}</p>
               <Button 
                 size="sm" 
                 variant="ghost" 
-                className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100"
                 onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
@@ -1066,11 +1187,11 @@ function CropDetailsModal({
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Owner</p>
             <div className="flex items-center gap-2">
-              <p className="text-emerald-100 font-mono text-xs">{cropBatch.farmer}</p>
+              <p className="font-mono text-xs text-emerald-100">{cropBatch.farmer}</p>
               <Button 
                 size="sm" 
                 variant="ghost" 
-                className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100"
                 onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${cropBatch.farmer}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
@@ -1079,27 +1200,27 @@ function CropDetailsModal({
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Network</p>
-            <p className="text-emerald-100 font-medium">Mantle Sepolia Testnet</p>
+            <p className="font-medium text-emerald-100">Mantle Sepolia Testnet</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Harvest Date</p>
-            <p className="text-emerald-100 font-medium">{formatDate(cropBatch.harvestDate)}</p>
+            <p className="font-medium text-emerald-100">{formatDate(cropBatch.harvestDate)}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Certifications</p>
-            <p className="text-emerald-100 font-medium">{cropBatch.certifications || "None yet"}</p>
+            <p className="font-medium text-emerald-100">{cropBatch.certifications || "None yet"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Image URL</p>
             <div className="flex items-center gap-2">
-              <p className="text-emerald-100 font-mono text-xs truncate max-w-xs">
+              <p className="max-w-xs font-mono text-xs truncate text-emerald-100">
                 {cropBatch.cropImage || "No image"}
               </p>
               {cropBatch.cropImage && (
                 <Button 
                   size="sm" 
                   variant="ghost" 
-                  className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                  className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100"
                   onClick={() => window.open(getImageUrl(cropBatch.cropImage) || '', '_blank')}
                 >
                   <ExternalLink className="w-3 h-3" />
@@ -1114,17 +1235,17 @@ function CropDetailsModal({
       {isOwner && (
         <Card className="bg-emerald-800/40 border-emerald-700/40">
           <CardHeader>
-            <CardTitle className="text-emerald-100 flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-emerald-100">
               <Edit className="w-5 h-5 text-emerald-400" />
               Owner Actions
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Main Actions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <Button 
                 variant="outline" 
-                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                className="bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onUpdateStatus(tokenId)}
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -1133,7 +1254,7 @@ function CropDetailsModal({
               
               <Button 
                 variant="outline" 
-                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                className="bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onAddCertification(tokenId)}
               >
                 <Hash className="w-4 h-4 mr-2" />
@@ -1142,7 +1263,7 @@ function CropDetailsModal({
               
               <Button 
                 variant="outline" 
-                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                className="bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60"
                 onClick={() => onUpdateImage(tokenId)}
               >
                 <Eye className="w-4 h-4 mr-2" />
@@ -1151,16 +1272,16 @@ function CropDetailsModal({
             </div>
 
             {/* QR Generator - Highlighted */}
-            <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
-              <h4 className="text-yellow-200 font-medium mb-2 flex items-center gap-2">
+            <div className="p-4 border rounded-lg bg-yellow-900/20 border-yellow-600/30">
+              <h4 className="flex items-center gap-2 mb-2 font-medium text-yellow-200">
                 <QrCode className="w-4 h-4" />
                 Create QR Code for Product Packaging
               </h4>
-              <p className="text-yellow-300/70 text-sm mb-3">
-                Generate a QR code that consumers can scan to see this crop's story and earn GREEN points
+              <p className="mb-3 text-sm text-yellow-300/70">
+                Generate a QR code that consumers can scan to see this crop&apos;s story and earn GREEN points
               </p>
               <Button 
-                className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white"
+                className="w-full text-white bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700"
                 onClick={() => onGenerateQR(tokenId, cropBatch.cropType)}
               >
                 <QrCode className="w-4 h-4 mr-2" />
@@ -1175,9 +1296,9 @@ function CropDetailsModal({
         </Card>
       )}
         
-      <div className="flex gap-3 mt-6 flex-wrap">
+      <div className="flex flex-wrap gap-3 mt-6">
         <Button 
-          className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+          className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
           onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
         >
           <ExternalLink className="w-4 h-4 mr-2" />

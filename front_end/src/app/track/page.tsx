@@ -34,26 +34,26 @@ export default function TrackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">
-              <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+      <div className="px-4 pt-24 pb-16">
+        <div className="container max-w-2xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-4xl font-bold text-white">
+              <span className="text-transparent bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text">
                 📱 Track Your Product
               </span>
             </h1>
-            <p className="text-xl text-slate-600">
+            <p className="text-xl text-emerald-200/80">
               Scan QR code or enter product ID to discover the story behind your food
             </p>
           </div>
 
-          <Card className="bg-white/80 backdrop-blur-sm border border-emerald-200">
+          <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
             <CardHeader>
-              <CardTitle className="text-slate-800 flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-emerald-600" />
+              <CardTitle className="flex items-center gap-2 text-emerald-100">
+                <QrCode className="w-5 h-5 text-emerald-400" />
                 Enter Product Information
               </CardTitle>
             </CardHeader>
@@ -63,27 +63,27 @@ export default function TrackPage() {
                 <Button
                   onClick={() => setShowScanner(true)}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white mb-4"
+                  className="mb-4 text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                 >
                   <Camera className="w-5 h-5 mr-2" />
                   📱 Scan QR Code
                 </Button>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-emerald-200/70">
                   Use your camera to scan the QR code on product packaging
                 </p>
               </div>
 
               {/* Divider */}
               <div className="flex items-center gap-4">
-                <div className="flex-1 border-t border-slate-200"></div>
-                <span className="text-sm text-slate-500 bg-slate-50 px-3 py-1 rounded-full">or</span>
-                <div className="flex-1 border-t border-slate-200"></div>
+                <div className="flex-1 border-t border-emerald-600/30"></div>
+                <span className="px-3 py-1 text-sm rounded-full text-emerald-200/70 bg-emerald-700/30">or</span>
+                <div className="flex-1 border-t border-emerald-600/30"></div>
               </div>
 
               {/* Manual Input */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block mb-2 text-sm font-medium text-emerald-200">
                     Product ID or Token ID
                   </label>
                   <div className="flex gap-2">
@@ -93,12 +93,12 @@ export default function TrackPage() {
                       value={tokenId}
                       onChange={(e) => setTokenId(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="border-emerald-300 focus:border-emerald-500"
+                      className="bg-emerald-700/30 border-emerald-600/40 text-emerald-100 placeholder:text-emerald-300/50 focus:border-emerald-500"
                     />
                     <Button 
                       onClick={handleScan}
                       disabled={!tokenId.trim()}
-                      className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white"
+                      className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                     >
                       <Search className="w-4 h-4 mr-2" />
                       Track
@@ -108,29 +108,29 @@ export default function TrackPage() {
               </div>
 
               {/* QR Scanner Note */}
-              <div className="border-t border-slate-200 pt-6">
-                <div className="bg-emerald-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-emerald-800 mb-2">📱 Have a QR Code?</h3>
-                  <p className="text-emerald-700 text-sm mb-3">
-                    If you have a QR code on your product packaging, click the "Scan QR Code" button above
-                    to automatically open the product details with your phone's camera.
+              <div className="pt-6 border-t border-emerald-600/30">
+                <div className="p-4 border rounded-lg bg-emerald-700/30 border-emerald-600/30">
+                  <h3 className="mb-2 font-medium text-emerald-300">📱 Have a QR Code?</h3>
+                  <p className="mb-3 text-sm text-emerald-200/80">
+                    If you have a QR code on your product packaging, click the &quot;Scan QR Code&quot; button above
+                    to automatically open the product details with your phone&apos;s camera.
                   </p>
-                  <p className="text-emerald-600 text-xs">
+                  <p className="text-xs text-emerald-300/60">
                     QR codes look like: yourapp.com/scan/123
                   </p>
                 </div>
               </div>
 
               {/* Browse Alternative */}
-              <div className="border-t border-slate-200 pt-6">
+              <div className="pt-6 border-t border-emerald-600/30">
                 <div className="text-center">
-                  <p className="text-slate-600 mb-4">
-                    Don't have a product ID? Browse all available crops instead.
+                  <p className="mb-4 text-emerald-200/80">
+                    Don&apos;t have a product ID? Browse all available crops instead.
                   </p>
                   <Button 
                     onClick={() => router.push('/marketplace')}
                     variant="outline"
-                    className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                    className="border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30 bg-emerald-800/20"
                   >
                     🛒 Browse Marketplace
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -141,34 +141,34 @@ export default function TrackPage() {
           </Card>
 
           {/* How It Works */}
-          <Card className="mt-8 bg-gradient-to-r from-emerald-600 to-green-600 text-white">
+          <Card className="mt-8 text-white border bg-gradient-to-r from-emerald-700 to-green-700 border-emerald-600/40">
             <CardHeader>
-              <CardTitle className="text-white text-center">
+              <CardTitle className="text-center text-white">
                 🌱 How Product Tracking Works
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                     <Camera className="w-6 h-6" />
                   </div>
-                  <h3 className="font-semibold mb-2">1. Scan QR Code</h3>
-                  <p className="text-emerald-100 text-sm">Use your phone's camera to scan the QR code on the product</p>
+                  <h3 className="mb-2 font-semibold">1. Scan QR Code</h3>
+                  <p className="text-sm text-emerald-100">Use your phone&apos;s camera to scan the QR code on the product</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                     <Search className="w-6 h-6" />
                   </div>
-                  <h3 className="font-semibold mb-2">2. Discover the Story</h3>
-                  <p className="text-emerald-100 text-sm">Learn about the farmer, location, and journey of your food</p>
+                  <h3 className="mb-2 font-semibold">2. Discover the Story</h3>
+                  <p className="text-sm text-emerald-100">Learn about the farmer, location, and journey of your food</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-white/20">
                     <ArrowRight className="w-6 h-6" />
                   </div>
-                  <h3 className="font-semibold mb-2">3. Earn Rewards</h3>
-                  <p className="text-emerald-100 text-sm">Get GREEN points for scanning, rating, and sharing</p>
+                  <h3 className="mb-2 font-semibold">3. Earn Rewards</h3>
+                  <p className="text-sm text-emerald-100">Get GREEN points for scanning, rating, and sharing</p>
                 </div>
               </div>
             </CardContent>

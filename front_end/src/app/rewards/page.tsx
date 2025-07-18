@@ -63,22 +63,22 @@ export default function RewardsPage() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+      <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
         <Header />
-        <div className="pt-24 pb-16 px-4">
-          <div className="container mx-auto max-w-2xl">
-            <Card className="bg-white/80 backdrop-blur-sm border border-emerald-200">
-              <CardContent className="text-center py-16">
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Wallet className="w-8 h-8 text-emerald-600" />
+        <div className="px-4 pt-24 pb-16">
+          <div className="container max-w-2xl mx-auto">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
+              <CardContent className="py-16 text-center">
+                <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-900/50">
+                  <Wallet className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Connect Wallet to View Rewards</h2>
-                <p className="text-slate-600 mb-6">
+                <h2 className="mb-2 text-2xl font-bold text-emerald-100">Connect Wallet to View Rewards</h2>
+                <p className="mb-6 text-emerald-200/80">
                   Connect your wallet to see your GREEN points balance and available rewards
                 </p>
                 <Button
                   onClick={() => setShowConnectModal(true)}
-                  className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white"
+                  className="text-white shadow-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
                 >
                   <Wallet className="w-4 h-4 mr-2" />
                   Connect Wallet
@@ -97,32 +97,32 @@ export default function RewardsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
+      <div className="px-4 pt-24 pb-16">
         <div className="container mx-auto">
           {/* Header Section */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">
-              <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+          <div className="mb-8 text-center">
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl text-emerald-100">
+              <span className="text-transparent bg-gradient-to-r from-emerald-300 via-green-300 to-yellow-300 bg-clip-text">
                 🎁 Your Rewards
               </span>
             </h1>
-            <p className="text-xl text-slate-600">
+            <p className="text-xl text-emerald-200/80">
               Redeem your GREEN points for amazing rewards and support farmers
             </p>
           </div>
 
           {/* Current Balance */}
-          <Card className="mb-8 bg-gradient-to-r from-emerald-600 to-green-600 text-white">
+          <Card className="mb-8 border bg-gradient-to-r from-emerald-600 to-green-600 border-emerald-400/50">
             <CardContent className="p-8 text-center">
               <div className="flex items-center justify-center gap-4 mb-4">
-                <Award className="w-12 h-12" />
+                <Award className="w-12 h-12 text-white" />
                 <div>
-                  <h2 className="text-4xl font-bold">
+                  <h2 className="text-4xl font-bold text-white">
                     {greenBalance.isLoading ? (
-                      <Loader2 className="w-8 h-8 animate-spin inline" />
+                      <Loader2 className="inline w-8 h-8 animate-spin" />
                     ) : (
                       currentPoints.toLocaleString()
                     )}
@@ -133,12 +133,12 @@ export default function RewardsPage() {
               
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span className="text-2xl">{currentTier.icon}</span>
-                <span className="text-xl font-semibold">{currentTier.name}</span>
+                <span className="text-xl font-semibold text-white">{currentTier.name}</span>
               </div>
               
               {nextTier && (
                 <div>
-                  <p className="text-emerald-100 mb-2">
+                  <p className="mb-2 text-emerald-100">
                     {nextTier.points - currentPoints} points to {nextTier.name}
                   </p>
                   <Progress 
@@ -150,50 +150,50 @@ export default function RewardsPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Earning Methods */}
             <div className="lg:col-span-1">
-              <Card className="bg-white/80 backdrop-blur-sm border border-emerald-200">
+              <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-600" />
+                  <CardTitle className="flex items-center gap-2 text-emerald-100">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
                     Earn More Points
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <div className="flex items-center gap-3">
-                      <QrCode className="w-5 h-5 text-emerald-600" />
+                      <QrCode className="w-5 h-5 text-emerald-400" />
                       <div>
-                        <p className="font-medium text-slate-800">Scan Products</p>
-                        <p className="text-sm text-slate-600">+10 points each</p>
+                        <p className="font-medium text-emerald-100">Scan Products</p>
+                        <p className="text-sm text-emerald-200/80">+10 points each</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-amber-900/30 border-amber-700/30">
                     <div className="flex items-center gap-3">
-                      <Star className="w-5 h-5 text-amber-600" />
+                      <Star className="w-5 h-5 text-amber-400" />
                       <div>
-                        <p className="font-medium text-slate-800">Rate Products</p>
-                        <p className="text-sm text-slate-600">+20 points each</p>
+                        <p className="font-medium text-emerald-100">Rate Products</p>
+                        <p className="text-sm text-emerald-200/80">+20 points each</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-blue-900/30 border-blue-700/30">
                     <div className="flex items-center gap-3">
-                      <Share className="w-5 h-5 text-blue-600" />
+                      <Share className="w-5 h-5 text-blue-400" />
                       <div>
-                        <p className="font-medium text-slate-800">Share Stories</p>
-                        <p className="text-sm text-slate-600">+25 points each</p>
+                        <p className="font-medium text-emerald-100">Share Stories</p>
+                        <p className="text-sm text-emerald-200/80">+25 points each</p>
                       </div>
                     </div>
                   </div>
 
                   <Button 
                     asChild
-                    className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white"
+                    className="w-full text-white shadow-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
                   >
                     <a href="/marketplace">
                       Start Earning Points
@@ -203,10 +203,10 @@ export default function RewardsPage() {
               </Card>
 
               {/* Reward Tiers */}
-              <Card className="mt-6 bg-white/80 backdrop-blur-sm border border-emerald-200">
+              <Card className="mt-6 border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-emerald-600" />
+                  <CardTitle className="flex items-center gap-2 text-emerald-100">
+                    <Award className="w-5 h-5 text-emerald-400" />
                     Reward Tiers
                   </CardTitle>
                 </CardHeader>
@@ -216,22 +216,22 @@ export default function RewardsPage() {
                       key={tier.name}
                       className={`p-3 rounded-lg border ${
                         currentPoints >= tier.points 
-                          ? 'bg-green-50 border-green-200' 
-                          : 'bg-slate-50 border-slate-200'
+                          ? 'bg-green-900/40 border-green-600/50' 
+                          : 'bg-emerald-900/20 border-emerald-700/30'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{tier.icon}</span>
                         <div>
                           <p className={`font-medium ${
-                            currentPoints >= tier.points ? 'text-green-800' : 'text-slate-600'
+                            currentPoints >= tier.points ? 'text-green-300' : 'text-emerald-200/80'
                           }`}>
                             {tier.name}
                           </p>
-                          <p className="text-sm text-slate-500">{tier.points} points</p>
+                          <p className="text-sm text-emerald-200/60">{tier.points} points</p>
                         </div>
                         {currentPoints >= tier.points && (
-                          <Badge className="ml-auto bg-green-100 text-green-800">
+                          <Badge className="ml-auto text-green-300 bg-green-900/50 border-green-600/50">
                             Unlocked
                           </Badge>
                         )}
@@ -244,15 +244,15 @@ export default function RewardsPage() {
 
             {/* Redeemable Items */}
             <div className="lg:col-span-2">
-              <Card className="bg-white/80 backdrop-blur-sm border border-emerald-200">
+              <Card className="border bg-white/80 backdrop-blur-sm border-emerald-200">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
                     <Gift className="w-5 h-5 text-emerald-600" />
                     Redeem Rewards
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {redeemableItems.map((item, index) => {
                       const canAfford = currentPoints >= item.points
                       const categoryColors = {
@@ -273,7 +273,7 @@ export default function RewardsPage() {
                           } transition-all duration-300`}
                         >
                           <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-start justify-between mb-3">
                               <h3 className={`font-medium ${
                                 canAfford ? 'text-slate-800' : 'text-slate-500'
                               }`}>
@@ -321,24 +321,24 @@ export default function RewardsPage() {
           </div>
 
           {/* Impact Section */}
-          <Card className="mt-8 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+          <Card className="mt-8 text-white bg-gradient-to-r from-green-600 to-emerald-600">
             <CardHeader>
-              <CardTitle className="text-white text-center text-2xl">
+              <CardTitle className="text-2xl text-center text-white">
                 🌱 Your Impact
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div className="grid grid-cols-1 gap-6 text-center md:grid-cols-3">
                 <div>
-                  <div className="text-3xl font-bold mb-2">{Math.floor(currentPoints / 10)}</div>
+                  <div className="mb-2 text-3xl font-bold">{Math.floor(currentPoints / 10)}</div>
                   <p className="text-green-100">Products Scanned</p>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-2">{Math.floor(currentPoints / 45)}</div>
+                  <div className="mb-2 text-3xl font-bold">{Math.floor(currentPoints / 45)}</div>
                   <p className="text-green-100">Farmers Supported</p>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold mb-2">{currentPoints}</div>
+                  <div className="mb-2 text-3xl font-bold">{currentPoints}</div>
                   <p className="text-green-100">Total Contribution Points</p>
                 </div>
               </div>
@@ -351,7 +351,7 @@ export default function RewardsPage() {
         <ConnectWalletModal onClose={() => setShowConnectModal(false)} />
       )}
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   )
 }
