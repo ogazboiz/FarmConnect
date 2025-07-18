@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Download, Copy, QrCode, Check, X, Printer } from 'lucide-react'
+import Image from 'next/image'
 
 interface QRCodeGeneratorProps {
   tokenId: string | number
@@ -140,25 +141,25 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <Card className="w-full max-w-md bg-white relative max-h-[90vh] overflow-y-auto">
         {onClose && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-500 hover:text-slate-700 z-10"
+            className="absolute z-10 top-4 right-4 text-slate-500 hover:text-slate-700"
           >
             <X className="w-4 h-4" />
           </Button>
         )}
 
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-xl font-bold text-slate-800 flex items-center justify-center gap-2">
+        <CardHeader className="pb-4 text-center">
+          <CardTitle className="flex items-center justify-center gap-2 text-xl font-bold text-slate-800">
             <QrCode className="w-5 h-5 text-emerald-600" />
             Product QR Code
           </CardTitle>
-          <p className="text-slate-600 text-sm">
+          <p className="text-sm text-slate-600">
             {cropType ? `${cropType} #${tokenId}` : `Product #${tokenId}`}
           </p>
         </CardHeader>
@@ -166,12 +167,13 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
         <CardContent className="space-y-6">
           {/* QR Code Display */}
           <div className="text-center">
-            <div className="inline-block p-4 bg-white border-2 border-emerald-200 rounded-lg shadow-sm">
-              <img 
+            <div className="inline-block p-4 bg-white border-2 rounded-lg shadow-sm border-emerald-200">
+              <Image 
                 src={qrImageUrl}
                 alt="QR Code"
-                className="w-[200px] h-[200px] object-contain"
-                crossOrigin="anonymous"
+                width={200}
+                height={200}
+                className="object-contain"
                 onError={(e) => {
                   e.currentTarget.src = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(qrData)}`
                 }}
@@ -188,7 +190,7 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
               <Input
                 value={qrData}
                 readOnly
-                className="text-sm font-mono"
+                className="font-mono text-sm"
               />
               <Button
                 onClick={copyToClipboard}
@@ -229,7 +231,7 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
               <Input
                 value={qrImageUrl}
                 readOnly
-                className="text-xs font-mono"
+                className="font-mono text-xs"
               />
               <Button
                 onClick={() => window.open(qrImageUrl, '_blank')}
@@ -246,7 +248,7 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
           <div className="grid grid-cols-1 gap-3">
             <Button
               onClick={downloadQRCode}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="text-white bg-emerald-600 hover:bg-emerald-700"
             >
               <Download className="w-4 h-4 mr-2" />
               Download PNG
@@ -263,32 +265,32 @@ export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: Q
           </div>
 
           {/* QR Service Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="p-3 border border-blue-200 rounded-lg bg-blue-50">
             <p className="text-xs text-blue-800">
-              💡 <strong>QR Service:</strong> Generated using QR Server API. The QR code will work perfectly for scanning and includes your crop's tracking URL.
+              💡 <strong>QR Service:</strong> Generated using QR Server API. The QR code will work perfectly for scanning and includes your crop&apos;s tracking URL.
             </p>
           </div>
 
           {/* Instructions */}
-          <div className="bg-emerald-50 p-4 rounded-lg">
-            <h4 className="font-medium text-emerald-800 mb-2">📋 How to Use:</h4>
-            <ol className="text-sm text-emerald-700 space-y-1">
+          <div className="p-4 rounded-lg bg-emerald-50">
+            <h4 className="mb-2 font-medium text-emerald-800">📋 How to Use:</h4>
+            <ol className="space-y-1 text-sm text-emerald-700">
               <li>1. Download or print this QR code</li>
               <li>2. Attach it to your product packaging</li>
-              <li>3. Consumers can scan it to see your crop's story</li>
+              <li>3. Consumers can scan it to see your crop&apos;s story</li>
               <li>4. You earn reputation points for each scan!</li>
               <li>5. Consumers earn GREEN points for scanning!</li>
             </ol>
           </div>
 
           {/* Benefits */}
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <h4 className="font-medium text-yellow-800 mb-2">🎯 Benefits:</h4>
-            <ul className="text-sm text-yellow-700 space-y-1">
+          <div className="p-4 rounded-lg bg-yellow-50">
+            <h4 className="mb-2 font-medium text-yellow-800">🎯 Benefits:</h4>
+            <ul className="space-y-1 text-sm text-yellow-700">
               <li>• Direct connection with consumers</li>
               <li>• Increased trust through transparency</li>
               <li>• Higher prices for traceable products</li>
-              <li>• Build your farm's reputation</li>
+              <li>• Build your farm&apos;s reputation</li>
               <li>• Real-time engagement tracking</li>
             </ul>
           </div>

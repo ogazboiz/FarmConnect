@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 export interface CropData {
   tokenId: number
@@ -37,7 +37,7 @@ export const useAllCropsForConsumers = () => {
       const data = await response.json()
       
       // Convert string values back to BigInt where needed for frontend usage
-      const processedCrops = data.map((crop: any) => ({
+      const processedCrops = data.map((crop: CropData) => ({
         ...crop,
         quantity: BigInt(crop.quantity),
         createdAt: BigInt(crop.createdAt),
@@ -168,7 +168,7 @@ export const useCropForConsumer = (tokenId?: string | number) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCrop = async () => {
+  const fetchCrop = useCallback(async () => {
     if (!tokenId) return
 
     setLoading(true)
@@ -204,7 +204,7 @@ export const useCropForConsumer = (tokenId?: string | number) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [tokenId])
 
   useEffect(() => {
     if (tokenId) {

@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching crop:', error)
     return NextResponse.json(
-      { error: `Failed to fetch crop data: ${error.message}` },
+      { error: `Failed to fetch crop data: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching crop:', error)
     return NextResponse.json(
-      { error: `Failed to fetch crop data: ${error.message}` },
+      { error: `Failed to fetch crop data: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }
