@@ -1,5 +1,4 @@
 "use client"
-// @ts-nocheck - Complex hooks migration, focus on functionality over types
 
 import { useState, useEffect, useCallback } from "react"
 import { toast } from 'react-hot-toast'
@@ -9,7 +8,6 @@ import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-// import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   Target, Clock, Coins, Plus, CheckCircle, Users, Award, TrendingUp, Filter,
@@ -29,6 +27,39 @@ import { getContractAddresses } from "@/config"
 
 const contracts = getContractAddresses()
 
+// Type definitions
+interface BountyData {
+  creator: string
+  title: string
+  requirements: string
+  category: string
+  reward: bigint
+  deadline: bigint
+  status: number
+  submissionCount: bigint
+  winner: string
+  createdAt: bigint
+}
+
+interface SubmissionData {
+  submitter: string
+  bountyId: bigint
+  submissionData: string
+  timestamp: bigint
+  votes: bigint
+  selected: boolean
+  feedback: string
+}
+
+interface UserProfileData {
+  0: bigint // reputation
+  1: bigint // bountiesCreated
+  2: bigint // bountiesWon
+  3: bigint // submissionsCount
+  4: bigint // totalEarned
+  5: boolean // isVerified
+}
+
 // Better hook to find existing bounties using getBounty function
 const useAllBounties = () => {
   const [bounties, setBounties] = useState<bigint[]>([])
@@ -44,7 +75,7 @@ const useAllBounties = () => {
     query: {
       retry: false,
       staleTime: 0,
-      cacheTime: 5000,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -58,7 +89,7 @@ const useAllBounties = () => {
     query: {
       retry: false,
       staleTime: 0,
-      cacheTime: 5000,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -72,7 +103,7 @@ const useAllBounties = () => {
     query: {
       retry: false,
       staleTime: 0,
-      cacheTime: 5000,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -86,7 +117,7 @@ const useAllBounties = () => {
     query: {
       retry: false,
       staleTime: 0,
-      cacheTime: 5000,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -100,7 +131,7 @@ const useAllBounties = () => {
     query: {
       retry: false,
       staleTime: 0,
-      cacheTime: 5000,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -112,18 +143,18 @@ const useAllBounties = () => {
     const existingBounties: bigint[] = []
     
     bountyChecks.forEach((check, index) => {
-      // Check if bounty exists by looking at the creator field
-      if (check.data && check.data.creator && check.data.creator !== '0x0000000000000000000000000000000000000000') {
-        existingBounties.push(BigInt(index + 1))
-      }
-    })
-    
+  // Check if bounty exists by looking at the creator field
+  const bountyData = check.data as BountyData | null
+  if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
+    existingBounties.push(BigInt(index + 1))
+  }
+})
     setBounties(existingBounties.reverse()) // Newest first
     setTotalCount(existingBounties.length)
     setIsLoading(bountyChecks.some(check => check.isLoading))
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bountyChecks.map(check => check.data?.creator).join(',')]) // Intentionally minimal deps to avoid infinite loops
+  },  [bountyChecks.map(check => (check.data as BountyData | null)?.creator).join(',')])// Intentionally minimal deps to avoid infinite loops
   
   const refetch = () => {
     console.log('useAllBounties refetch called - refetching all bounty checks')
@@ -139,7 +170,7 @@ const useAllBounties = () => {
 }
 
 // Hook to get user profile
-const useUserProfile = (address) => {
+const useUserProfile = (address: string | undefined) => {
   const result = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
@@ -148,20 +179,20 @@ const useUserProfile = (address) => {
     query: {
       enabled: !!address,
       staleTime: 0, // Always consider stale
-      cacheTime: 5000, // Keep in cache for 5 seconds
+      gcTime: 5000, // Keep in cache for 5 seconds
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
   
   return {
-    data: result.data || null,
+    data: result.data as UserProfileData | null,
     refetch: result.refetch
   }
 }
 
 // Hook to get creator bounties
-const useCreatorBounties = (address) => {
+const useCreatorBounties = (address: string | undefined) => {
   const result = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
@@ -170,14 +201,14 @@ const useCreatorBounties = (address) => {
     query: {
       enabled: !!address,
       staleTime: 0, // Always consider stale
-      cacheTime: 5000, // Keep in cache for 5 seconds
+      gcTime: 5000, // Keep in cache for 5 seconds
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
   
   return {
-    data: Array.isArray(result.data) ? result.data : [],
+    data: Array.isArray(result.data) ? result.data as bigint[] : [],
     refetch: result.refetch
   }
 }
@@ -188,10 +219,10 @@ const BountyStatus = {
   1: 'COMPLETED',
   2: 'CANCELLED',
   3: 'EXPIRED'
-}
+} as const
 
 // Hook to get bounty submissions
-const useBountySubmissions = (bountyId: any) => {
+const useBountySubmissions = (bountyId: bigint | undefined) => {
   const result = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
@@ -200,20 +231,20 @@ const useBountySubmissions = (bountyId: any) => {
     query: {
       enabled: !!bountyId,
       staleTime: 0, // Always consider stale
-      cacheTime: 5000, // Keep in cache for 5 seconds
+      gcTime: 5000, // Keep in cache for 5 seconds
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
   
   return {
-    data: Array.isArray(result.data) ? result.data : [],
+    data: Array.isArray(result.data) ? result.data as bigint[] : [],
     refetch: result.refetch
   }
 }
 
 // Hook to get individual submission
-const useSubmission = (submissionId: any) => {
+const useSubmission = (submissionId: bigint | undefined) => {
   const result = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
@@ -222,20 +253,20 @@ const useSubmission = (submissionId: any) => {
     query: {
       enabled: !!submissionId,
       staleTime: 0, // Always consider stale
-      cacheTime: 5000, // Keep in cache for 5 seconds
+      gcTime: 5000, // Keep in cache for 5 seconds
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
   
   return {
-    data: result.data || null,
+    data: result.data as SubmissionData | null,
     refetch: result.refetch
   }
 }
 
 // Hook to get submitter bounties
-const useSubmitterBounties = (address: any) => {
+const useSubmitterBounties = (address: string | undefined) => {
   const result = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
@@ -244,20 +275,27 @@ const useSubmitterBounties = (address: any) => {
     query: {
       enabled: !!address,
       staleTime: 0, // Always consider stale
-      cacheTime: 5000, // Keep in cache for 5 seconds
+      gcTime: 5000, // Keep in cache for 5 seconds
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
   
   return {
-    data: Array.isArray(result.data) ? result.data : [],
+    data: Array.isArray(result.data) ? result.data as bigint[] : [],
     refetch: result.refetch
   }
 }
 
 // Fixed Submission Card Component
-const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigger }: any) => {
+interface SubmissionCardProps {
+  submissionId: bigint
+  bountyCreator: string
+  userAddress: string | undefined
+  refreshTrigger: number
+}
+
+const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigger }: SubmissionCardProps) => {
   const submissionResult = useSubmission(submissionId)
   const submission = submissionResult.data
   const { completeBounty, isConfirming } = useAgriBounties()
@@ -364,7 +402,14 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
 }
 
 // Fixed Submissions List Component
-const BountySubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTrigger }: any) => {
+interface BountySubmissionsListProps {
+  bountyId: bigint
+  userAddress: string | undefined
+  bountyCreator: string
+  refreshTrigger: number
+}
+
+const BountySubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTrigger }: BountySubmissionsListProps) => {
   const submissionIdsResult = useBountySubmissions(bountyId)
   const submissionIds = submissionIdsResult.data
   
@@ -390,7 +435,7 @@ const BountySubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTr
       </h5>
       
       <div className="space-y-3 overflow-y-auto max-h-80">
-        {submissionIds.map((submissionId: any) => (
+        {submissionIds.map((submissionId: bigint) => (
           <SubmissionCard
             key={submissionId.toString()}
             submissionId={submissionId}
@@ -404,25 +449,31 @@ const BountySubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTr
   )
 }
 
-const getStatusColor = (status: any) => {
+const getStatusColor = (status: number) => {
   const colors = {
     0: 'bg-green-100 text-green-800 border-green-300', // ACTIVE
     1: 'bg-blue-100 text-blue-800 border-blue-300', // COMPLETED
     2: 'bg-red-100 text-red-800 border-red-300', // CANCELLED
     3: 'bg-gray-100 text-gray-800 border-gray-300', // EXPIRED
-  }
+  } as const
   return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-300'
 }
 
 // Fixed Individual Bounty Component
-const BountyCard = ({ bountyId, userAddress, refreshTrigger }: any) => {
+interface BountyCardProps {
+  bountyId: bigint
+  userAddress: string | undefined
+  refreshTrigger: number
+}
+
+const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) => {
   const bountyQuery = useBounty(bountyId)
   const { submitToBounty, isConfirming } = useAgriBounties()
   const [submissionData, setSubmissionData] = useState('')
   const [showSubmissionForm, setShowSubmissionForm] = useState(false)
   const [showManagement, setShowManagement] = useState(false)
 
-  const bounty = bountyQuery.data
+  const bounty = bountyQuery.data as BountyData | null
 
   // Refetch when refreshTrigger changes, but with debouncing to avoid excessive calls
   useEffect(() => {
@@ -472,7 +523,7 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: any) => {
   const isActive = Number(bounty.status) === 0 && !isExpired
   const isCreator = bounty.creator === userAddress
 
-  const formatTimeLeft = (deadline: any) => {
+  const formatTimeLeft = (deadline: bigint) => {
     const now = Math.floor(Date.now() / 1000)
     const timeLeft = Number(deadline) - now
     
@@ -705,7 +756,11 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: any) => {
 }
 
 // Create Bounty Form Component
-const CreateBountyForm = ({ userAddress }: any) => {
+interface CreateBountyFormProps {
+  userAddress: string | undefined
+}
+
+const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
   const [showForm, setShowForm] = useState(false)
   const [newBounty, setNewBounty] = useState({
     title: '',

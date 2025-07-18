@@ -26,6 +26,31 @@ import { QRCodeGenerator } from "@/components/farmer/QRCodeGenerator"
 import { useGlobalRefresh } from "@/contexts/RefreshContext"
 import Image from "next/image"
 
+
+interface CropData {
+  cropType: string
+  location: string
+  quantity: bigint
+  isOrganic: boolean
+  status: string
+  createdAt: bigint
+  harvestDate: bigint
+  farmer: string
+  certifications?: string
+  cropImage?: string
+  scanCount?: bigint
+  ratingCount?: bigint
+  ratingSum?: bigint
+}
+
+interface FarmerCropsData {
+  data: bigint[]
+  count: number
+  isLoading: boolean
+  refetch: () => void
+}
+
+
 export default function CropTrackingPage() {
   const { address, isConnected } = useAccount()
   const [selectedCropId, setSelectedCropId] = useState<bigint | null>(null)
@@ -73,7 +98,7 @@ export default function CropTrackingPage() {
   })
 
   // Get farmer's crops and contract interactions
-  const farmerCrops = useFarmerCrops(address)
+  const farmerCrops = useFarmerCrops(address) as FarmerCropsData
   const totalSupply = useCropNFTTotalSupply()
   const cropNFT = useCropNFT()
   
@@ -81,7 +106,11 @@ export default function CropTrackingPage() {
   const { triggerRefreshWithDelay } = useGlobalRefresh()
   
   // Get selected crop details
-  const selectedCropBatch = useCropBatch(selectedCropId || undefined)
+ const selectedCropBatchResult = useCropBatch(selectedCropId || undefined)
+const selectedCropBatch = {
+  ...selectedCropBatchResult,
+  data: selectedCropBatchResult.data as CropData | null
+}
 
   // Cache invalidation function - more specific to avoid over-fetching
   const invalidateQueries = useCallback(() => {
@@ -745,20 +774,20 @@ export default function CropTrackingPage() {
       {/* Crop Details Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-7xl h-[95vh] bg-emerald-900 border-emerald-700 text-emerald-100">
-          {selectedCropId && selectedCropBatch.data && (
-            <CropDetailsModal 
-              cropBatch={selectedCropBatch.data}
-              tokenId={selectedCropId}
-              formatDate={formatDate}
-              getStageColor={getStageColor}
-              getImageUrl={getImageUrl}
-              userAddress={address}
-              onUpdateStatus={openUpdateStatus}
-              onAddCertification={openAddCertification}
-              onUpdateImage={openUpdateImage}
-              onGenerateQR={openQRGenerator}
-            />
-          )}
+         {selectedCropId && selectedCropBatch.data && (
+  <CropDetailsModal 
+    cropBatch={selectedCropBatch.data as CropData}
+    tokenId={selectedCropId}
+    formatDate={formatDate}
+    getStageColor={getStageColor}
+    getImageUrl={getImageUrl}
+    userAddress={address}
+    onUpdateStatus={openUpdateStatus}
+    onAddCertification={openAddCertification}
+    onUpdateImage={openUpdateImage}
+    onGenerateQR={openQRGenerator}
+  />
+)}
         </DialogContent>
       </Dialog>
 
@@ -839,7 +868,7 @@ function CropCard({
     )
   }
 
-  const crop = cropBatch.data
+  const crop = cropBatch.data as CropData
   const isOwner = userAddress && crop.farmer.toLowerCase() === userAddress.toLowerCase()
   const progress = calculateProgress(crop.createdAt, crop.status)
   const imageUrl = getImageUrl(crop.cropImage)

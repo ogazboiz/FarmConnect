@@ -78,7 +78,7 @@ export const useFarmTokenBalance = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      cacheTime: 5000,
+      gcTime: 5000,
       staleTime: 0,
     },
   });
@@ -168,7 +168,7 @@ export const useGreenPointsBalance = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      cacheTime: 5000,
+      gcTime: 5000,
       staleTime: 0,
     },
   });
@@ -330,7 +330,7 @@ export const useCropBatch = (tokenId?: bigint) => {
     query: {
       enabled: !!tokenId,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -346,7 +346,7 @@ export const useFarmerCrops = (farmerAddress?: string) => {
     query: {
       enabled: !!farmerAddress,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -390,7 +390,7 @@ export const useCropNFTTotalSupply = () => {
     functionName: 'totalSupply',
     query: {
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -528,7 +528,7 @@ export const useStakedBalance = (address?: string) => {
     query: {
       enabled: !!address,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -542,7 +542,7 @@ export const useTotalStaked = () => {
     functionName: 'totalStaked',
     query: {
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -556,7 +556,7 @@ export const useTreasuryBalance = () => {
     functionName: 'treasuryBalance',
     query: {
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -572,7 +572,7 @@ export const useDAOMember = (address?: string) => {
     query: {
       enabled: !!address,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -588,7 +588,7 @@ export const useProposal = (proposalId?: bigint) => {
     query: {
       enabled: !!proposalId,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });
@@ -674,7 +674,7 @@ export const useBounty = (bountyId?: bigint) => {
     query: {
       enabled: !!bountyId,
       // Reduce cache time to ensure fresh data after transactions
-      cacheTime: 5000, // 5 seconds
+      gcTime: 5000, // 5 seconds
       staleTime: 0, // Always consider stale to force refetch
     },
   });

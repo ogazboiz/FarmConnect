@@ -26,6 +26,30 @@ import { useReadContract } from "wagmi"
 import { FarmerDAOABI } from "@/config"
 import { getContractAddresses } from "@/config"
 
+
+interface ProposalData {
+  title: string
+  proposer: string
+  deadline: bigint
+  amount: bigint
+  recipient: string
+  proposalType: number
+  votesFor: bigint
+  votesAgainst: bigint
+  executed: boolean
+  cancelled: boolean
+  description?: string
+  [key: number]: string | number | bigint | boolean | undefined // for indexed access like proposal[3]
+}
+
+interface DAOMemberData {
+  0: boolean  // isMember
+  1: string   // farmLocation
+  2: bigint   // joinedAt
+  3: bigint   // reputation
+  4: boolean  // isActive
+}
+
 const contracts = getContractAddresses()
 
 // Constants from contract
@@ -151,18 +175,19 @@ const getProposalTypeColor = (type: number) => {
 // Individual Proposal Component to isolate hooks
 const ProposalCard = ({ proposalId, userAddress }: { proposalId: bigint, userAddress?: string }) => {
   const proposalQuery = useProposal(proposalId)
-  const { data: hasVoted } = useReadContract({
-    address: contracts.FARMER_DAO,
-    abi: FarmerDAOABI,
-    functionName: 'hasUserVoted',
-    args: proposalId && userAddress ? [proposalId, userAddress] : undefined,
-    query: {
-      enabled: !!(proposalId && userAddress),
-    },
-  })
-
+  const hasVotedResult = useReadContract({
+  address: contracts.FARMER_DAO,
+  abi: FarmerDAOABI,
+  functionName: 'hasUserVoted',
+  args: proposalId && userAddress ? [proposalId, userAddress] : undefined,
+  query: {
+    enabled: !!(proposalId && userAddress),
+  },
+})
+const hasVoted = hasVotedResult.data as boolean
+ 
   const { vote, isConfirming } = useFarmerDAO()
-  const proposal = proposalQuery.data
+  const proposal = proposalQuery.data as ProposalData | null
 
   console.log("Proposal", proposal)
 
@@ -277,11 +302,11 @@ const ProposalActions = ({
   isConfirming: boolean
   onVote: (support: boolean) => void
 }) => {
-  const daoMember = useDAOMember(userAddress)
-  const stakedBalance = useStakedBalance(userAddress)
-  const votingPower = useVotingPower(userAddress)
+  const daoMember = useDAOMember(userAddress) 
+  const stakedBalance = useStakedBalance(userAddress) as bigint
+  const votingPower = useVotingPower(userAddress) as bigint
 
-  const isMember = daoMember.data?.[0] || false
+  const isMember = (daoMember.data as DAOMemberData | null)?.[0] || false
   const stakedBalanceNum = Number(formatTokenAmount(stakedBalance))
   const canVote = isMember && stakedBalanceNum >= 10
 
@@ -352,10 +377,13 @@ export function CooperativePage() {
   const activeProposalIds = useActiveProposals()
   const totalProposals = useTotalProposals()
   const memberCount = useMemberCount()
-  const treasuryBalance = useTreasuryBalance()
-  const totalStaked = useTotalStaked()
-  const votingPower = useVotingPower(address)
-  const stakedBalance = useStakedBalance(address)
+  const treasuryBalance = useTreasuryBalance() as bigint
+  const totalStaked = useTotalStaked()  as bigint
+const votingPowerResult = useVotingPower(address)
+const stakedBalanceResult = useStakedBalance(address)
+
+const votingPower = votingPowerResult as bigint
+const stakedBalance = stakedBalanceResult as bigint
 
   const handleJoinDAO = async () => {
     if (!address || !farmLocation.trim()) return
@@ -419,13 +447,14 @@ export function CooperativePage() {
   }
 
   // Check if user is a DAO member
-  const isMember = daoMember.data?.[0] || false
-  const memberInfo = daoMember.data
-  const reputation = memberInfo ? Number(memberInfo[3]) : 0
-  const farmBalanceNum = Number(formatTokenAmount(farmBalance.data || BigInt(0)))
-  const stakedBalanceNum = Number(formatTokenAmount(stakedBalance))
-  const votingPowerNum = Number(formatTokenAmount(votingPower))
+  const memberData = daoMember.data as DAOMemberData | null
+  const isMember = memberData?.[0] || false
+ const reputation = memberData ? Number(memberData[3]) : 0
+const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || BigInt(0)))
+ const stakedBalanceNum = Number(formatTokenAmount(stakedBalance as bigint))
+ const votingPowerNum = Number(formatTokenAmount(votingPower as bigint))
 
+  
   // Check user capabilities
   const canJoin = farmBalanceNum > 0 && !isMember
   const canVote = isMember && stakedBalanceNum >= 10

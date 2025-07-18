@@ -1,16 +1,14 @@
 // src/app/api/getCropBatch/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { createPublicClient, http } from 'viem'
-import { mantleSepoliaTestnet } from 'viem/chains' // or your chain
+import { ethers } from 'ethers'
 import { CropNFTABI, getContractAddresses } from '@/config'
 
 const contracts = getContractAddresses()
 
-// Create a public client for reading from the blockchain
-const publicClient = createPublicClient({
-  chain: mantleSepoliaTestnet, // Replace with your actual chain
-  transport: http()
-})
+// Create provider for your chain
+const provider = new ethers.JsonRpcProvider(
+  process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.sepolia.mantle.xyz'
+)
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,13 +22,27 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Read crop data from contract
-    const cropData = await publicClient.readContract({
-      address: contracts.CROP_NFT as `0x${string}`,
-      abi: CropNFTABI,
-      functionName: 'getCropBatch',
-      args: [BigInt(tokenId)]
-    })
+    // Create contract instance
+    const cropNFTContract = new ethers.Contract(
+      contracts.CROP_NFT,
+      CropNFTABI,
+      provider
+    )
+
+    // Check if token exists
+    const tokenExists = await cropNFTContract.tokenExists(BigInt(tokenId))
+    if (!tokenExists) {
+      return NextResponse.json(
+        { error: 'Crop not found' },
+        { status: 404 }
+      )
+    }
+
+    // Get crop batch data
+    const cropData = await cropNFTContract.getCropBatch(BigInt(tokenId))
+    
+    // Get engagement data
+    const engagementData = await cropNFTContract.getEngagementData(BigInt(tokenId))
 
     if (!cropData || cropData.farmer === '0x0000000000000000000000000000000000000000') {
       return NextResponse.json(
@@ -39,7 +51,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Format the response with proper types
+    // Format the response
     const formattedCropData = {
       cropType: cropData.cropType,
       location: cropData.location,
@@ -51,22 +63,24 @@ export async function GET(request: NextRequest) {
       harvestDate: cropData.harvestDate,
       cropImage: cropData.cropImage,
       certifications: cropData.certifications,
-      scanCount: cropData.scanCount,
-      ratingSum: cropData.ratingSum,
-      ratingCount: cropData.ratingCount
+      // Add engagement data
+      scanCount: engagementData.totalScans,
+      ratingSum: engagementData.averageRating, // This is actually averageRating in your contract
+      ratingCount: engagementData.totalRatings,
+      socialShares: engagementData.socialShares
     }
 
     return NextResponse.json(formattedCropData)
   } catch (error) {
     console.error('Error fetching crop:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch crop data' },
+      { error: `Failed to fetch crop data: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }
 }
 
-// Alternative POST method for getCropBatch (if you prefer POST)
+// Alternative POST method for getCropBatch
 export async function POST(request: NextRequest) {
   try {
     const { tokenId } = await request.json()
@@ -78,13 +92,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Read crop data from contract
-    const cropData = await publicClient.readContract({
-      address: contracts.CROP_NFT as `0x${string}`,
-      abi: CropNFTABI,
-      functionName: 'getCropBatch',
-      args: [BigInt(tokenId)]
-    })
+    // Create contract instance
+    const cropNFTContract = new ethers.Contract(
+      contracts.CROP_NFT,
+      CropNFTABI,
+      provider
+    )
+
+    // Check if token exists
+    const tokenExists = await cropNFTContract.tokenExists(BigInt(tokenId))
+    if (!tokenExists) {
+      return NextResponse.json(
+        { error: 'Crop not found' },
+        { status: 404 }
+      )
+    }
+
+    // Get crop batch data
+    const cropData = await cropNFTContract.getCropBatch(BigInt(tokenId))
+    
+    // Get engagement data
+    const engagementData = await cropNFTContract.getEngagementData(BigInt(tokenId))
 
     if (!cropData || cropData.farmer === '0x0000000000000000000000000000000000000000') {
       return NextResponse.json(
@@ -93,7 +121,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Format the response with proper types
+    // Format the response
     const formattedCropData = {
       cropType: cropData.cropType,
       location: cropData.location,
@@ -105,20 +133,18 @@ export async function POST(request: NextRequest) {
       harvestDate: cropData.harvestDate,
       cropImage: cropData.cropImage,
       certifications: cropData.certifications,
-      scanCount: cropData.scanCount,
-      ratingSum: cropData.ratingSum,
-      ratingCount: cropData.ratingCount
+      // Add engagement data
+      scanCount: engagementData.totalScans,
+      ratingSum: engagementData.averageRating,
+      ratingCount: engagementData.totalRatings,
+      socialShares: engagementData.socialShares
     }
 
     return NextResponse.json(formattedCropData)
   } catch (error) {
     console.error('Error fetching crop:', error)
     return NextResponse.json(
-<<<<<<< HEAD
-      { error: 'Failed to fetch crop data' },
-=======
       { error: `Failed to fetch crop data: ${error instanceof Error ? error.message : 'Unknown error'}` },
->>>>>>> b4cfd0b5bd8958e616dbdd673c36707d01144059
       { status: 500 }
     )
   }
