@@ -110,8 +110,6 @@ export function DashboardPage() {
     },
   ];
 
-  console.log("the token info///",farmTokenInfo)
-
   const recentActivity = [
     { action: "Wallet connected", time: "Just now", status: "success", type: "connection" },
     { action: "Dashboard loaded", time: "Now", status: "info", type: "system" },

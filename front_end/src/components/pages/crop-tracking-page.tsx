@@ -1,8 +1,9 @@
+// src/app/dashboard/crops/page.tsx
 "use client"
 
 import { useState } from "react"
-import { Footer } from "../layout/footer"
-import { Header } from "../layout/header"
+import { Footer } from "@/components/layout/footer"
+import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Plus, MapPin, Calendar, Droplets, Thermometer, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share } from "lucide-react"
+import { Plus, MapPin, Calendar, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share, User } from "lucide-react"
 import { useAccount } from "wagmi"
 import { 
   useFarmerCrops, 
@@ -20,8 +21,9 @@ import {
   useCropNFTTotalSupply,
   parseTokenAmount 
 } from "@/hooks/useAgriDAO"
+import { QRCodeGenerator } from "@/components/farmer/QRCodeGenerator"
 
-export function CropTrackingPage() {
+export default function CropTrackingPage() {
   const { address, isConnected } = useAccount()
   const [selectedCropId, setSelectedCropId] = useState<bigint | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -29,6 +31,16 @@ export function CropTrackingPage() {
   const [isUpdateStatusOpen, setIsUpdateStatusOpen] = useState(false)
   const [isAddCertificationOpen, setIsAddCertificationOpen] = useState(false)
   const [isUpdateImageOpen, setIsUpdateImageOpen] = useState(false)
+  
+  // QR Generator state
+  const [isQRGeneratorOpen, setIsQRGeneratorOpen] = useState(false)
+  const [qrTokenData, setQrTokenData] = useState<{
+    tokenId: bigint | null
+    cropType: string
+  }>({
+    tokenId: null,
+    cropType: ''
+  })
   
   // Form state for creating new crop
   const [newCrop, setNewCrop] = useState({
@@ -64,8 +76,6 @@ export function CropTrackingPage() {
   
   // Get selected crop details
   const selectedCropBatch = useCropBatch(selectedCropId || undefined)
-
-  console.log("Current crop NFT hook:", cropNFT) // Debug log to see available functions
 
   const handleCreateCrop = async () => {
     if (!newCrop.cropType || !newCrop.location || !newCrop.quantity) {
@@ -148,18 +158,27 @@ export function CropTrackingPage() {
     if (!imageUpdate.tokenId || !imageUpdate.newImage) return
 
     try {
-      // Check if the function exists, if not, use a fallback approach
       if (cropNFT.updateCropImage) {
         await cropNFT.updateCropImage(imageUpdate.tokenId, imageUpdate.newImage)
       } else {
         console.error('updateCropImage function not available in hook')
-        // You'll need to add this function to your useCropNFT hook
       }
       setImageUpdate({ tokenId: null, newImage: '' })
       setIsUpdateImageOpen(false)
     } catch (error) {
       console.error('Error updating image:', error)
     }
+  }
+
+  // QR Generator functions
+  const openQRGenerator = (tokenId: bigint, cropType: string) => {
+    setQrTokenData({ tokenId, cropType })
+    setIsQRGeneratorOpen(true)
+  }
+
+  const closeQRGenerator = () => {
+    setIsQRGeneratorOpen(false)
+    setQrTokenData({ tokenId: null, cropType: '' })
   }
 
   const openUpdateStatus = (tokenId: bigint) => {
@@ -214,21 +233,17 @@ export function CropTrackingPage() {
     }
   }
 
-  // Helper function to process IPFS URLs
   const getImageUrl = (imageString: string | undefined) => {
     if (!imageString) return null
     
-    // Handle IPFS URLs
     if (imageString.startsWith('ipfs://')) {
       return imageString.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
     }
     
-    // Handle Pinata URLs or regular HTTPS URLs
     if (imageString.startsWith('https://')) {
       return imageString
     }
     
-    // Handle raw IPFS hashes
     if (imageString.startsWith('baf') || imageString.startsWith('Qm')) {
       return `https://gateway.pinata.cloud/ipfs/${imageString}`
     }
@@ -271,7 +286,7 @@ export function CropTrackingPage() {
             <div>
               <h1 className="text-4xl font-bold text-emerald-100 mb-2">
                 <span className="bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent">
-                  Crop Tracking
+                  🌾 My Crops Dashboard
                 </span>
               </h1>
               <p className="text-xl text-emerald-200/80">
@@ -331,6 +346,7 @@ export function CropTrackingPage() {
                     onUpdateStatus={openUpdateStatus}
                     onAddCertification={openAddCertification}
                     onUpdateImage={openUpdateImage}
+                    onGenerateQR={openQRGenerator}
                     getStageColor={getStageColor}
                     formatDate={formatDate}
                     calculateProgress={calculateProgress}
@@ -396,6 +412,83 @@ export function CropTrackingPage() {
           )}
         </div>
       </div>
+
+      {/* Create Crop Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-100">Create New Crop Batch</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="cropType" className="text-emerald-200">Crop Type</Label>
+              <Input
+                id="cropType"
+                value={newCrop.cropType}
+                onChange={(e) => setNewCrop({...newCrop, cropType: e.target.value})}
+                placeholder="e.g., Organic Tomatoes"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div>
+              <Label htmlFor="location" className="text-emerald-200">Location</Label>
+              <Input
+                id="location"
+                value={newCrop.location}
+                onChange={(e) => setNewCrop({...newCrop, location: e.target.value})}
+                placeholder="e.g., Field A-1"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div>
+              <Label htmlFor="quantity" className="text-emerald-200">Quantity (units)</Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={newCrop.quantity}
+                onChange={(e) => setNewCrop({...newCrop, quantity: e.target.value})}
+                placeholder="e.g., 1000"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isOrganic"
+                checked={newCrop.isOrganic}
+                onCheckedChange={(checked) => setNewCrop({...newCrop, isOrganic: checked})}
+              />
+              <Label htmlFor="isOrganic" className="text-emerald-200">Organic Certification</Label>
+            </div>
+            <div>
+              <Label htmlFor="cropImage" className="text-emerald-200">Image URL</Label>
+              <Input
+                id="cropImage"
+                value={newCrop.cropImage}
+                onChange={(e) => setNewCrop({...newCrop, cropImage: e.target.value})}
+                placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+              <p className="text-xs text-emerald-300/70 mt-1">
+                Use your Pinata IPFS URL or any HTTPS image URL
+              </p>
+            </div>
+            <Button 
+              onClick={handleCreateCrop}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              disabled={cropNFT.isConfirming || !newCrop.cropType || !newCrop.location || !newCrop.quantity}
+            >
+              {cropNFT.isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating on Blockchain...
+                </>
+              ) : (
+                'Create Crop Batch'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Update Status Modal */}
       <Dialog open={isUpdateStatusOpen} onOpenChange={setIsUpdateStatusOpen}>
@@ -525,81 +618,16 @@ export function CropTrackingPage() {
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
-          <DialogHeader>
-            <DialogTitle className="text-emerald-100">Create New Crop Batch</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="cropType" className="text-emerald-200">Crop Type</Label>
-              <Input
-                id="cropType"
-                value={newCrop.cropType}
-                onChange={(e) => setNewCrop({...newCrop, cropType: e.target.value})}
-                placeholder="e.g., Organic Tomatoes"
-                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
-              />
-            </div>
-            <div>
-              <Label htmlFor="location" className="text-emerald-200">Location</Label>
-              <Input
-                id="location"
-                value={newCrop.location}
-                onChange={(e) => setNewCrop({...newCrop, location: e.target.value})}
-                placeholder="e.g., Field A-1"
-                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
-              />
-            </div>
-            <div>
-              <Label htmlFor="quantity" className="text-emerald-200">Quantity (units)</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={newCrop.quantity}
-                onChange={(e) => setNewCrop({...newCrop, quantity: e.target.value})}
-                placeholder="e.g., 1000"
-                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isOrganic"
-                checked={newCrop.isOrganic}
-                onCheckedChange={(checked) => setNewCrop({...newCrop, isOrganic: checked})}
-              />
-              <Label htmlFor="isOrganic" className="text-emerald-200">Organic Certification</Label>
-            </div>
-            <div>
-              <Label htmlFor="cropImage" className="text-emerald-200">Image URL</Label>
-              <Input
-                id="cropImage"
-                value={newCrop.cropImage}
-                onChange={(e) => setNewCrop({...newCrop, cropImage: e.target.value})}
-                placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
-                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
-              />
-              <p className="text-xs text-emerald-300/70 mt-1">
-                Use your Pinata IPFS URL or any HTTPS image URL
-              </p>
-            </div>
-            <Button 
-              onClick={handleCreateCrop}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
-              disabled={cropNFT.isConfirming || !newCrop.cropType || !newCrop.location || !newCrop.quantity}
-            >
-              {cropNFT.isConfirming ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating on Blockchain...
-                </>
-              ) : (
-                'Create Crop Batch'
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+      {/* QR Generator Modal */}
+      {isQRGeneratorOpen && qrTokenData.tokenId && (
+        <QRCodeGenerator
+          tokenId={qrTokenData.tokenId.toString()}
+          cropType={qrTokenData.cropType}
+          onClose={closeQRGenerator}
+          isOpen={isQRGeneratorOpen}
+        />
+      )}
 
       {/* Crop Details Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
@@ -615,6 +643,7 @@ export function CropTrackingPage() {
               onUpdateStatus={openUpdateStatus}
               onAddCertification={openAddCertification}
               onUpdateImage={openUpdateImage}
+              onGenerateQR={openQRGenerator}
             />
           )}
         </DialogContent>
@@ -635,6 +664,7 @@ function CropCard({
   onUpdateStatus,
   onAddCertification,
   onUpdateImage,
+  onGenerateQR,
   getStageColor,
   formatDate,
   calculateProgress,
@@ -649,6 +679,7 @@ function CropCard({
   onUpdateStatus: (id: bigint) => void
   onAddCertification: (id: bigint) => void
   onUpdateImage: (id: bigint) => void
+  onGenerateQR: (tokenId: bigint, cropType: string) => void
   getStageColor: (stage: string) => string
   formatDate: (timestamp: bigint) => string
   calculateProgress: (createdAt: bigint, status: string) => number
@@ -678,12 +709,7 @@ function CropCard({
   }
 
   const crop = cropBatch.data
-  console.log("crop data", crop)
-  
-  // Check if current user is the owner
   const isOwner = userAddress && crop.farmer.toLowerCase() === userAddress.toLowerCase()
-  
-  // Now accessing as object properties instead of array indices
   const progress = calculateProgress(crop.createdAt, crop.status)
   const imageUrl = getImageUrl(crop.cropImage)
 
@@ -696,7 +722,6 @@ function CropCard({
             alt={crop.cropType} 
             className="w-full h-full object-cover"
             onError={(e) => {
-              // Fallback to default icon if image fails to load
               e.currentTarget.style.display = 'none'
               e.currentTarget.nextElementSibling?.classList.remove('hidden')
             }}
@@ -708,6 +733,13 @@ function CropCard({
         <div className="absolute top-3 right-3">
           <Badge className={`${getStageColor(crop.status)} border backdrop-blur-sm`}>{crop.status}</Badge>
         </div>
+        {crop.isOrganic && (
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+              🌿 Organic
+            </Badge>
+          </div>
+        )}
       </div>
 
       <CardHeader className="pb-3">
@@ -745,14 +777,6 @@ function CropCard({
         </div>
         <div className="flex items-center justify-between">
           <p className="text-sm text-emerald-200/80">NFT #{tokenId.toString()}</p>
-          {crop.isOrganic && <Badge variant="outline" className="text-emerald-300 border-emerald-500/50">Organic</Badge>}
-        </div>
-        
-        {/* Debug info - remove this later */}
-        <div className="text-xs text-emerald-400/60 mt-1">
-          Owner: {crop.farmer.slice(0, 6)}...{crop.farmer.slice(-4)} | You: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}
-          <br />
-          Is Owner: {isOwner ? 'Yes' : 'No'}
         </div>
       </CardHeader>
 
@@ -817,43 +841,49 @@ function CropCard({
 
         {/* Owner Action Buttons */}
         {isOwner && (
-          <div className="flex gap-2 mt-2">
+          <div className="space-y-2">
+            {/* Main Actions Row */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                onClick={() => onUpdateStatus(tokenId)}
+              >
+                <Edit className="w-3 h-3 mr-1" />
+                Status
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                onClick={() => onAddCertification(tokenId)}
+              >
+                <Hash className="w-3 h-3 mr-1" />
+                Cert
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+                onClick={() => onUpdateImage(tokenId)}
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                Image
+              </Button>
+            </div>
+
+            {/* QR Generator Button - Prominent */}
             <Button
               variant="outline"
-              size="sm"
-              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
-              onClick={() => onUpdateStatus(tokenId)}
+              className="w-full border-yellow-600/50 text-yellow-200 hover:bg-yellow-800/60 bg-transparent hover:border-yellow-500"
+              onClick={() => onGenerateQR(tokenId, crop.cropType)}
             >
-              <Edit className="w-3 h-3 mr-1" />
-              Status
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
-              onClick={() => onAddCertification(tokenId)}
-            >
-              <Hash className="w-3 h-3 mr-1" />
-              Cert
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
-              onClick={() => onUpdateImage(tokenId)}
-            >
-              <Eye className="w-3 h-3 mr-1" />
-              Image
+              <QrCode className="w-4 h-4 mr-2" />
+              📱 Generate QR Code for Packaging
             </Button>
           </div>
         )}
-
-        {/* Always show this for testing */}
-        <div className="bg-red-900/20 border border-red-500/30 rounded p-2 mt-2">
-          <p className="text-xs text-red-300">Debug: Is Owner = {isOwner ? 'YES' : 'NO'}</p>
-          <p className="text-xs text-red-300">User: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}</p>
-          <p className="text-xs text-red-300">Owner: {crop.farmer?.slice(0, 6)}...{crop.farmer?.slice(-4)}</p>
-        </div>
       </CardContent>
     </Card>
   )
@@ -869,7 +899,8 @@ function CropDetailsModal({
   userAddress,
   onUpdateStatus,
   onAddCertification,
-  onUpdateImage
+  onUpdateImage,
+  onGenerateQR
 }: { 
   cropBatch: any
   tokenId: bigint
@@ -880,20 +911,12 @@ function CropDetailsModal({
   onUpdateStatus: (id: bigint) => void
   onAddCertification: (id: bigint) => void
   onUpdateImage: (id: bigint) => void
+  onGenerateQR: (tokenId: bigint, cropType: string) => void
 }) {
   const imageUrl = getImageUrl(cropBatch.cropImage)
   const isOwner = userAddress && cropBatch.farmer.toLowerCase() === userAddress.toLowerCase()
 
-  // Debug logging
-  console.log("CropDetailsModal Debug:", {
-    cropBatch,
-    tokenId: tokenId.toString(),
-    userAddress,
-    isOwner,
-    farmer: cropBatch.farmer
-  })
-
-  // Add hook to get engagement data - simplified version
+  // Mock engagement data - you can implement this properly later
   const engagementData = {
     data: {
       totalScans: BigInt(0),
@@ -903,8 +926,6 @@ function CropDetailsModal({
     },
     isLoading: false
   }
-
-  // You can implement this properly later by adding the getEngagementData function to your hooks
 
   return (
     <div className="space-y-6 mt-4 h-full overflow-y-auto pr-2">
@@ -1089,51 +1110,70 @@ function CropDetailsModal({
         </CardContent>
       </Card>
 
-        {isOwner && (
-          <>
-            <Card className="bg-emerald-800/40 border-emerald-700/40">
-              <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
-                  <Edit className="w-5 h-5 text-emerald-400" />
-                  Owner Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
-                    onClick={() => onUpdateStatus(tokenId)}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Update Status
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
-                    onClick={() => onAddCertification(tokenId)}
-                  >
-                    <Hash className="w-4 h-4 mr-2" />
-                    Add Certification
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
-                    onClick={() => onUpdateImage(tokenId)}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Update Image
-                  </Button>
-                </div>
-                <p className="text-xs text-emerald-300/70 mt-2">
-                  You are the owner of this crop NFT and can make updates
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+      {/* Owner Actions */}
+      {isOwner && (
+        <Card className="bg-emerald-800/40 border-emerald-700/40">
+          <CardHeader>
+            <CardTitle className="text-emerald-100 flex items-center gap-2">
+              <Edit className="w-5 h-5 text-emerald-400" />
+              Owner Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Main Actions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button 
+                variant="outline" 
+                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                onClick={() => onUpdateStatus(tokenId)}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Update Status
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                onClick={() => onAddCertification(tokenId)}
+              >
+                <Hash className="w-4 h-4 mr-2" />
+                Add Certification
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                onClick={() => onUpdateImage(tokenId)}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Update Image
+              </Button>
+            </div>
+
+            {/* QR Generator - Highlighted */}
+            <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
+              <h4 className="text-yellow-200 font-medium mb-2 flex items-center gap-2">
+                <QrCode className="w-4 h-4" />
+                Create QR Code for Product Packaging
+              </h4>
+              <p className="text-yellow-300/70 text-sm mb-3">
+                Generate a QR code that consumers can scan to see this crop's story and earn GREEN points
+              </p>
+              <Button 
+                className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white"
+                onClick={() => onGenerateQR(tokenId, cropBatch.cropType)}
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                Generate QR Code
+              </Button>
+            </div>
+
+            <p className="text-xs text-emerald-300/70">
+              You are the owner of this crop NFT and can make updates
+            </p>
+          </CardContent>
+        </Card>
+      )}
         
       <div className="flex gap-3 mt-6 flex-wrap">
         <Button 
