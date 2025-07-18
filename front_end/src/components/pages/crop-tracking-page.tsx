@@ -8,312 +8,261 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, MapPin, Calendar, Droplets, Thermometer, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash } from "lucide-react"
-
-type CropType = {
-  id: number
-  name: string
-  variety: string
-  planted: string
-  location: string
-  stage: string
-  progress: number
-  health: string
-  nextAction: string
-  image: string
-  soil: {
-    ph: number
-    nitrogen: string
-    phosphorus: string
-    potassium: string
-  }
-  weather: {
-    temperature: string
-    humidity: string
-    rainfall: string
-  }
-  nftId: string
-  contractAddress: string
-  blockchainData: {
-    totalTransactions: number
-    lastUpdate: string
-    carbonCredits: number
-    sustainabilityScore: number
-  }
-}
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Plus, MapPin, Calendar, Droplets, Thermometer, Leaf, TrendingUp, Eye, Edit, ExternalLink, Shield, Hash, Loader2, QrCode, Star, Share } from "lucide-react"
+import { useAccount } from "wagmi"
+import { 
+  useFarmerCrops, 
+  useCropBatch, 
+  useCropNFT, 
+  useCropNFTTotalSupply,
+  parseTokenAmount 
+} from "@/hooks/useAgriDAO"
 
 export function CropTrackingPage() {
-  const [selectedCrop, setSelectedCrop] = useState<CropType | null>(null)
+  const { address, isConnected } = useAccount()
+  const [selectedCropId, setSelectedCropId] = useState<bigint | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const crops = [
-    {
-      id: 1,
-      name: "Organic Tomatoes",
-      variety: "Cherry Tomatoes",
-      planted: "2024-01-15",
-      location: "Field A-1",
-      stage: "Flowering",
-      progress: 65,
-      health: "Excellent",
-      nextAction: "Watering in 2 days",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.5, nitrogen: "High", phosphorus: "Medium", potassium: "High" },
-      weather: { temperature: "22°C", humidity: "65%", rainfall: "12mm" },
-      nftId: "0x1a2b...3c4d",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 15,
-        lastUpdate: "2024-03-01 14:30",
-        carbonCredits: 2.5,
-        sustainabilityScore: 95
-      }
-    },
-    {
-      id: 2,
-      name: "Sweet Corn",
-      variety: "Golden Bantam",
-      planted: "2024-02-01",
-      location: "Field B-2",
-      stage: "Growing",
-      progress: 45,
-      health: "Good",
-      nextAction: "Fertilize tomorrow",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.8, nitrogen: "Medium", phosphorus: "High", potassium: "Medium" },
-      weather: { temperature: "25°C", humidity: "70%", rainfall: "8mm" },
-      nftId: "0x2b3c...4d5e",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 12,
-        lastUpdate: "2024-02-28 09:15",
-        carbonCredits: 1.8,
-        sustainabilityScore: 88
-      }
-    },
-    {
-      id: 3,
-      name: "Lettuce",
-      variety: "Romaine",
-      planted: "2024-02-20",
-      location: "Greenhouse 1",
-      stage: "Seedling",
-      progress: 25,
-      health: "Good",
-      nextAction: "Monitor growth",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.2, nitrogen: "High", phosphorus: "Medium", potassium: "Medium" },
-      weather: { temperature: "20°C", humidity: "75%", rainfall: "5mm" },
-      nftId: "0x3c4d...5e6f",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 8,
-        lastUpdate: "2024-02-25 16:45",
-        carbonCredits: 1.2,
-        sustainabilityScore: 92
-      }
-    },
-    {
-      id: 4,
-      name: "Carrots",
-      variety: "Nantes",
-      planted: "2024-01-30",
-      location: "Field C-3",
-      stage: "Mature",
-      progress: 90,
-      health: "Excellent",
-      nextAction: "Ready for harvest",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.0, nitrogen: "Medium", phosphorus: "High", potassium: "High" },
-      weather: { temperature: "18°C", humidity: "60%", rainfall: "15mm" },
-      nftId: "0x4d5e...6f7g",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 20,
-        lastUpdate: "2024-03-01 11:20",
-        carbonCredits: 3.2,
-        sustainabilityScore: 98
-      }
-    },
-    {
-      id: 5,
-      name: "Bell Peppers",
-      variety: "California Wonder",
-      planted: "2024-02-10",
-      location: "Greenhouse 2",
-      stage: "Fruiting",
-      progress: 75,
-      health: "Good",
-      nextAction: "Pest inspection",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.7, nitrogen: "High", phosphorus: "Medium", potassium: "High" },
-      weather: { temperature: "24°C", humidity: "68%", rainfall: "10mm" },
-      nftId: "0x5e6f...7g8h",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 14,
-        lastUpdate: "2024-02-29 13:10",
-        carbonCredits: 2.1,
-        sustainabilityScore: 90
-      }
-    },
-    {
-      id: 6,
-      name: "Spinach",
-      variety: "Space",
-      planted: "2024-02-25",
-      location: "Field D-1",
-      stage: "Growing",
-      progress: 35,
-      health: "Fair",
-      nextAction: "Nutrient check",
-      image: "/placeholder.svg?height=200&width=300",
-      soil: { ph: 6.3, nitrogen: "Medium", phosphorus: "Low", potassium: "Medium" },
-      weather: { temperature: "19°C", humidity: "72%", rainfall: "7mm" },
-      nftId: "0x6f7g...8h9i",
-      contractAddress: "0xAbC123...DeF456",
-      blockchainData: {
-        totalTransactions: 6,
-        lastUpdate: "2024-02-27 08:45",
-        carbonCredits: 0.9,
-        sustainabilityScore: 82
-      }
-    },
-  ]
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isUpdateStatusOpen, setIsUpdateStatusOpen] = useState(false)
+  const [isAddCertificationOpen, setIsAddCertificationOpen] = useState(false)
+  const [isUpdateImageOpen, setIsUpdateImageOpen] = useState(false)
+  
+  // Form state for creating new crop
+  const [newCrop, setNewCrop] = useState({
+    cropType: '',
+    location: '',
+    isOrganic: false,
+    quantity: '',
+    cropImage: ''
+  })
 
-  const getCropBlockchainRecords = (cropId: number) => {
-    const allRecords = [
-      {
-        crop: "Organic Tomatoes",
-        action: "Planting Record",
-        block: "0x1a2b3c4d...",
-        gas: "21,000",
-        timestamp: "2024-01-15 08:30",
-        status: "Confirmed",
-        txHash: "0x1234567890abcdef...",
-        cropId: 1
-      },
-      {
-        crop: "Organic Tomatoes",
-        action: "Growth Update",
-        block: "0x2b3c4d5e...",
-        gas: "18,500",
-        timestamp: "2024-02-15 14:20",
-        status: "Confirmed",
-        txHash: "0x2345678901bcdef0...",
-        cropId: 1
-      },
-      {
-        crop: "Organic Tomatoes",
-        action: "Health Assessment",
-        block: "0x3c4d5e6f...",
-        gas: "19,200",
-        timestamp: "2024-02-28 10:15",
-        status: "Confirmed",
-        txHash: "0x3456789012cdef01...",
-        cropId: 1
-      },
-      {
-        crop: "Sweet Corn",
-        action: "Planting Record",
-        block: "0x4d5e6f7g...",
-        gas: "22,100",
-        timestamp: "2024-02-01 09:00",
-        status: "Confirmed",
-        txHash: "0x4567890123def012...",
-        cropId: 2
-      },
-      {
-        crop: "Sweet Corn",
-        action: "Fertilization",
-        block: "0x5e6f7g8h...",
-        gas: "20,300",
-        timestamp: "2024-02-20 16:30",
-        status: "Confirmed",
-        txHash: "0x5678901234ef0123...",
-        cropId: 2
-      }
-    ]
-    return allRecords.filter(record => record.cropId === cropId)
+  // Form state for updating status
+  const [statusUpdate, setStatusUpdate] = useState({
+    tokenId: null as bigint | null,
+    newStatus: ''
+  })
+
+  // Form state for adding certification
+  const [certificationData, setCertificationData] = useState({
+    tokenId: null as bigint | null,
+    certification: ''
+  })
+
+  // Form state for updating image
+  const [imageUpdate, setImageUpdate] = useState({
+    tokenId: null as bigint | null,
+    newImage: ''
+  })
+
+  // Get farmer's crops and contract interactions
+  const farmerCrops = useFarmerCrops(address)
+  const totalSupply = useCropNFTTotalSupply()
+  const cropNFT = useCropNFT()
+  
+  // Get selected crop details
+  const selectedCropBatch = useCropBatch(selectedCropId || undefined)
+
+  console.log("Current crop NFT hook:", cropNFT) // Debug log to see available functions
+
+  const handleCreateCrop = async () => {
+    if (!newCrop.cropType || !newCrop.location || !newCrop.quantity) {
+      return
+    }
+
+    try {
+      const quantity = parseTokenAmount(newCrop.quantity, 0) // No decimals for quantity
+      await cropNFT.createCropBatch(
+        newCrop.cropType,
+        newCrop.location,
+        newCrop.isOrganic,
+        quantity,
+        newCrop.cropImage || 'ipfs://default-crop-image'
+      )
+      
+      // Reset form
+      setNewCrop({
+        cropType: '',
+        location: '',
+        isOrganic: false,
+        quantity: '',
+        cropImage: ''
+      })
+      setIsCreateModalOpen(false)
+    } catch (error) {
+      console.error('Error creating crop:', error)
+    }
   }
 
-  const openCropDetails = (crop: CropType) => {
-    setSelectedCrop(crop)
-    setIsDetailsOpen(true)
+  const handleScanProduct = async (tokenId: bigint) => {
+    try {
+      await cropNFT.scanProduct(tokenId)
+    } catch (error) {
+      console.error('Error scanning product:', error)
+    }
   }
 
-  const blockchainRecords = [
-    {
-      crop: "Organic Tomatoes",
-      action: "Planting Record",
-      block: "0x1a2b3c4d...",
-      gas: "21,000",
-      timestamp: "2024-01-15 08:30",
-      status: "Confirmed",
-    },
-    {
-      crop: "Sweet Corn",
-      action: "Growth Update",
-      block: "0x2b3c4d5e...",
-      gas: "18,500",
-      timestamp: "2024-02-15 14:20",
-      status: "Confirmed",
-    },
-    {
-      crop: "Lettuce",
-      action: "Health Assessment",
-      block: "0x3c4d5e6f...",
-      gas: "19,200",
-      timestamp: "2024-02-28 10:15",
-      status: "Confirmed",
-    },
-    {
-      crop: "Carrots",
-      action: "Harvest Ready",
-      block: "0x4d5e6f7g...",
-      gas: "22,100",
-      timestamp: "2024-03-01 16:45",
-      status: "Pending",
-    },
-  ]
+  const handleRateProduct = async (tokenId: bigint, rating: number) => {
+    try {
+      await cropNFT.rateProduct(tokenId, BigInt(rating))
+    } catch (error) {
+      console.error('Error rating product:', error)
+    }
+  }
+
+  const handleShareProduct = async (tokenId: bigint) => {
+    try {
+      await cropNFT.shareProduct(tokenId)
+    } catch (error) {
+      console.error('Error sharing product:', error)
+    }
+  }
+
+  const handleUpdateStatus = async () => {
+    if (!statusUpdate.tokenId || !statusUpdate.newStatus) return
+
+    try {
+      await cropNFT.updateStatus(statusUpdate.tokenId, statusUpdate.newStatus)
+      setStatusUpdate({ tokenId: null, newStatus: '' })
+      setIsUpdateStatusOpen(false)
+    } catch (error) {
+      console.error('Error updating status:', error)
+    }
+  }
+
+  const handleAddCertification = async () => {
+    if (!certificationData.tokenId || !certificationData.certification) return
+
+    try {
+      await cropNFT.addCertification(certificationData.tokenId, certificationData.certification)
+      setCertificationData({ tokenId: null, certification: '' })
+      setIsAddCertificationOpen(false)
+    } catch (error) {
+      console.error('Error adding certification:', error)
+    }
+  }
+
+  const handleUpdateImage = async () => {
+    if (!imageUpdate.tokenId || !imageUpdate.newImage) return
+
+    try {
+      // Check if the function exists, if not, use a fallback approach
+      if (cropNFT.updateCropImage) {
+        await cropNFT.updateCropImage(imageUpdate.tokenId, imageUpdate.newImage)
+      } else {
+        console.error('updateCropImage function not available in hook')
+        // You'll need to add this function to your useCropNFT hook
+      }
+      setImageUpdate({ tokenId: null, newImage: '' })
+      setIsUpdateImageOpen(false)
+    } catch (error) {
+      console.error('Error updating image:', error)
+    }
+  }
+
+  const openUpdateStatus = (tokenId: bigint) => {
+    setStatusUpdate({ tokenId, newStatus: '' })
+    setIsUpdateStatusOpen(true)
+  }
+
+  const openAddCertification = (tokenId: bigint) => {
+    setCertificationData({ tokenId, certification: '' })
+    setIsAddCertificationOpen(true)
+  }
+
+  const openUpdateImage = (tokenId: bigint) => {
+    setImageUpdate({ tokenId, newImage: '' })
+    setIsUpdateImageOpen(true)
+  }
 
   const getStageColor = (stage: string) => {
-    switch (stage) {
-      case "Seedling":
+    switch (stage?.toLowerCase()) {
+      case "planted":
         return "bg-yellow-900/30 text-yellow-300 border-yellow-500/50"
-      case "Growing":
+      case "growing":
         return "bg-green-900/30 text-green-300 border-green-500/50"
-      case "Flowering":
+      case "flowering":
         return "bg-purple-900/30 text-purple-300 border-purple-500/50"
-      case "Fruiting":
+      case "fruiting":
         return "bg-orange-900/30 text-orange-300 border-orange-500/50"
-      case "Mature":
+      case "harvested":
         return "bg-blue-900/30 text-blue-300 border-blue-500/50"
-      case "Harvesting":
-        return "bg-red-900/30 text-red-300 border-red-500/50"
       default:
         return "bg-gray-900/30 text-gray-300 border-gray-500/50"
     }
   }
 
-  const getHealthColor = (health: string) => {
-    switch (health) {
-      case "Excellent":
-        return "text-emerald-400"
-      case "Good":
-        return "text-green-400"
-      case "Fair":
-        return "text-yellow-400"
-      case "Poor":
-        return "text-red-400"
-      default:
-        return "text-gray-400"
+  const formatDate = (timestamp: bigint) => {
+    if (!timestamp || timestamp === 0n) return "Not set"
+    return new Date(Number(timestamp) * 1000).toLocaleDateString()
+  }
+
+  const calculateProgress = (createdAt: bigint, status: string) => {
+    const now = Date.now() / 1000
+    const created = Number(createdAt)
+    const daysPassed = (now - created) / (24 * 60 * 60)
+    
+    switch (status?.toLowerCase()) {
+      case "planted": return Math.min(daysPassed * 2, 20)
+      case "growing": return Math.min(20 + daysPassed * 1.5, 50)
+      case "flowering": return Math.min(50 + daysPassed * 2, 75)
+      case "fruiting": return Math.min(75 + daysPassed * 3, 90)
+      case "harvested": return 100
+      default: return 0
     }
+  }
+
+  // Helper function to process IPFS URLs
+  const getImageUrl = (imageString: string | undefined) => {
+    if (!imageString) return null
+    
+    // Handle IPFS URLs
+    if (imageString.startsWith('ipfs://')) {
+      return imageString.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
+    }
+    
+    // Handle Pinata URLs or regular HTTPS URLs
+    if (imageString.startsWith('https://')) {
+      return imageString
+    }
+    
+    // Handle raw IPFS hashes
+    if (imageString.startsWith('baf') || imageString.startsWith('Qm')) {
+      return `https://gateway.pinata.cloud/ipfs/${imageString}`
+    }
+    
+    return null
+  }
+
+  const openCropDetails = (tokenId: bigint) => {
+    setSelectedCropId(tokenId)
+    setIsDetailsOpen(true)
+  }
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+        <Header />
+        <div className="pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-emerald-100 mb-2">Connect Your Wallet</h2>
+                <p className="text-emerald-200/80">Please connect your wallet to view and manage your crops on the blockchain</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
-     <Header />
-
+      <Header />
 
       <div className="pt-24 pb-16 px-4">
         <div className="container mx-auto">
@@ -325,376 +274,876 @@ export function CropTrackingPage() {
                   Crop Tracking
                 </span>
               </h1>
-              <p className="text-xl text-emerald-200/80">Monitor your crops from seed to harvest on the blockchain</p>
+              <p className="text-xl text-emerald-200/80">
+                Monitor your crops from seed to harvest on the blockchain • 
+                Total Crops in System: {totalSupply.data?.toString() || "Loading..."}
+              </p>
             </div>
-            <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-xl font-semibold">
+            <Button 
+              className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-xl font-semibold"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add New Crop
             </Button>
           </div>
 
-          {/* Crops Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-            {crops.map((crop) => (
-              <Card
-                key={crop.id}
-                className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group"
-              >
-                <div className="aspect-video bg-gradient-to-br from-emerald-900/50 to-green-900/50 rounded-t-lg relative overflow-hidden">
-                  <img src={crop.image || "/placeholder.svg"} alt={crop.name} className="w-full h-full object-cover opacity-70" />
-                  <div className="absolute top-3 right-3">
-                    <Badge className={`${getStageColor(crop.stage)} border backdrop-blur-sm`}>{crop.stage}</Badge>
+          {/* Loading State */}
+          {farmerCrops.isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-emerald-300" />
+                <p className="text-emerald-200/80">Loading your crops from the blockchain...</p>
+              </div>
+            </div>
+          ) : farmerCrops.count === 0 ? (
+            /* Empty State */
+            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-emerald-700/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <Plus className="w-8 h-8 text-emerald-300" />
                   </div>
-                </div>
-
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-emerald-100 text-lg">{crop.name}</CardTitle>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-emerald-200/80">{crop.variety}</p>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-emerald-200/80">Growth Progress</span>
-                      <span className="text-emerald-100 font-medium">{crop.progress}%</span>
-                    </div>
-                    <Progress value={crop.progress} className="h-2 bg-emerald-900/50" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-emerald-200/80">
-                      <MapPin className="w-4 h-4" />
-                      <span>{crop.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-emerald-200/80">
-                      <Calendar className="w-4 h-4" />
-                      <span>Planted: {crop.planted}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${crop.health === "Excellent" ? "bg-emerald-400" : crop.health === "Good" ? "bg-green-400" : crop.health === "Fair" ? "bg-yellow-400" : "bg-red-400"}`}
-                      ></div>
-                      <span className={`text-sm font-medium ${getHealthColor(crop.health)}`}>
-                        Health: {crop.health}
-                      </span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Droplets className="w-4 h-4 text-blue-400" />
-                      <Thermometer className="w-4 h-4 text-red-400" />
-                      <Leaf className="w-4 h-4 text-green-400" />
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-emerald-700/50">
-                    <p className="text-sm text-emerald-200/80 mb-2">Next Action:</p>
-                    <p className="text-sm font-medium text-emerald-100">{crop.nextAction}</p>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
-                    onClick={() => openCropDetails(crop)}
+                  <h3 className="text-xl font-semibold text-emerald-100 mb-2">No Crops Yet</h3>
+                  <p className="text-emerald-200/80 mb-4">Create your first crop batch to start tracking on the blockchain</p>
+                  <Button 
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
                   >
-                    View Details
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Crop
                   </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Blockchain Records */}
-          <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
-            <CardHeader>
-              <CardTitle className="text-emerald-100 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-                Blockchain Records
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {blockchainRecords.map((record, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-emerald-100">
-                          {record.crop} - {record.action}
-                        </h3>
-                        <Badge
-                          variant="outline"
-                          className={
-                            record.status === "Confirmed"
-                              ? "text-emerald-300 border-emerald-500/50 bg-emerald-900/20"
-                              : "text-amber-300 border-amber-500/50 bg-amber-900/20"
-                          }
-                        >
-                          {record.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-emerald-200/80">
-                        <span>Block: {record.block}</span>
-                        <span>Gas: {record.gas}</span>
-                        <span>{record.timestamp}</span>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="ghost" className="text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60">
-                      View on Explorer
-                    </Button>
-                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Crops Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                {farmerCrops.data.map((tokenId: bigint) => (
+                  <CropCard 
+                    key={tokenId.toString()} 
+                    tokenId={tokenId}
+                    onViewDetails={openCropDetails}
+                    onScan={handleScanProduct}
+                    onRate={handleRateProduct}
+                    onShare={handleShareProduct}
+                    onUpdateStatus={openUpdateStatus}
+                    onAddCertification={openAddCertification}
+                    onUpdateImage={openUpdateImage}
+                    getStageColor={getStageColor}
+                    formatDate={formatDate}
+                    calculateProgress={calculateProgress}
+                    getImageUrl={getImageUrl}
+                    userAddress={address}
+                  />
                 ))}
               </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
-              >
-                View All Records
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
 
-      {/* Crop Details Modal */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-7xl h-[95vh] bg-emerald-900 border-emerald-700 text-emerald-100">
-          <DialogHeader>
-            <DialogTitle className="text-2xl text-emerald-100 flex items-center gap-3">
-              <Leaf className="w-6 h-6 text-emerald-400" />
-              {selectedCrop?.name} Details
-              <Badge className={`${getStageColor(selectedCrop?.stage || "")} border ml-auto`}>
-                {selectedCrop?.stage}
-              </Badge>
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedCrop && (
-            <div className="space-y-6 mt-4 h-full overflow-y-auto pr-2 emerald-scrollbar">
-              {/* Basic Information */}
-              <Card className="bg-emerald-800/40 border-emerald-700/40">
+              {/* Blockchain Records */}
+              <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
                 <CardHeader>
                   <CardTitle className="text-emerald-100 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-emerald-400" />
-                    Basic Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Variety</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.variety}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Location</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.location}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Planted Date</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.planted}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Health Status</p>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${selectedCrop.health === "Excellent" ? "bg-emerald-400" : selectedCrop.health === "Good" ? "bg-green-400" : selectedCrop.health === "Fair" ? "bg-yellow-400" : "bg-red-400"}`}></div>
-                      <span className={`font-medium ${getHealthColor(selectedCrop.health)}`}>{selectedCrop.health}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Growth Progress</p>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-emerald-100">{selectedCrop.progress}%</span>
-                      </div>
-                      <Progress value={selectedCrop.progress} className="h-2 bg-emerald-900/50" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Next Action</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.nextAction}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Blockchain Information */}
-              <Card className="bg-emerald-800/40 border-emerald-700/40">
-                <CardHeader>
-                  <CardTitle className="text-emerald-100 flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-emerald-400" />
-                    Blockchain Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">NFT ID</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-emerald-100 font-mono text-sm">{selectedCrop.nftId}</p>
-                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100">
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Contract Address</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-emerald-100 font-mono text-sm">{selectedCrop.contractAddress}</p>
-                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100">
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Total Transactions</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.blockchainData.totalTransactions}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Last Update</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.blockchainData.lastUpdate}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Carbon Credits</p>
-                    <p className="text-emerald-100 font-medium">{selectedCrop.blockchainData.carbonCredits} tons</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-emerald-200/80">Sustainability Score</p>
-                    <div className="flex items-center gap-2">
-                      <Progress value={selectedCrop.blockchainData.sustainabilityScore} className="h-2 bg-emerald-900/50 flex-1" />
-                      <span className="text-emerald-100 font-medium">{selectedCrop.blockchainData.sustainabilityScore}%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Environmental Data */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Soil Conditions */}
-                <Card className="bg-emerald-800/40 border-emerald-700/40">
-                  <CardHeader>
-                    <CardTitle className="text-emerald-100 flex items-center gap-2">
-                      <Leaf className="w-5 h-5 text-emerald-400" />
-                      Soil Conditions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">pH Level</span>
-                      <span className="text-emerald-100 font-medium">{selectedCrop.soil.ph}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Nitrogen</span>
-                      <Badge variant="outline" className={`${selectedCrop.soil.nitrogen === "High" ? "text-green-300 border-green-500/50" : selectedCrop.soil.nitrogen === "Medium" ? "text-yellow-300 border-yellow-500/50" : "text-red-300 border-red-500/50"} bg-emerald-900/20`}>
-                        {selectedCrop.soil.nitrogen}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Phosphorus</span>
-                      <Badge variant="outline" className={`${selectedCrop.soil.phosphorus === "High" ? "text-green-300 border-green-500/50" : selectedCrop.soil.phosphorus === "Medium" ? "text-yellow-300 border-yellow-500/50" : "text-red-300 border-red-500/50"} bg-emerald-900/20`}>
-                        {selectedCrop.soil.phosphorus}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Potassium</span>
-                      <Badge variant="outline" className={`${selectedCrop.soil.potassium === "High" ? "text-green-300 border-green-500/50" : selectedCrop.soil.potassium === "Medium" ? "text-yellow-300 border-yellow-500/50" : "text-red-300 border-red-500/50"} bg-emerald-900/20`}>
-                        {selectedCrop.soil.potassium}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Weather Data */}
-                <Card className="bg-emerald-800/40 border-emerald-700/40">
-                  <CardHeader>
-                    <CardTitle className="text-emerald-100 flex items-center gap-2">
-                      <Thermometer className="w-5 h-5 text-emerald-400" />
-                      Weather Conditions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Temperature</span>
-                      <span className="text-emerald-100 font-medium">{selectedCrop.weather.temperature}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Humidity</span>
-                      <span className="text-emerald-100 font-medium">{selectedCrop.weather.humidity}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-200/80">Rainfall (Last 24h)</span>
-                      <span className="text-emerald-100 font-medium">{selectedCrop.weather.rainfall}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Blockchain Transaction History */}
-              <Card className="bg-emerald-800/40 border-emerald-700/40">
-                <CardHeader>
-                  <CardTitle className="text-emerald-100 flex items-center gap-2">
-                    <Hash className="w-5 h-5 text-emerald-400" />
-                    Blockchain Transaction History
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                    Your Blockchain Records
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {getCropBlockchainRecords(selectedCrop.id).map((record, index) => (
-                      <div key={index} className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-emerald-100">{record.action}</h4>
-                          <Badge className="bg-emerald-900/30 text-emerald-300 border-emerald-500/50">
-                            {record.status}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-emerald-200/80">
-                          <div>
-                            <span className="text-emerald-200">Block:</span> {record.block}
+                    {farmerCrops.data.slice(0, 3).map((tokenId: bigint, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-medium text-emerald-100">
+                              Crop NFT #{tokenId.toString()} - Created
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className="text-emerald-300 border-emerald-500/50 bg-emerald-900/20"
+                            >
+                              Confirmed
+                            </Badge>
                           </div>
-                          <div>
-                            <span className="text-emerald-200">Gas:</span> {record.gas}
-                          </div>
-                          <div>
-                            <span className="text-emerald-200">Time:</span> {record.timestamp}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-emerald-200">Tx Hash:</span> 
-                            <span className="font-mono">{record.txHash}</span>
-                            <Button size="sm" variant="ghost" className="h-4 w-4 p-0 text-emerald-300 hover:text-emerald-100">
-                              <ExternalLink className="w-3 h-3" />
-                            </Button>
+                          <div className="flex items-center gap-4 text-sm text-emerald-200/80">
+                            <span>Token ID: #{tokenId.toString()}</span>
+                            <span>On Mantle Sepolia</span>
                           </div>
                         </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+                          onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${address}`, '_blank')}
+                        >
+                          View on Explorer
+                        </Button>
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-3 mt-6">
-                    <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View on Explorer
-                    </Button>
-                    <Button variant="outline" className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent">
-                      <Hash className="w-4 h-4 mr-2" />
-                      Export Data
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+                    onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${address}`, '_blank')}
+                  >
+                    View All Records on Explorer
+                  </Button>
                 </CardContent>
               </Card>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Update Status Modal */}
+      <Dialog open={isUpdateStatusOpen} onOpenChange={setIsUpdateStatusOpen}>
+        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-100">Update Crop Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="newStatus" className="text-emerald-200">New Status</Label>
+              <select
+                id="newStatus"
+                value={statusUpdate.newStatus}
+                onChange={(e) => setStatusUpdate({...statusUpdate, newStatus: e.target.value})}
+                className="w-full bg-emerald-800/50 border border-emerald-600 text-emerald-100 rounded-md px-3 py-2"
+              >
+                <option value="">Select status...</option>
+                <option value="planted">Planted</option>
+                <option value="growing">Growing</option>
+                <option value="flowering">Flowering</option>
+                <option value="fruiting">Fruiting</option>
+                <option value="harvested">Harvested</option>
+              </select>
             </div>
+            <Button 
+              onClick={handleUpdateStatus}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              disabled={cropNFT.isConfirming || !statusUpdate.newStatus}
+            >
+              {cropNFT.isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating Status...
+                </>
+              ) : (
+                'Update Status'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Certification Modal */}
+      <Dialog open={isAddCertificationOpen} onOpenChange={setIsAddCertificationOpen}>
+        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-100">Add Certification</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="certification" className="text-emerald-200">Certification</Label>
+              <Input
+                id="certification"
+                value={certificationData.certification}
+                onChange={(e) => setCertificationData({...certificationData, certification: e.target.value})}
+                placeholder="e.g., USDA Organic, Fair Trade, etc."
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <Button 
+              onClick={handleAddCertification}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              disabled={cropNFT.isConfirming || !certificationData.certification}
+            >
+              {cropNFT.isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding Certification...
+                </>
+              ) : (
+                'Add Certification'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Image Modal */}
+      <Dialog open={isUpdateImageOpen} onOpenChange={setIsUpdateImageOpen}>
+        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-100">Update Crop Image</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="newImage" className="text-emerald-200">New Image URL</Label>
+              <Input
+                id="newImage"
+                value={imageUpdate.newImage}
+                onChange={(e) => setImageUpdate({...imageUpdate, newImage: e.target.value})}
+                placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+              <p className="text-xs text-emerald-300/70 mt-1">
+                Use your Pinata IPFS URL or any HTTPS image URL
+              </p>
+            </div>
+            {imageUpdate.newImage && (
+              <div className="space-y-2">
+                <Label className="text-emerald-200">Preview</Label>
+                <div className="aspect-video w-full max-w-xs mx-auto overflow-hidden rounded-lg">
+                  <img 
+                    src={getImageUrl(imageUpdate.newImage) || imageUpdate.newImage} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            <Button 
+              onClick={handleUpdateImage}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              disabled={cropNFT.isConfirming || !imageUpdate.newImage}
+            >
+              {cropNFT.isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating Image...
+                </>
+              ) : (
+                'Update Image'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-md bg-emerald-900 border-emerald-700 text-emerald-100">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-100">Create New Crop Batch</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="cropType" className="text-emerald-200">Crop Type</Label>
+              <Input
+                id="cropType"
+                value={newCrop.cropType}
+                onChange={(e) => setNewCrop({...newCrop, cropType: e.target.value})}
+                placeholder="e.g., Organic Tomatoes"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div>
+              <Label htmlFor="location" className="text-emerald-200">Location</Label>
+              <Input
+                id="location"
+                value={newCrop.location}
+                onChange={(e) => setNewCrop({...newCrop, location: e.target.value})}
+                placeholder="e.g., Field A-1"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div>
+              <Label htmlFor="quantity" className="text-emerald-200">Quantity (units)</Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={newCrop.quantity}
+                onChange={(e) => setNewCrop({...newCrop, quantity: e.target.value})}
+                placeholder="e.g., 1000"
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isOrganic"
+                checked={newCrop.isOrganic}
+                onCheckedChange={(checked) => setNewCrop({...newCrop, isOrganic: checked})}
+              />
+              <Label htmlFor="isOrganic" className="text-emerald-200">Organic Certification</Label>
+            </div>
+            <div>
+              <Label htmlFor="cropImage" className="text-emerald-200">Image URL</Label>
+              <Input
+                id="cropImage"
+                value={newCrop.cropImage}
+                onChange={(e) => setNewCrop({...newCrop, cropImage: e.target.value})}
+                placeholder="https://jade-adjacent-mosquito-859.mypinata.cloud/ipfs/..."
+                className="bg-emerald-800/50 border-emerald-600 text-emerald-100 placeholder:text-emerald-300"
+              />
+              <p className="text-xs text-emerald-300/70 mt-1">
+                Use your Pinata IPFS URL or any HTTPS image URL
+              </p>
+            </div>
+            <Button 
+              onClick={handleCreateCrop}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+              disabled={cropNFT.isConfirming || !newCrop.cropType || !newCrop.location || !newCrop.quantity}
+            >
+              {cropNFT.isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating on Blockchain...
+                </>
+              ) : (
+                'Create Crop Batch'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Crop Details Modal */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-7xl h-[95vh] bg-emerald-900 border-emerald-700 text-emerald-100">
+          {selectedCropId && selectedCropBatch.data && (
+            <CropDetailsModal 
+              cropBatch={selectedCropBatch.data}
+              tokenId={selectedCropId}
+              formatDate={formatDate}
+              getStageColor={getStageColor}
+              getImageUrl={getImageUrl}
+              userAddress={address}
+              onUpdateStatus={openUpdateStatus}
+              onAddCertification={openAddCertification}
+              onUpdateImage={openUpdateImage}
+            />
           )}
         </DialogContent>
       </Dialog>
 
       <Footer />
+    </div>
+  )
+}
+
+// Individual Crop Card Component
+function CropCard({ 
+  tokenId, 
+  onViewDetails, 
+  onScan, 
+  onRate, 
+  onShare,
+  onUpdateStatus,
+  onAddCertification,
+  onUpdateImage,
+  getStageColor,
+  formatDate,
+  calculateProgress,
+  getImageUrl,
+  userAddress
+}: { 
+  tokenId: bigint
+  onViewDetails: (id: bigint) => void
+  onScan: (id: bigint) => void
+  onRate: (id: bigint, rating: number) => void
+  onShare: (id: bigint) => void
+  onUpdateStatus: (id: bigint) => void
+  onAddCertification: (id: bigint) => void
+  onUpdateImage: (id: bigint) => void
+  getStageColor: (stage: string) => string
+  formatDate: (timestamp: bigint) => string
+  calculateProgress: (createdAt: bigint, status: string) => number
+  getImageUrl: (imageString: string | undefined) => string | null
+  userAddress?: string
+}) {
+  const cropBatch = useCropBatch(tokenId)
+
+  if (cropBatch.isLoading) {
+    return (
+      <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+        <CardContent className="flex items-center justify-center h-48">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-300" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!cropBatch.data) {
+    return (
+      <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+        <CardContent className="flex items-center justify-center h-48">
+          <p className="text-emerald-200/80">Failed to load crop data</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const crop = cropBatch.data
+  console.log("crop data", crop)
+  
+  // Check if current user is the owner
+  const isOwner = userAddress && crop.farmer.toLowerCase() === userAddress.toLowerCase()
+  
+  // Now accessing as object properties instead of array indices
+  const progress = calculateProgress(crop.createdAt, crop.status)
+  const imageUrl = getImageUrl(crop.cropImage)
+
+  return (
+    <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
+      <div className="aspect-video bg-gradient-to-br from-emerald-900/50 to-green-900/50 rounded-t-lg relative overflow-hidden">
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={crop.cropType} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to default icon if image fails to load
+              e.currentTarget.style.display = 'none'
+              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+            }}
+          />
+        ) : null}
+        <div className={`w-full h-full flex items-center justify-center bg-emerald-800/30 ${imageUrl ? 'hidden' : ''}`}>
+          <Leaf className="w-16 h-16 text-emerald-300/50" />
+        </div>
+        <div className="absolute top-3 right-3">
+          <Badge className={`${getStageColor(crop.status)} border backdrop-blur-sm`}>{crop.status}</Badge>
+        </div>
+      </div>
+
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-emerald-100 text-lg">{crop.cropType}</CardTitle>
+          <div className="flex gap-1">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              onClick={() => onViewDetails(tokenId)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+              onClick={() => onScan(tokenId)}
+            >
+              <QrCode className="w-4 h-4" />
+            </Button>
+            {isOwner && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+                onClick={() => onUpdateStatus(tokenId)}
+                title="Update Status"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-emerald-200/80">NFT #{tokenId.toString()}</p>
+          {crop.isOrganic && <Badge variant="outline" className="text-emerald-300 border-emerald-500/50">Organic</Badge>}
+        </div>
+        
+        {/* Debug info - remove this later */}
+        <div className="text-xs text-emerald-400/60 mt-1">
+          Owner: {crop.farmer.slice(0, 6)}...{crop.farmer.slice(-4)} | You: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}
+          <br />
+          Is Owner: {isOwner ? 'Yes' : 'No'}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-emerald-200/80">Growth Progress</span>
+            <span className="text-emerald-100 font-medium">{progress.toFixed(0)}%</span>
+          </div>
+          <Progress value={progress} className="h-2 bg-emerald-900/50" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-emerald-200/80">
+            <MapPin className="w-4 h-4" />
+            <span className="truncate">{crop.location}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-emerald-200/80">
+            <Calendar className="w-4 h-4" />
+            <span>Created: {formatDate(crop.createdAt)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-emerald-200/80">
+            <Hash className="w-4 h-4" />
+            <span>Qty: {crop.quantity?.toString()}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+            <span className="text-sm font-medium text-emerald-300">
+              On Blockchain
+            </span>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onRate(tokenId, 5)}
+              className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+            >
+              <Star className="w-3 h-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onShare(tokenId)}
+              className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
+            >
+              <Share className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+          onClick={() => onViewDetails(tokenId)}
+        >
+          View Details
+        </Button>
+
+        {/* Owner Action Buttons */}
+        {isOwner && (
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+              onClick={() => onUpdateStatus(tokenId)}
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Status
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+              onClick={() => onAddCertification(tokenId)}
+            >
+              <Hash className="w-3 h-3 mr-1" />
+              Cert
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent text-xs"
+              onClick={() => onUpdateImage(tokenId)}
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Image
+            </Button>
+          </div>
+        )}
+
+        {/* Always show this for testing */}
+        <div className="bg-red-900/20 border border-red-500/30 rounded p-2 mt-2">
+          <p className="text-xs text-red-300">Debug: Is Owner = {isOwner ? 'YES' : 'NO'}</p>
+          <p className="text-xs text-red-300">User: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}</p>
+          <p className="text-xs text-red-300">Owner: {crop.farmer?.slice(0, 6)}...{crop.farmer?.slice(-4)}</p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Crop Details Modal Component
+function CropDetailsModal({ 
+  cropBatch, 
+  tokenId, 
+  formatDate, 
+  getStageColor,
+  getImageUrl,
+  userAddress,
+  onUpdateStatus,
+  onAddCertification,
+  onUpdateImage
+}: { 
+  cropBatch: any
+  tokenId: bigint
+  formatDate: (timestamp: bigint) => string
+  getStageColor: (stage: string) => string
+  getImageUrl: (imageString: string | undefined) => string | null
+  userAddress?: string
+  onUpdateStatus: (id: bigint) => void
+  onAddCertification: (id: bigint) => void
+  onUpdateImage: (id: bigint) => void
+}) {
+  const imageUrl = getImageUrl(cropBatch.cropImage)
+  const isOwner = userAddress && cropBatch.farmer.toLowerCase() === userAddress.toLowerCase()
+
+  // Debug logging
+  console.log("CropDetailsModal Debug:", {
+    cropBatch,
+    tokenId: tokenId.toString(),
+    userAddress,
+    isOwner,
+    farmer: cropBatch.farmer
+  })
+
+  // Add hook to get engagement data - simplified version
+  const engagementData = {
+    data: {
+      totalScans: BigInt(0),
+      totalRatings: BigInt(0), 
+      averageRating: BigInt(0),
+      socialShares: BigInt(0)
+    },
+    isLoading: false
+  }
+
+  // You can implement this properly later by adding the getEngagementData function to your hooks
+
+  return (
+    <div className="space-y-6 mt-4 h-full overflow-y-auto pr-2">
+      <DialogHeader>
+        <DialogTitle className="text-2xl text-emerald-100 flex items-center gap-3">
+          <Leaf className="w-6 h-6 text-emerald-400" />
+          {cropBatch.cropType} Details
+          <Badge className={`${getStageColor(cropBatch.status)} border ml-auto`}>
+            {cropBatch.status}
+          </Badge>
+        </DialogTitle>
+      </DialogHeader>
+
+      {/* Crop Image Section */}
+      {imageUrl && (
+        <Card className="bg-emerald-800/40 border-emerald-700/40">
+          <CardHeader>
+            <CardTitle className="text-emerald-100 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-emerald-400" />
+              Crop Image
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video w-full max-w-2xl mx-auto overflow-hidden rounded-lg">
+              <img 
+                src={imageUrl} 
+                alt={cropBatch.cropType} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.parentElement?.classList.add('hidden')
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Basic Information */}
+      <Card className="bg-emerald-800/40 border-emerald-700/40">
+        <CardHeader>
+          <CardTitle className="text-emerald-100 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-emerald-400" />
+            Basic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Crop Type</p>
+            <p className="text-emerald-100 font-medium">{cropBatch.cropType}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Location</p>
+            <p className="text-emerald-100 font-medium">{cropBatch.location}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Quantity</p>
+            <p className="text-emerald-100 font-medium">{cropBatch.quantity?.toString()} units</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Organic</p>
+            <p className="text-emerald-100 font-medium">{cropBatch.isOrganic ? "Yes" : "No"}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Status</p>
+            <p className="text-emerald-100 font-medium capitalize">{cropBatch.status}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Created</p>
+            <p className="text-emerald-100 font-medium">{formatDate(cropBatch.createdAt)}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Engagement Data Card */}
+      <Card className="bg-emerald-800/40 border-emerald-700/40">
+        <CardHeader>
+          <CardTitle className="text-emerald-100 flex items-center gap-2">
+            <Star className="w-5 h-5 text-emerald-400" />
+            Engagement & Ratings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm text-emerald-200/80">Total Scans</p>
+              <p className="text-emerald-100 font-medium text-lg">
+                {engagementData.data?.totalScans?.toString() || '0'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-emerald-200/80">Total Ratings</p>
+              <p className="text-emerald-100 font-medium text-lg">
+                {engagementData.data?.totalRatings?.toString() || '0'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-emerald-200/80">Average Rating</p>
+              <p className="text-emerald-100 font-medium text-lg">
+                {engagementData.data?.averageRating ? 
+                  (Number(engagementData.data.averageRating) / 100).toFixed(1) + '/5' : 
+                  'No ratings'
+                }
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-emerald-200/80">Social Shares</p>
+              <p className="text-emerald-100 font-medium text-lg">
+                {engagementData.data?.socialShares?.toString() || '0'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Blockchain Information */}
+      <Card className="bg-emerald-800/40 border-emerald-700/40">
+        <CardHeader>
+          <CardTitle className="text-emerald-100 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-emerald-400" />
+            Blockchain Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">NFT Token ID</p>
+            <div className="flex items-center gap-2">
+              <p className="text-emerald-100 font-mono text-sm">#{tokenId.toString()}</p>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
+              >
+                <ExternalLink className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Owner</p>
+            <div className="flex items-center gap-2">
+              <p className="text-emerald-100 font-mono text-xs">{cropBatch.farmer}</p>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${cropBatch.farmer}`, '_blank')}
+              >
+                <ExternalLink className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Network</p>
+            <p className="text-emerald-100 font-medium">Mantle Sepolia Testnet</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Harvest Date</p>
+            <p className="text-emerald-100 font-medium">{formatDate(cropBatch.harvestDate)}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Certifications</p>
+            <p className="text-emerald-100 font-medium">{cropBatch.certifications || "None yet"}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-emerald-200/80">Image URL</p>
+            <div className="flex items-center gap-2">
+              <p className="text-emerald-100 font-mono text-xs truncate max-w-xs">
+                {cropBatch.cropImage || "No image"}
+              </p>
+              {cropBatch.cropImage && (
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-6 w-6 p-0 text-emerald-300 hover:text-emerald-100"
+                  onClick={() => window.open(getImageUrl(cropBatch.cropImage) || '', '_blank')}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+        {isOwner && (
+          <>
+            <Card className="bg-emerald-800/40 border-emerald-700/40">
+              <CardHeader>
+                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                  <Edit className="w-5 h-5 text-emerald-400" />
+                  Owner Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                    onClick={() => onUpdateStatus(tokenId)}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Update Status
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                    onClick={() => onAddCertification(tokenId)}
+                  >
+                    <Hash className="w-4 h-4 mr-2" />
+                    Add Certification
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent"
+                    onClick={() => onUpdateImage(tokenId)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Update Image
+                  </Button>
+                </div>
+                <p className="text-xs text-emerald-300/70 mt-2">
+                  You are the owner of this crop NFT and can make updates
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
+        
+      <div className="flex gap-3 mt-6 flex-wrap">
+        <Button 
+          className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+          onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          View on Explorer
+        </Button>
+      </div>
     </div>
   )
 }

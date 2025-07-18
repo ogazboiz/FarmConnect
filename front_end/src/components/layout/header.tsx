@@ -6,12 +6,13 @@ import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Leaf, Wallet, Bell, User, Menu, X, ChevronDown, ExternalLink, LogOut, Settings } from "lucide-react"
+import { Leaf, Wallet, Bell, User, Menu, X, ChevronDown, ExternalLink, LogOut, Settings, Coins } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
 import { useDisconnect } from "@reown/appkit/react"
 import { useWalletInfo } from "@reown/appkit/react"
 import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
+import { useFarmTokenBalance, useGreenPointsBalance } from "@/hooks/useAgriDAO"
 
 interface HeaderProps {
   onWalletConnect?: () => void
@@ -52,8 +53,12 @@ export function Header({ onWalletConnect }: HeaderProps) {
   const address = appkitAddress || wagmiAddress
   const isConnected = appkitIsConnected || wagmiIsConnected
 
+  // Get real balances
+  const farmBalance = useFarmTokenBalance(address)
+  const greenBalance = useGreenPointsBalance(address)
+
   // Determine which navigation to show based on ACTUAL connection state
-  const currentNav = isConnected ? dashboardNavigation  : navigation
+  const currentNav = isConnected ? dashboardNavigation : navigation
 
   useEffect(() => {
     if (isConnected && !pathname.startsWith("/dashboard")) {
@@ -221,13 +226,37 @@ export function Header({ onWalletConnect }: HeaderProps) {
               </Button>
             ) : isConnected ? (
               <>
-                <Badge
-                  variant="outline"
-                  className="bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 hidden sm:flex backdrop-blur-sm p-2 rounded-lg"
-                >
-                  <Wallet className="w-4 h-4 mr-1 " />
-                  1,250 $FARM
-                </Badge>
+                {/* Real FARM Balance */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm p-2 rounded-lg"
+                  >
+                    <Coins className="w-4 h-4 mr-1" />
+                    {farmBalance.isLoading ? (
+                      "Loading..."
+                    ) : farmBalance.error ? (
+                      "Error"
+                    ) : (
+                      `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'} FARM`
+                    )}
+                  </Badge>
+                  
+                  {/* GREEN Balance */}
+                  <Badge
+                    variant="outline"
+                    className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border-green-500/30 backdrop-blur-sm p-2 rounded-lg"
+                  >
+                    <Leaf className="w-4 h-4 mr-1" />
+                    {greenBalance.isLoading ? (
+                      "Loading..."
+                    ) : greenBalance.error ? (
+                      "Error"
+                    ) : (
+                      `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'} GREEN`
+                    )}
+                  </Badge>
+                </div>
 
                 <Button variant="ghost" size="icon" className="text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm">
                   <Bell className="w-5 h-5" />
@@ -244,13 +273,52 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   </Button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-green-200 z-50">
+                    <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-green-200 z-50">
                       <div className="p-4 border-b border-green-200">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 mb-3">
                           {getWalletIcon()}
                           <div>
                             <p className="font-medium text-green-800">{getWalletName()}</p>
                             <p className="text-sm text-green-600">{truncateAddress(address)}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Detailed Balance in Dropdown */}
+                        <div className="space-y-2">
+                          <div className="bg-amber-50 rounded-md p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Coins className="w-4 h-4 text-amber-600" />
+                                <span className="text-sm font-medium text-amber-700">FARM Balance</span>
+                              </div>
+                              <span className="text-sm font-bold text-amber-800">
+                                {farmBalance.isLoading ? (
+                                  "Loading..."
+                                ) : farmBalance.error ? (
+                                  "Error loading"
+                                ) : (
+                                  `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(4) : '0.0000'}`
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-green-50 rounded-md p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Leaf className="w-4 h-4 text-green-600" />
+                                <span className="text-sm font-medium text-green-700">GREEN Points</span>
+                              </div>
+                              <span className="text-sm font-bold text-green-800">
+                                {greenBalance.isLoading ? (
+                                  "Loading..."
+                                ) : greenBalance.error ? (
+                                  "Error loading"
+                                ) : (
+                                  `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}`
+                                )}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -260,13 +328,13 @@ export function Header({ onWalletConnect }: HeaderProps) {
                           Profile
                         </button>
                         <a
-                          href={`https://etherscan.io/address/${address}`}
+                          href={`https://mantlescan.xyz/address/${address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
                         >
                           <ExternalLink className="w-4 h-4" />
-                          View on Explorer
+                          View on Mantle Explorer
                         </a>
                         <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
                           <Settings className="w-4 h-4" />
@@ -324,6 +392,37 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   {item.name}
                 </Link>
               ))}
+              
+              {/* Mobile Balance Display */}
+              {isConnected && (
+                <div className="mt-4 pt-4 border-t border-emerald-500/20">
+                  <div className="space-y-2">
+                    <div className="bg-amber-50 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-amber-600" />
+                          <span className="text-sm font-medium text-amber-700">FARM</span>
+                        </div>
+                        <span className="text-sm font-bold text-amber-800">
+                          {farmBalance.isLoading ? "Loading..." : farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Leaf className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">GREEN</span>
+                        </div>
+                        <span className="text-sm font-bold text-green-800">
+                          {greenBalance.isLoading ? "Loading..." : greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </nav>
         )}

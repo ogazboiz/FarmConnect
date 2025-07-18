@@ -18,82 +18,137 @@ import {
   BarChart3,
   Calendar,
   MapPin,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
+import { useAccount } from "wagmi"
+import { useFarmTokenBalance, useGreenPointsBalance, useFarmerCrops, useFarmTokenInfo } from "@/hooks/useAgriDAO"
 
 export function DashboardPage() {
+  const { address, isConnected } = useAccount();
+  
+  // Individual hooks
+  const farmBalance = useFarmTokenBalance(address);
+  const greenBalance = useGreenPointsBalance(address);
+  const farmerCrops = useFarmerCrops(address);
+  const farmTokenInfo = useFarmTokenInfo();
+
+  // Show loading state
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+        <Header />
+        <div className="pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-emerald-100 mb-4">
+                Please connect your wallet to view your dashboard
+              </h1>
+              <p className="text-emerald-200/80">Connect your wallet to start tracking your crops and earning rewards</p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const isLoading = farmBalance.isLoading || greenBalance.isLoading || farmerCrops.isLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+        <Header />
+        <div className="pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-emerald-300 animate-spin mx-auto mb-4" />
+              <h1 className="text-4xl font-bold text-emerald-100 mb-4">
+                Loading your dashboard...
+              </h1>
+              <p className="text-emerald-200/80">Fetching your data from the blockchain</p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   const stats = [
     {
       title: "Active Crops",
-      value: "12",
+      value: farmerCrops.count?.toString() || "0",
       icon: Sprout,
       color: "text-emerald-400",
       bg: "bg-emerald-900/20",
       href: "/dashboard/crops",
     },
     {
-      title: "DAO Memberships",
-      value: "3",
-      icon: Users,
-      color: "text-green-400",
-      bg: "bg-green-900/20",
-      href: "/dashboard/cooperative",
-    },
-    {
-      title: "Completed Bounties",
-      value: "8",
-      icon: Target,
-      color: "text-yellow-400",
-      bg: "bg-yellow-900/20",
-      href: "/dashboard/bounties",
-    },
-    {
-      title: "$AGRI Earned",
-      value: "1,250",
+      title: "FARM Balance",
+      value: farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : "0.00",
       icon: Coins,
       color: "text-amber-400",
       bg: "bg-amber-900/20",
       href: "/dashboard",
     },
-  ]
+    {
+      title: "GREEN Points",
+      value: greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : "0",
+      icon: Award,
+      color: "text-green-400",
+      bg: "bg-green-900/20",
+      href: "/dashboard",
+    },
+    {
+      title: "Token Info",
+      value: farmTokenInfo.name,
+      icon: TrendingUp,
+      color: "text-yellow-400",
+      bg: "bg-yellow-900/20",
+      href: "/dashboard",
+    },
+  ];
+
+  console.log("the token info///",farmTokenInfo)
 
   const recentActivity = [
-    { action: "Harvested Organic Tomatoes", time: "2 hours ago", status: "success", type: "harvest" },
-    { action: "Joined Sustainable Farmers DAO", time: "1 day ago", status: "info", type: "dao" },
-    { action: "Completed Pest Control Bounty", time: "3 days ago", status: "success", type: "bounty" },
-    { action: "Updated Corn Growth Stage", time: "5 days ago", status: "info", type: "crop" },
-    { action: "Voted on Equipment Purchase", time: "1 week ago", status: "info", type: "vote" },
-  ]
-
-  const activeCrops = [
-    { name: "Organic Tomatoes", stage: "Flowering", progress: 65, location: "Field A-1" },
-    { name: "Sweet Corn", stage: "Growing", progress: 45, location: "Field B-2" },
-    { name: "Lettuce", stage: "Seedling", progress: 25, location: "Greenhouse 1" },
-  ]
+    { action: "Wallet connected", time: "Just now", status: "success", type: "connection" },
+    { action: "Dashboard loaded", time: "Now", status: "info", type: "system" },
+    { action: "Ready to create crops", time: "Now", status: "success", type: "ready" },
+  ];
 
   const upcomingTasks = [
-    { task: "Water tomatoes in Field A-1", due: "Today", priority: "high" },
-    { task: "Fertilize corn crops", due: "Tomorrow", priority: "medium" },
-    { task: "Harvest lettuce batch #3", due: "3 days", priority: "low" },
-    { task: "DAO voting deadline", due: "5 days", priority: "medium" },
-  ]
+    { task: "Create your first crop batch", due: "Today", priority: "high" },
+    { task: "Connect with other farmers", due: "This week", priority: "medium" },
+    { task: "Explore bounties", due: "Anytime", priority: "low" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
-     <Header />
-
+      <Header />
 
       <div className="pt-24 pb-16 px-4">
         <div className="container mx-auto">
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-emerald-100 mb-2">
-              Welcome back,{" "}
+              Welcome to AgriChain,{" "}
               <span className="bg-gradient-to-r from-emerald-300 to-yellow-300 bg-clip-text text-transparent">
-                Farmer John!
+                Farmer!
               </span>
             </h1>
-            <p className="text-xl text-emerald-200/80">Here&apos;s what&apos;s happening on your farm today.</p>
+            <p className="text-xl text-emerald-200/80">
+              Your decentralized agriculture platform is ready.
+            </p>
+            {address && (
+              <div className="mt-2 p-3 bg-emerald-800/40 rounded-lg border border-emerald-700/40 inline-block">
+                <p className="text-sm text-emerald-200/80">Connected Wallet:</p>
+                <p className="font-mono text-emerald-300 text-sm">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Stats Grid */}
@@ -105,10 +160,10 @@ export function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-emerald-200/80 mb-1">{stat.title}</p>
-                        <p className="text-3xl font-bold text-emerald-100">{stat.value}</p>
+                        <p className="text-2xl font-bold text-emerald-100">{stat.value}</p>
                       </div>
                       <div className={`p-4 rounded-2xl ${stat.bg} border border-emerald-600/30 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                        <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                        <stat.icon className={`w-6 h-6 ${stat.color}`} />
                       </div>
                     </div>
                   </CardContent>
@@ -129,7 +184,7 @@ export function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
+                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
                       <div>
                         <p className="font-medium text-emerald-100">{activity.action}</p>
                         <p className="text-sm text-emerald-200/80">{activity.time}</p>
@@ -143,84 +198,135 @@ export function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
-                >
-                  View All Activity
-                </Button>
               </CardContent>
             </Card>
 
-            {/* Active Crops */}
+            {/* Your Crops */}
             <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-emerald-100 flex items-center gap-2">
                     <Sprout className="w-5 h-5 text-green-400" />
-                    Active Crops
+                    Your Crops ({farmerCrops.count})
                   </CardTitle>
                   <Link href="/dashboard/crops">
                     <Button size="sm" className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white border-0">
                       <Plus className="w-4 h-4 mr-1" />
-                      Add Crop
+                      Create Crop
                     </Button>
                   </Link>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {activeCrops.map((crop, index) => (
-                    <div key={index} className="p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium text-emerald-100">{crop.name}</h3>
-                        <Badge variant="outline" className="text-green-300 border-green-500/50 bg-green-900/20">
-                          {crop.stage}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-emerald-200/80 mb-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{crop.location}</span>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-emerald-200/80">Progress</span>
-                          <span className="text-emerald-100 font-medium">{crop.progress}%</span>
+                {farmerCrops.count > 0 ? (
+                  <div className="space-y-3">
+                    {farmerCrops.data.slice(0, 3).map((tokenId: bigint, index: number) => (
+                      <div key={index} className="p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium text-emerald-100">Crop NFT #{tokenId.toString()}</h3>
+                            <p className="text-sm text-emerald-200/80">Active on blockchain</p>
+                          </div>
+                          <Badge variant="outline" className="text-green-300 border-green-500/50 bg-green-900/20">
+                            NFT
+                          </Badge>
                         </div>
-                        <Progress value={crop.progress} className="h-2 bg-emerald-900/50" />
                       </div>
-                    </div>
-                  ))}
-                </div>
-                <Link href="/dashboard/crops">
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4 border-green-600/50 text-green-200 hover:bg-green-800/60 bg-transparent hover:border-green-500"
-                  >
-                    View All Crops
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
+                    ))}
+                    <Link href="/dashboard/crops">
+                      <Button
+                        variant="outline"
+                        className="w-full mt-4 border-green-600/50 text-green-200 hover:bg-green-800/60 bg-transparent hover:border-green-500"
+                      >
+                        View All Crops
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Sprout className="w-12 h-12 text-emerald-400 mx-auto mb-4 opacity-50" />
+                    <p className="text-emerald-200/80 mb-4">No crops yet. Create your first crop batch!</p>
+                    <Link href="/dashboard/crops">
+                      <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create First Crop
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Upcoming Tasks */}
+            {/* Token Information */}
+            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+              <CardHeader>
+                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-emerald-400" />
+                  Token Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-emerald-100">FARM Token</p>
+                      <p className="text-sm text-emerald-200/80">Your balance</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-100">
+                        {farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">FARM</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-emerald-100">GREEN Points</p>
+                      <p className="text-sm text-emerald-200/80">Sustainability rewards</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-100">
+                        {greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">GREEN</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-emerald-100">Token Name</p>
+                      <p className="text-sm text-emerald-200/80">Farm token info</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-emerald-100">
+                        {farmTokenInfo.name || 'Loading...'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">
+                        {farmTokenInfo.symbol || 'Loading...'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Getting Started */}
             <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
               <CardHeader>
                 <CardTitle className="text-emerald-100 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-amber-400" />
-                  Upcoming Tasks
+                  Getting Started
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {upcomingTasks.map((task, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
+                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
                       <div>
                         <p className="font-medium text-emerald-100">{task.task}</p>
-                        <p className="text-sm text-emerald-200/80">Due: {task.due}</p>
+                        <p className="text-sm text-emerald-200/80">{task.due}</p>
                       </div>
                       <Badge
                         variant="outline"
@@ -237,59 +343,86 @@ export function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 border-amber-600/50 text-amber-200 hover:bg-amber-800/60 bg-transparent hover:border-amber-500"
-                >
-                  View All Tasks
-                </Button>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Achievements */}
+          {/* Quick Actions */}
+          <div className="mt-8">
             <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
               <CardHeader>
                 <CardTitle className="text-emerald-100 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-yellow-400" />
-                  Recent Achievements
+                  <Target className="w-5 h-5 text-emerald-400" />
+                  Quick Actions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-yellow-900/30 border border-yellow-600/40 rounded-full flex items-center justify-center">
-                      <Award className="w-6 h-6 text-yellow-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-emerald-100">Sustainable Farmer</p>
-                      <p className="text-sm text-emerald-200/80">Completed 10 eco-friendly practices</p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Link href="/dashboard/crops">
+                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Crop Batch
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/cooperative">
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                      <Users className="w-4 h-4 mr-2" />
+                      Join DAO
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/bounties">
+                    <Button className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white">
+                      <Target className="w-4 h-4 mr-2" />
+                      View Bounties
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+                    onClick={() => window.open(`https://mantlescan.xyz/address/${address}`, '_blank')}
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View on Explorer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Contract Information */}
+          <div className="mt-8">
+            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+              <CardHeader>
+                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-emerald-400" />
+                  Contract Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <h3 className="font-medium text-emerald-100 mb-2">Network</h3>
+                    <p className="text-sm text-emerald-200/80">Mantle Sepolia Testnet</p>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-green-900/30 border border-green-600/40 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-green-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-emerald-100">Community Leader</p>
-                      <p className="text-sm text-emerald-200/80">Active in 3 farmer cooperatives</p>
-                    </div>
+                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <h3 className="font-medium text-emerald-100 mb-2">Environment</h3>
+                    <p className="text-sm text-emerald-200/80">
+                      {process.env.NEXT_PUBLIC_ENVIRONMENT || 'testnet'}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg hover:bg-emerald-800/40 transition-colors duration-300">
-                    <div className="w-12 h-12 bg-emerald-900/30 border border-emerald-600/40 rounded-full flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-emerald-100">Data Pioneer</p>
-                      <p className="text-sm text-emerald-200/80">Tracked 50+ crop cycles</p>
-                    </div>
+                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <h3 className="font-medium text-emerald-100 mb-2">Total Supply</h3>
+                    <p className="text-sm text-emerald-200/80">
+                      {farmTokenInfo.totalSupplyFormatted || 'Loading...'} FARM
+                    </p>
+                  </div>
+                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <h3 className="font-medium text-emerald-100 mb-2">Decimals</h3>
+                    <p className="text-sm text-emerald-200/80">
+                      {farmTokenInfo.decimals?.toString() || 'Loading...'}
+                    </p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 border-yellow-600/50 text-yellow-200 hover:bg-yellow-800/60 bg-transparent hover:border-yellow-500"
-                >
-                  View All Achievements
-                </Button>
               </CardContent>
             </Card>
           </div>
