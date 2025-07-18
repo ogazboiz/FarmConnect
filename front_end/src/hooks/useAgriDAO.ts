@@ -433,6 +433,23 @@ export const useFarmerDAO = () => {
     }
   };
 
+  // NEW: Add unstakeTokens function
+  const unstakeTokens = async (amount: bigint) => {
+    try {
+      console.log('Submitting unstakeTokens transaction...');
+      writeContract({
+        address: contracts.FARMER_DAO,
+        abi: FarmerDAOABI,
+        functionName: 'unstakeTokens',
+        args: [amount],
+      });
+      toast.success('Transaction submitted! Waiting for confirmation... 🔓');
+    } catch (error) {
+      toast.error('Failed to unstake tokens');
+      console.error('unstakeTokens error:', error);
+    }
+  };
+
   const createProposal = async (
     title: string,
     description: string,
@@ -490,6 +507,7 @@ export const useFarmerDAO = () => {
   return {
     joinDAO,
     stakeTokens,
+    unstakeTokens, // NEW: Add unstakeTokens to return object
     createProposal,
     vote,
     executeProposal,
