@@ -17,7 +17,7 @@ import {
   useGreenPointsBalance,
   formatTokenAmount 
 } from "@/hooks/useAgriDAO"
-import { useAllCropsForConsumers } from "@/hooks/useConsumerCrops"
+import { CropData, useAllCropsForConsumers } from "@/hooks/useConsumerCrops"
 import { ConnectWalletModal } from "@/components/consumer/ConnectWalletModal"
 import { ConsumerCropCard } from "@/components/consumer/ConsumerCropCard"
 
@@ -257,7 +257,7 @@ export default function ConsumerMarketplacePage() {
           {!loading && !error && filteredCrops.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
-                {filteredCrops.map((crop: any) => (
+                {filteredCrops.map((crop: CropData) => (
                   <ConsumerCropCard
                     key={crop.tokenId.toString()}
                     crop={crop}

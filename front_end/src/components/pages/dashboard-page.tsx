@@ -5,7 +5,6 @@ import { Header } from "../layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import {
   Sprout,
   Users,
@@ -17,7 +16,6 @@ import {
   Plus,
   BarChart3,
   Calendar,
-  MapPin,
   Loader2,
 } from "lucide-react"
 import Link from "next/link"

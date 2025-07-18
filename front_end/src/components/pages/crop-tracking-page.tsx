@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useAgriDAO"
 import { QRCodeGenerator } from "@/components/farmer/QRCodeGenerator"
 import { useGlobalRefresh } from "@/contexts/RefreshContext"
+import Image from "next/image"
 
 export default function CropTrackingPage() {
   const { address, isConnected } = useAccount()
@@ -312,7 +313,7 @@ export default function CropTrackingPage() {
   }
 
   const formatDate = (timestamp: bigint) => {
-    if (!timestamp || timestamp === 0n) return "Not set"
+    if (!timestamp || timestamp === BigInt(0)) return "Not set"
     return new Date(Number(timestamp) * 1000).toLocaleDateString()
   }
 
@@ -700,9 +701,11 @@ export default function CropTrackingPage() {
               <div className="space-y-2">
                 <Label className="text-emerald-200">Preview</Label>
                 <div className="w-full max-w-xs mx-auto overflow-hidden rounded-lg aspect-video">
-                  <img 
+                  <Image 
                     src={getImageUrl(imageUpdate.newImage) || imageUpdate.newImage} 
                     alt="Preview" 
+                    width={400}
+                    height={300}
                     className="object-cover w-full h-full"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
@@ -845,9 +848,11 @@ function CropCard({
     <Card className="transition-all duration-300 transform border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl hover:scale-105 group">
       <div className="relative overflow-hidden rounded-t-lg aspect-video bg-gradient-to-br from-emerald-900/50 to-green-900/50">
         {imageUrl ? (
-          <img 
+          <Image 
             src={imageUrl} 
             alt={crop.cropType} 
+            width={400}
+            height={300}
             className="object-cover w-full h-full"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
@@ -1030,7 +1035,18 @@ function CropDetailsModal({
   onUpdateImage,
   onGenerateQR
 }: { 
-  cropBatch: any
+  cropBatch: {
+    cropType: string
+    location: string
+    quantity: bigint
+    isOrganic: boolean
+    status: string
+    createdAt: bigint
+    harvestDate: bigint
+    farmer: string
+    certifications?: string
+    cropImage?: string
+  }
   tokenId: bigint
   formatDate: (timestamp: bigint) => string
   getStageColor: (stage: string) => string
@@ -1078,9 +1094,11 @@ function CropDetailsModal({
           </CardHeader>
           <CardContent>
             <div className="w-full max-w-2xl mx-auto overflow-hidden rounded-lg aspect-video">
-              <img 
+              <Image 
                 src={imageUrl} 
                 alt={cropBatch.cropType} 
+                width={800}
+                height={600}
                 className="object-cover w-full h-full"
                 onError={(e) => {
                   e.currentTarget.parentElement?.classList.add('hidden')

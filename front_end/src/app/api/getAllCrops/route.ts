@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const totalSupply = await cropNFTContract.totalSupply()
     console.log('Total supply:', totalSupply.toString())
 
-    if (!totalSupply || totalSupply === 0n) {
+    if (!totalSupply || totalSupply === BigInt(0)) {
       return NextResponse.json([])
     }
 
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching all crops:', error)
     return NextResponse.json(
-      { error: `Failed to fetch crops: ${error.message}` },
+      { error: `Failed to fetch crops: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }

@@ -114,7 +114,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching crop:', error)
     return NextResponse.json(
+<<<<<<< HEAD
       { error: 'Failed to fetch crop data' },
+=======
+      { error: `Failed to fetch crop data: ${error instanceof Error ? error.message : 'Unknown error'}` },
+>>>>>>> b4cfd0b5bd8958e616dbdd673c36707d01144059
       { status: 500 }
     )
   }

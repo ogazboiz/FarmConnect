@@ -80,7 +80,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         setStream(null)
       }
     }
-  }, [isOpen])
+  }, [isOpen, stream]) // Added stream to dependencies
 
   // Simple QR code detection using canvas (basic implementation)
   useEffect(() => {
@@ -184,7 +184,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
       testStream.getTracks().forEach(track => track.stop()) // Stop the test stream
       setHasPermission(true)
       window.location.reload() // Reload to restart scanner
-    } catch (err) {
+    } catch {
       setError('Camera permission is required to scan QR codes')
       setHasPermission(false)
     }

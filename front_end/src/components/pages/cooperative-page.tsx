@@ -193,17 +193,17 @@ const ProposalCard = ({ proposalId, userAddress }: { proposalId: bigint, userAdd
   }
 
   return (
-    <div className="border border-emerald-200 rounded-lg p-6 bg-emerald-50/30 hover:shadow-lg transition-shadow">
+    <div className="p-6 transition-shadow border rounded-lg border-emerald-200 bg-emerald-50/30 hover:shadow-lg">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="font-semibold text-slate-800 text-lg">{proposal.title}</h3>
+            <h3 className="text-lg font-semibold text-slate-800">{proposal.title}</h3>
             <Badge className={getProposalTypeColor(proposal.proposalType)}>
               {ProposalType[proposal.proposalType as keyof typeof ProposalType]}
             </Badge>
           </div>
-          <p className="text-sm text-slate-700 leading-relaxed mb-3">{proposal[3]}</p>
-          <div className="flex items-center gap-4 text-xs text-slate-600 mb-2">
+          <p className="mb-3 text-sm leading-relaxed text-slate-700">{proposal[3]}</p>
+          <div className="flex items-center gap-4 mb-2 text-xs text-slate-600">
             <span>Proposer: {proposal.proposer?.slice(0, 6)}...{proposal.proposer?.slice(-4)}</span>
             {proposal.amount && Number(proposal.amount) > 0 && (
               <span className="flex items-center gap-1">
@@ -222,29 +222,29 @@ const ProposalCard = ({ proposalId, userAddress }: { proposalId: bigint, userAdd
             {isExpired ? "Expired" : formatTimeLeft(proposal.deadline)}
           </Badge>
           {hasVoted && (
-            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+            <Badge className="text-blue-800 bg-blue-100 border-blue-300">
               Voted
             </Badge>
           )}
         </div>
       </div>
 
-      <div className="space-y-3 mb-6">
+      <div className="mb-6 space-y-3">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
-            <span className="text-emerald-600 flex items-center gap-1 font-medium">
+            <span className="flex items-center gap-1 font-medium text-emerald-600">
               <CheckCircle className="w-4 h-4" />
               For: {votesFor}
             </span>
-            <span className="text-red-600 flex items-center gap-1 font-medium">
+            <span className="flex items-center gap-1 font-medium text-red-600">
               <XCircle className="w-4 h-4" />
               Against: {votesAgainst}
             </span>
           </div>
-          <span className="text-slate-600 font-medium">Total: {totalVotes}</span>
+          <span className="font-medium text-slate-600">Total: {totalVotes}</span>
         </div>
         <Progress value={progressPercentage} className="h-3" />
-        <div className="text-xs text-slate-500 text-center">
+        <div className="text-xs text-center text-slate-500">
           {progressPercentage.toFixed(1)}% in favor • Quorum needed: {QUORUM_PERCENTAGE}% of staked tokens
         </div>
       </div>
@@ -292,7 +292,7 @@ const ProposalActions = ({
           size="sm" 
           onClick={() => onVote(true)}
           disabled={isConfirming}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1"
+          className="flex-1 text-white bg-emerald-600 hover:bg-emerald-700"
         >
           <CheckCircle className="w-4 h-4 mr-1" />
           Vote For
@@ -302,7 +302,7 @@ const ProposalActions = ({
           size="sm"
           onClick={() => onVote(false)}
           disabled={isConfirming}
-          className="border-red-300 text-red-700 hover:bg-red-50 bg-transparent flex-1"
+          className="flex-1 text-red-700 bg-transparent border-red-300 hover:bg-red-50"
         >
           <XCircle className="w-4 h-4 mr-1" />
           Vote Against
@@ -314,16 +314,16 @@ const ProposalActions = ({
   return (
     <div className="flex-1 text-center">
       {!isMember && (
-        <p className="text-sm text-slate-500 italic">Join the DAO to participate in voting</p>
+        <p className="text-sm italic text-slate-500">Join the DAO to participate in voting</p>
       )}
       {isMember && !canVote && (
-        <p className="text-sm text-amber-600 italic">Stake at least {MIN_STAKE_TO_VOTE} FARM tokens to vote</p>
+        <p className="text-sm italic text-amber-600">Stake at least {MIN_STAKE_TO_VOTE} FARM tokens to vote</p>
       )}
       {isMember && canVote && hasVoted && (
-        <p className="text-sm text-blue-600 italic">You have already voted on this proposal</p>
+        <p className="text-sm italic text-blue-600">You have already voted on this proposal</p>
       )}
       {isExpired && (
-        <p className="text-sm text-red-600 italic">Voting period has ended</p>
+        <p className="text-sm italic text-red-600">Voting period has ended</p>
       )}
     </div>
   )
@@ -433,16 +433,16 @@ export function CooperativePage() {
   const needsApproval = isMember && farmBalanceNum > 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
+      <div className="px-4 pt-24 pb-16">
         <div className="container mx-auto">
           {/* Header Section */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-emerald-100 mb-2">
-                <span className="bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent">
+              <h1 className="mb-2 text-4xl font-bold text-emerald-100">
+                <span className="text-transparent bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text">
                   Farmer DAO
                 </span>
               </h1>
@@ -453,7 +453,7 @@ export function CooperativePage() {
             <Button 
               onClick={() => setShowRequirements(!showRequirements)}
               variant="outline"
-              className="border-emerald-300 text-emerald-100 hover:bg-emerald-800/60 bg-transparent"
+              className="bg-transparent border-emerald-300 text-emerald-100 hover:bg-emerald-800/60"
             >
               <Info className="w-4 h-4 mr-2" />
               {showRequirements ? 'Hide' : 'Show'} Requirements
@@ -462,19 +462,19 @@ export function CooperativePage() {
 
           {/* Requirements Guide */}
           {showRequirements && (
-            <Card className="bg-white/90 backdrop-blur-sm border-2 border-blue-200/50 mb-8">
+            <Card className="mb-8 border-2 bg-white/90 backdrop-blur-sm border-blue-200/50">
               <CardHeader>
-                <CardTitle className="text-slate-800 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-slate-800">
                   <Target className="w-5 h-5 text-blue-600" />
                   DAO Participation Requirements & Flow
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                   {/* Step 1: Join DAO */}
-                  <div className="bg-blue-50/50 border border-blue-200 rounded-lg p-4">
-                    <div className="text-center mb-3">
-                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold">1</div>
+                  <div className="p-4 border border-blue-200 rounded-lg bg-blue-50/50">
+                    <div className="mb-3 text-center">
+                      <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 font-bold text-white bg-blue-600 rounded-full">1</div>
                       <h3 className="font-semibold text-blue-800">Join DAO</h3>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -491,20 +491,20 @@ export function CooperativePage() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Status:</span>
                         {canJoin ? (
-                          <Badge className="bg-green-100 text-green-800 border-green-300">Ready</Badge>
+                          <Badge className="text-green-800 bg-green-100 border-green-300">Ready</Badge>
                         ) : isMember ? (
-                          <Badge className="bg-blue-100 text-blue-800 border-blue-300">Member</Badge>
+                          <Badge className="text-blue-800 bg-blue-100 border-blue-300">Member</Badge>
                         ) : (
-                          <Badge className="bg-red-100 text-red-800 border-red-300">Need FARM</Badge>
+                          <Badge className="text-red-800 bg-red-100 border-red-300">Need FARM</Badge>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Step 2: Approve & Stake */}
-                  <div className="bg-emerald-50/50 border border-emerald-200 rounded-lg p-4">
-                    <div className="text-center mb-3">
-                      <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold">2</div>
+                  <div className="p-4 border rounded-lg bg-emerald-50/50 border-emerald-200">
+                    <div className="mb-3 text-center">
+                      <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 font-bold text-white rounded-full bg-emerald-600">2</div>
                       <h3 className="font-semibold text-emerald-800">Stake Tokens</h3>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -525,24 +525,24 @@ export function CooperativePage() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Can Vote:</span>
                         {canVote ? (
-                          <Badge className="bg-green-100 text-green-800 border-green-300">Yes</Badge>
+                          <Badge className="text-green-800 bg-green-100 border-green-300">Yes</Badge>
                         ) : (
-                          <Badge className="bg-red-100 text-red-800 border-red-300">No</Badge>
+                          <Badge className="text-red-800 bg-red-100 border-red-300">No</Badge>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Step 3: Voting Power */}
-                  <div className="bg-purple-50/50 border border-purple-200 rounded-lg p-4">
-                    <div className="text-center mb-3">
-                      <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold">3</div>
+                  <div className="p-4 border border-purple-200 rounded-lg bg-purple-50/50">
+                    <div className="mb-3 text-center">
+                      <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 font-bold text-white bg-purple-600 rounded-full">3</div>
                       <h3 className="font-semibold text-purple-800">Voting Power</h3>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Formula:</span>
-                        <span className="font-medium text-purple-700 text-xs">Staked + (Rep÷100)</span>
+                        <span className="text-xs font-medium text-purple-700">Staked + (Rep÷100)</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Your Power:</span>
@@ -560,9 +560,9 @@ export function CooperativePage() {
                   </div>
 
                   {/* Step 4: Governance */}
-                  <div className="bg-amber-50/50 border border-amber-200 rounded-lg p-4">
-                    <div className="text-center mb-3">
-                      <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold">4</div>
+                  <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
+                    <div className="mb-3 text-center">
+                      <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 font-bold text-white rounded-full bg-amber-600">4</div>
                       <h3 className="font-semibold text-amber-800">Governance</h3>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -581,9 +581,9 @@ export function CooperativePage() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Can Propose:</span>
                         {canPropose ? (
-                          <Badge className="bg-green-100 text-green-800 border-green-300">Yes</Badge>
+                          <Badge className="text-green-800 bg-green-100 border-green-300">Yes</Badge>
                         ) : (
-                          <Badge className="bg-red-100 text-red-800 border-red-300">No</Badge>
+                          <Badge className="text-red-800 bg-red-100 border-red-300">No</Badge>
                         )}
                       </div>
                     </div>
@@ -594,7 +594,7 @@ export function CooperativePage() {
                 <div className="mt-6">
                   {!address && (
                     <Alert className="border-amber-300 bg-amber-50">
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
                       <AlertDescription className="text-amber-800">
                         Connect your wallet to participate in the DAO
                       </AlertDescription>
@@ -603,7 +603,7 @@ export function CooperativePage() {
                   
                   {address && !isMember && farmBalanceNum === 0 && (
                     <Alert className="border-red-300 bg-red-50">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
                       <AlertDescription className="text-red-800">
                         You need to own FARM tokens to join the DAO. Get some FARM tokens first!
                       </AlertDescription>
@@ -612,16 +612,16 @@ export function CooperativePage() {
                   
                   {address && !isMember && farmBalanceNum > 0 && (
                     <Alert className="border-green-300 bg-green-50">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="w-4 h-4 text-green-600" />
                       <AlertDescription className="text-green-800">
-                        You're ready to join the DAO! You have {farmBalance.formatted} FARM tokens.
+                        You&apos;re ready to join the DAO! You have {farmBalance.formatted} FARM tokens.
                       </AlertDescription>
                     </Alert>
                   )}
                   
                   {isMember && stakedBalanceNum < 10 && (
                     <Alert className="border-blue-300 bg-blue-50">
-                      <Info className="h-4 w-4 text-blue-600" />
+                      <Info className="w-4 h-4 text-blue-600" />
                       <AlertDescription className="text-blue-800">
                         Stake at least 10 FARM tokens to vote on proposals. Stake 100+ to create proposals.
                       </AlertDescription>
@@ -630,7 +630,7 @@ export function CooperativePage() {
                   
                   {isMember && stakedBalanceNum >= 10 && stakedBalanceNum < 100 && (
                     <Alert className="border-emerald-300 bg-emerald-50">
-                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
                       <AlertDescription className="text-emerald-800">
                         You can vote on proposals! Stake {100 - stakedBalanceNum} more FARM tokens to create proposals.
                       </AlertDescription>
@@ -639,7 +639,7 @@ export function CooperativePage() {
                   
                   {isMember && stakedBalanceNum >= 100 && (
                     <Alert className="border-purple-300 bg-purple-50">
-                      <Zap className="h-4 w-4 text-purple-600" />
+                      <Zap className="w-4 h-4 text-purple-600" />
                       <AlertDescription className="text-purple-800">
                         Full DAO participation unlocked! You can vote and create proposals.
                       </AlertDescription>
@@ -649,7 +649,7 @@ export function CooperativePage() {
                   {/* NEW: Unstaking info for members with staked tokens */}
                   {isMember && stakedBalanceNum > 0 && (
                     <Alert className="mt-4 border-indigo-300 bg-indigo-50">
-                      <Unlock className="h-4 w-4 text-indigo-600" />
+                      <Unlock className="w-4 h-4 text-indigo-600" />
                       <AlertDescription className="text-indigo-800">
                         <strong>Token Recovery:</strong> You have {formatTokenAmount(stakedBalance)} FARM staked. 
                         You can unstake any amount anytime - no penalties or lock periods! 
@@ -663,48 +663,48 @@ export function CooperativePage() {
           )}
 
           {/* DAO Overview */}
-          <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 mb-8">
+          <Card className="mb-8 border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
             <CardHeader>
-              <CardTitle className="text-emerald-100 flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-emerald-100">
                 <Users className="w-5 h-5 text-emerald-400" />
                 Farmer DAO Overview
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-emerald-900/30 border border-emerald-700/30 p-4 rounded-lg text-center">
-                  <p className="text-emerald-200/80 mb-2">Treasury</p>
-                  <p className="text-2xl font-bold text-emerald-100 flex items-center justify-center gap-1">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                <div className="p-4 text-center border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                  <p className="mb-2 text-emerald-200/80">Treasury</p>
+                  <p className="flex items-center justify-center gap-1 text-2xl font-bold text-emerald-100">
                     <Coins className="w-5 h-5 text-amber-400" />
                     {formatTokenAmount(treasuryBalance)} ETH
                   </p>
                 </div>
-                <div className="bg-emerald-900/30 border border-emerald-700/30 p-4 rounded-lg text-center">
-                  <p className="text-emerald-200/80 mb-2">Total Staked</p>
+                <div className="p-4 text-center border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                  <p className="mb-2 text-emerald-200/80">Total Staked</p>
                   <p className="text-2xl font-bold text-emerald-100">{formatTokenAmount(totalStaked)} FARM</p>
                 </div>
-                <div className="bg-emerald-900/30 border border-emerald-700/30 p-4 rounded-lg text-center">
-                  <p className="text-emerald-200/80 mb-2">Active Proposals</p>
+                <div className="p-4 text-center border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                  <p className="mb-2 text-emerald-200/80">Active Proposals</p>
                   <p className="text-2xl font-bold text-emerald-100">{activeProposalIds.length}</p>
                 </div>
-                <div className="bg-emerald-900/30 border border-emerald-700/30 p-4 rounded-lg text-center">
-                  <p className="text-emerald-200/80 mb-2">Total Members</p>
+                <div className="p-4 text-center border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                  <p className="mb-2 text-emerald-200/80">Total Members</p>
                   <p className="text-2xl font-bold text-emerald-100">{memberCount}</p>
                 </div>
               </div>
 
               {isMember && (
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-green-900/30 border border-green-700/30 p-4 rounded-lg text-center">
-                    <p className="text-green-200/80 mb-2">Your Staked</p>
+                <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
+                  <div className="p-4 text-center border rounded-lg bg-green-900/30 border-green-700/30">
+                    <p className="mb-2 text-green-200/80">Your Staked</p>
                     <p className="text-lg font-bold text-green-100">{formatTokenAmount(stakedBalance)} FARM</p>
                   </div>
-                  <div className="bg-green-900/30 border border-green-700/30 p-4 rounded-lg text-center">
-                    <p className="text-green-200/80 mb-2">Voting Power</p>
+                  <div className="p-4 text-center border rounded-lg bg-green-900/30 border-green-700/30">
+                    <p className="mb-2 text-green-200/80">Voting Power</p>
                     <p className="text-lg font-bold text-green-100">{formatTokenAmount(votingPower)}</p>
                   </div>
-                  <div className="bg-green-900/30 border border-green-700/30 p-4 rounded-lg text-center">
-                    <p className="text-green-200/80 mb-2">Vote Share</p>
+                  <div className="p-4 text-center border rounded-lg bg-green-900/30 border-green-700/30">
+                    <p className="mb-2 text-green-200/80">Vote Share</p>
                     <p className="text-lg font-bold text-green-100">{calculateVotingPercentage(totalStaked, votingPower)}%</p>
                   </div>
                 </div>
@@ -714,9 +714,9 @@ export function CooperativePage() {
 
           {/* Join DAO */}
           {!isMember && address && farmBalanceNum > 0 && (
-            <Card className="bg-white/80 backdrop-blur-sm border-2 border-blue-200/50 mb-8">
+            <Card className="mb-8 border-2 bg-white/80 backdrop-blur-sm border-blue-200/50">
               <CardHeader>
-                <CardTitle className="text-slate-800 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-slate-800">
                   <Shield className="w-5 h-5 text-blue-600" />
                   Join Farmer DAO
                 </CardTitle>
@@ -724,7 +724,7 @@ export function CooperativePage() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block mb-2 text-sm font-medium text-slate-700">
                       Farm Location
                     </label>
                     <input
@@ -749,11 +749,11 @@ export function CooperativePage() {
 
           {/* Member Actions */}
           {isMember && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 gap-8 mb-8 lg:grid-cols-2">
               {/* Approve & Stake/Unstake Tokens */}
-              <Card className="bg-white/80 backdrop-blur-sm border-2 border-emerald-200/50">
+              <Card className="border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
                     <Wallet className="w-5 h-5 text-emerald-600" />
                     Manage FARM Tokens
                   </CardTitle>
@@ -761,29 +761,29 @@ export function CooperativePage() {
                 <CardContent>
                   <div className="space-y-6">
                     {/* Token Balance Info */}
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <div className="p-4 border rounded-lg bg-emerald-50 border-emerald-200">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-slate-600">Available Balance:</span>
-                          <span className="font-medium text-emerald-700 ml-2">{farmBalance.formatted} FARM</span>
+                          <span className="ml-2 font-medium text-emerald-700">{farmBalance.formatted} FARM</span>
                         </div>
                         <div>
                           <span className="text-slate-600">Staked Balance:</span>
-                          <span className="font-medium text-emerald-700 ml-2">{formatTokenAmount(stakedBalance)} FARM</span>
+                          <span className="ml-2 font-medium text-emerald-700">{formatTokenAmount(stakedBalance)} FARM</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Step 1: Approve */}
                     <div>
-                      <h4 className="font-semibold text-slate-700 mb-2">Step 1: Approve DAO to spend your tokens</h4>
+                      <h4 className="mb-2 font-semibold text-slate-700">Step 1: Approve DAO to spend your tokens</h4>
                       <div className="flex gap-2">
                         <input
                           type="number"
                           placeholder="Amount to approve"
                           value={approvalAmount}
                           onChange={(e) => setApprovalAmount(e.target.value)}
-                          className="flex-1 p-3 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="flex-1 p-3 border rounded-lg border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         />
                         <Button 
                           onClick={handleApprove}
@@ -797,16 +797,16 @@ export function CooperativePage() {
 
                     {/* Step 2: Stake */}
                     <div>
-                      <h4 className="font-semibold text-slate-700 mb-2">Step 2: Stake tokens for voting rights</h4>
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-3">
+                      <h4 className="mb-2 font-semibold text-slate-700">Step 2: Stake tokens for voting rights</h4>
+                      <div className="p-3 mb-3 border rounded-lg bg-emerald-50 border-emerald-200">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <span className="text-slate-600">To Vote:</span>
-                            <span className="font-medium text-emerald-700 ml-2">≥{MIN_STAKE_TO_VOTE} FARM</span>
+                            <span className="ml-2 font-medium text-emerald-700">≥{MIN_STAKE_TO_VOTE} FARM</span>
                           </div>
                           <div>
                             <span className="text-slate-600">To Propose:</span>
-                            <span className="font-medium text-emerald-700 ml-2">≥{MIN_STAKE_TO_PROPOSE} FARM</span>
+                            <span className="ml-2 font-medium text-emerald-700">≥{MIN_STAKE_TO_PROPOSE} FARM</span>
                           </div>
                         </div>
                       </div>
@@ -816,7 +816,7 @@ export function CooperativePage() {
                           placeholder="Amount to stake"
                           value={stakeAmount}
                           onChange={(e) => setStakeAmount(e.target.value)}
-                          className="flex-1 p-3 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="flex-1 p-3 border rounded-lg border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         />
                         <Button 
                           onClick={handleStakeTokens}
@@ -832,8 +832,8 @@ export function CooperativePage() {
                     {/* NEW: Step 3: Unstake */}
                     {stakedBalanceNum > 0 && (
                       <div>
-                        <h4 className="font-semibold text-slate-700 mb-2">Step 3: Unstake tokens (withdraw anytime)</h4>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <h4 className="mb-2 font-semibold text-slate-700">Step 3: Unstake tokens (withdraw anytime)</h4>
+                        <div className="p-3 mb-3 border border-blue-200 rounded-lg bg-blue-50">
                           <div className="flex items-center gap-2 text-sm text-blue-700">
                             <Unlock className="w-4 h-4" />
                             <span>
@@ -855,7 +855,7 @@ export function CooperativePage() {
                             onClick={handleUnstakeTokens}
                             disabled={isConfirming || !unstakeAmount || Number(unstakeAmount) > stakedBalanceNum}
                             variant="outline"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            className="text-blue-700 border-blue-300 hover:bg-blue-50"
                           >
                             <Unlock className="w-4 h-4 mr-1" />
                             {isConfirming ? 'Unstaking...' : 'Unstake'}
@@ -866,7 +866,7 @@ export function CooperativePage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setUnstakeAmount((stakedBalanceNum / 2).toString())}
-                            className="text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
+                            className="text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
                           >
                             Half ({(stakedBalanceNum / 2).toFixed(1)})
                           </Button>
@@ -874,7 +874,7 @@ export function CooperativePage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setUnstakeAmount(stakedBalanceNum.toString())}
-                            className="text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
+                            className="text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
                           >
                             Max ({stakedBalanceNum.toFixed(1)})
                           </Button>
@@ -886,13 +886,13 @@ export function CooperativePage() {
               </Card>
 
               {/* Create Proposal */}
-              <Card className="bg-white/80 backdrop-blur-sm border-2 border-emerald-200/50">
+              <Card className="border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
                     <Plus className="w-5 h-5 text-green-600" />
                     Create Proposal
                     {!canPropose && (
-                      <Badge variant="outline" className="text-red-600 border-red-300 ml-2">
+                      <Badge variant="outline" className="ml-2 text-red-600 border-red-300">
                         Need {MIN_STAKE_TO_PROPOSE}+ FARM
                       </Badge>
                     )}
@@ -961,19 +961,19 @@ export function CooperativePage() {
           )}
 
           {/* Active Proposals */}
-          <Card className="bg-white/80 backdrop-blur-sm border-2 border-emerald-200/50 mb-8">
+          <Card className="mb-8 border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
             <CardHeader>
-              <CardTitle className="text-slate-800 flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-slate-800">
                 <Vote className="w-5 h-5 text-emerald-600" />
                 Active Proposals ({activeProposalIds.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {activeProposalIds.length === 0 ? (
-                <div className="text-center py-12 text-slate-600">
+                <div className="py-12 text-center text-slate-600">
                   <Vote className="w-16 h-16 mx-auto mb-4 text-slate-400" />
-                  <h3 className="text-lg font-medium mb-2">No Active Proposals</h3>
-                  <p className="text-sm">Be the first to create a proposal and shape the DAO's future!</p>
+                  <h3 className="mb-2 text-lg font-medium">No Active Proposals</h3>
+                  <p className="text-sm">Be the first to create a proposal and shape the DAO&apos;s future!</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -990,45 +990,45 @@ export function CooperativePage() {
           </Card>
 
           {/* DAO Stats */}
-          <Card className="bg-white/80 backdrop-blur-sm border-2 border-emerald-200/50">
+          <Card className="border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
             <CardHeader>
-              <CardTitle className="text-slate-800 flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-slate-800">
                 <TrendingUp className="w-5 h-5 text-green-600" />
                 DAO Statistics
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center p-6 bg-emerald-50/50 rounded-lg border border-emerald-200">
-                  <div className="text-3xl font-bold text-emerald-600 mb-2">{memberCount}</div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                <div className="p-6 text-center border rounded-lg bg-emerald-50/50 border-emerald-200">
+                  <div className="mb-2 text-3xl font-bold text-emerald-600">{memberCount}</div>
                   <div className="text-sm text-slate-600">Total Members</div>
                 </div>
-                <div className="text-center p-6 bg-green-50/50 rounded-lg border border-green-200">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{totalProposals}</div>
+                <div className="p-6 text-center border border-green-200 rounded-lg bg-green-50/50">
+                  <div className="mb-2 text-3xl font-bold text-green-600">{totalProposals}</div>
                   <div className="text-sm text-slate-600">Total Proposals</div>
                 </div>
-                <div className="text-center p-6 bg-amber-50/50 rounded-lg border border-amber-200">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">{activeProposalIds.length}</div>
+                <div className="p-6 text-center border rounded-lg bg-amber-50/50 border-amber-200">
+                  <div className="mb-2 text-3xl font-bold text-amber-600">{activeProposalIds.length}</div>
                   <div className="text-sm text-slate-600">Active Proposals</div>
                 </div>
-                <div className="text-center p-6 bg-blue-50/50 rounded-lg border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{Number(formatTokenAmount(totalStaked)).toFixed(0)}</div>
+                <div className="p-6 text-center border border-blue-200 rounded-lg bg-blue-50/50">
+                  <div className="mb-2 text-3xl font-bold text-blue-600">{Number(formatTokenAmount(totalStaked)).toFixed(0)}</div>
                   <div className="text-sm text-slate-600">FARM Staked</div>
                 </div>
               </div>
               
               {/* Additional metrics */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-purple-50/50 rounded-lg border border-purple-200">
-                  <div className="text-xl font-bold text-purple-600 mb-1">{formatTokenAmount(treasuryBalance)} ETH</div>
+              <div className="grid grid-cols-1 gap-6 mt-6 md:grid-cols-3">
+                <div className="p-4 text-center border border-purple-200 rounded-lg bg-purple-50/50">
+                  <div className="mb-1 text-xl font-bold text-purple-600">{formatTokenAmount(treasuryBalance)} ETH</div>
                   <div className="text-sm text-slate-600">Treasury Balance</div>
                 </div>
-                <div className="text-center p-4 bg-indigo-50/50 rounded-lg border border-indigo-200">
-                  <div className="text-xl font-bold text-indigo-600 mb-1">{VOTING_PERIOD_DAYS} Days</div>
+                <div className="p-4 text-center border border-indigo-200 rounded-lg bg-indigo-50/50">
+                  <div className="mb-1 text-xl font-bold text-indigo-600">{VOTING_PERIOD_DAYS} Days</div>
                   <div className="text-sm text-slate-600">Voting Period</div>
                 </div>
-                <div className="text-center p-4 bg-pink-50/50 rounded-lg border border-pink-200">
-                  <div className="text-xl font-bold text-pink-600 mb-1">{QUORUM_PERCENTAGE}%</div>
+                <div className="p-4 text-center border border-pink-200 rounded-lg bg-pink-50/50">
+                  <div className="mb-1 text-xl font-bold text-pink-600">{QUORUM_PERCENTAGE}%</div>
                   <div className="text-sm text-slate-600">Quorum Required</div>
                 </div>
               </div>

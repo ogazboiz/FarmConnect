@@ -36,21 +36,77 @@ const useAllBounties = () => {
   const [isLoading, setIsLoading] = useState(true)
   
   // Check multiple bounty IDs using getBounty function with aggressive cache settings
-  const bountyChecks = Array.from({ length: 20 }, (_, i) => {
-    return useReadContract({
-      address: contracts.AGRI_BOUNTIES,
-      abi: AgriBountiesABI,
-      functionName: 'getBounty',
-      args: [BigInt(i + 1)],
-      query: {
-        retry: false,
-        staleTime: 0, // Always consider stale
-        cacheTime: 5000, // Keep in cache for 5 seconds
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-      },
-    })
+  const bountyCheck1 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(1)],
+    query: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
   })
+  
+  const bountyCheck2 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(2)],
+    query: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
+  })
+  
+  const bountyCheck3 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(3)],
+    query: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
+  })
+  
+  const bountyCheck4 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(4)],
+    query: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
+  })
+  
+  const bountyCheck5 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(5)],
+    query: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 5000,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    },
+  })
+  
+  const bountyChecks = [bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4, bountyCheck5]
 
   useEffect(() => {
     const existingBounties: bigint[] = []

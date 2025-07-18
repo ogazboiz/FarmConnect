@@ -9,26 +9,20 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Leaf, Users, Award, Shield, Globe, Coins, TrendingUp, CheckCircle, Sparkles } from "lucide-react"
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
-import { useDisconnect } from "@reown/appkit/react"
-import { useWalletInfo } from "@reown/appkit/react"
-import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
+import { useAccount } from "wagmi"
 
 export function HomePage() {
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
   // AppKit hooks
-  const { address: appkitAddress, isConnected: appkitIsConnected } = useAppKitAccount()
-  const { open, close } = useAppKit()
-  const { walletInfo } = useWalletInfo()
-  const { disconnect: appkitDisconnect } = useDisconnect()
+  const { isConnected: appkitIsConnected } = useAppKitAccount()
+  const { open } = useAppKit()
 
   // Wagmi hooks
-  const { address: wagmiAddress, isConnected: wagmiIsConnected, connector } = useAccount()
-  const { disconnect: wagmiDisconnect } = useWagmiDisconnect()
+  const { isConnected: wagmiIsConnected } = useAccount()
 
-  // Get actual connection state
-  const address = appkitAddress || wagmiAddress
+  // Get actual connection state - these variables are used in the JSX
   const isConnected = appkitIsConnected || wagmiIsConnected
 
   useEffect(() => setMounted(true), [])
