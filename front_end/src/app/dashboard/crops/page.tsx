@@ -1,5 +1,5 @@
-import { CropTrackingPage } from "@/components/pages/crop-tracking-page"
+import CropTrackingPage from "@/components/pages/crop-tracking-page";
 
-export default function CropTracking() {
+export default function Cooperative() {
   return <CropTrackingPage />
 }

@@ -6,12 +6,17 @@ import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Leaf, Wallet, Bell, User, Menu, X, ChevronDown, ExternalLink, LogOut, Settings } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { 
+  Leaf, Wallet, Bell, User, Menu, X, ChevronDown, ExternalLink, LogOut, Settings, Coins,
+  ShoppingCart, QrCode, Target, Users, BarChart3
+} from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
 import { useDisconnect } from "@reown/appkit/react"
 import { useWalletInfo } from "@reown/appkit/react"
 import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
+import { useFarmTokenBalance, useGreenPointsBalance } from "@/hooks/useAgriDAO"
+import { useGlobalRefresh } from "@/contexts/RefreshContext"
 
 interface HeaderProps {
   onWalletConnect?: () => void
@@ -26,17 +31,43 @@ export function Header({ onWalletConnect }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
 
-  const navigation = [
+  // Navigation for non-connected users (public routes)
+  const publicNavigation = [
     { name: "Home", href: "/" },
+    { name: "Marketplace", href: "/marketplace", icon: ShoppingCart },
+    { name: "Track Product", href: "/track", icon: QrCode },
     { name: "Features", href: "/features" },
     { name: "How It Works", href: "/how-it-works" },
   ]
 
+  // Navigation for connected users (dashboard routes)
   const dashboardNavigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Crop Tracking", href: "/dashboard/crops" },
-    { name: "Cooperative", href: "/dashboard/cooperative" },
-    { name: "Bounties", href: "/dashboard/bounties" },
+    { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+    { name: "Crop Tracking", href: "/dashboard/crops", icon: Leaf },
+    { name: "Marketplace", href: "/marketplace", icon: ShoppingCart },
+    { name: "Cooperative", href: "/dashboard/cooperative", icon: Users },
+    { name: "Bounties", href: "/dashboard/bounties", icon: Target },
+  ]
+
+  // Consumer-specific navigation for mobile dropdown
+  const consumerRoutes = [
+    { name: "Browse Marketplace", href: "/marketplace", icon: ShoppingCart },
+    { name: "Track Product", href: "/track", icon: QrCode },
+    { name: "My Rewards", href: "/rewards", icon: Target },
+  ]
+
+  // Farmer-specific navigation for mobile dropdown
+  const farmerRoutes = [
+    { name: "My Crops", href: "/dashboard/crops", icon: Leaf },
+    { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+    { name: "Generate QR Codes", href: "/qr-generator", icon: QrCode },
+  ]
+
+  // DAO-specific navigation for mobile dropdown
+  const daoRoutes = [
+    { name: "Governance", href: "/dao", icon: Users },
+    { name: "Bounties", href: "/dashboard/bounties", icon: Target },
+    { name: "Proposals", href: "/proposals", icon: BarChart3 },
   ]
 
   // AppKit hooks
@@ -52,11 +83,48 @@ export function Header({ onWalletConnect }: HeaderProps) {
   const address = appkitAddress || wagmiAddress
   const isConnected = appkitIsConnected || wagmiIsConnected
 
-  // Determine which navigation to show based on ACTUAL connection state
-  const currentNav = isConnected ? dashboardNavigation  : navigation
+  // Get real balances
+  const farmBalance = useFarmTokenBalance(address)
+  const greenBalance = useGreenPointsBalance(address)
 
+  // Global refresh context
+  const { refreshTrigger } = useGlobalRefresh()
+
+  // Force refresh balances when global refresh is triggered
   useEffect(() => {
-    if (isConnected && !pathname.startsWith("/dashboard")) {
+    if (refreshTrigger > 0) {
+      console.log('Header received global refresh trigger:', refreshTrigger)
+      
+      // Add a small delay for the header refresh to allow blockchain state to settle
+      setTimeout(() => {
+        console.log('Header executing balance refresh')
+        if (farmBalance.refetch) {
+          farmBalance.refetch()
+        }
+        if (greenBalance.refetch) {
+          greenBalance.refetch()
+        }
+      }, 500) // 500ms delay for header refresh
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]) // Intentionally excluding balance objects to avoid infinite loops
+
+  // Determine which navigation to show based on connection state and current path
+  const getCurrentNav = () => {
+    // If user is connected and on dashboard routes, show dashboard nav
+    if (isConnected && pathname.startsWith("/dashboard")) {
+      return dashboardNavigation
+    }
+    // For public routes or non-connected users, show public nav (including marketplace)
+    return publicNavigation
+  }
+
+  const currentNav = getCurrentNav()
+
+  // Don't auto-redirect to dashboard if user is browsing public routes
+  useEffect(() => {
+    // Only redirect to dashboard if user connects while on landing pages
+    if (isConnected && (pathname === "/" || pathname === "/features" || pathname === "/how-it-works")) {
       router.push("/dashboard")
     }
   }, [isConnected, pathname, router])
@@ -196,8 +264,76 @@ export function Header({ onWalletConnect }: HeaderProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {currentNav.map((item) => (
+          <nav className="hidden lg:flex items-center gap-6">
+            {/* Always show marketplace and track for consumers */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Consumer
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
+                {consumerRoutes.map((item) => (
+                  <DropdownMenuItem key={item.name} asChild>
+                    <Link href={item.href} className="flex items-center cursor-pointer">
+                      <item.icon className="w-4 h-4 mr-2" />
+                      {item.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Farmer routes - show if connected */}
+            {isConnected && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                    <Leaf className="w-4 h-4 mr-2" />
+                    Farmer
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
+                  {farmerRoutes.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link href={item.href} className="flex items-center cursor-pointer">
+                        <item.icon className="w-4 h-4 mr-2" />
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* DAO routes - show if connected */}
+            {isConnected && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                    <Users className="w-4 h-4 mr-2" />
+                    DAO
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
+                  {daoRoutes.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link href={item.href} className="flex items-center cursor-pointer">
+                        <item.icon className="w-4 h-4 mr-2" />
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Show remaining navigation items */}
+            {currentNav.filter(item => !['Marketplace', 'Track Product'].includes(item.name)).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -221,13 +357,37 @@ export function Header({ onWalletConnect }: HeaderProps) {
               </Button>
             ) : isConnected ? (
               <>
-                <Badge
-                  variant="outline"
-                  className="bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 hidden sm:flex backdrop-blur-sm p-2 rounded-lg"
-                >
-                  <Wallet className="w-4 h-4 mr-1 " />
-                  1,250 $FARM
-                </Badge>
+                {/* Real FARM Balance */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm p-2 rounded-lg"
+                  >
+                    <Coins className="w-4 h-4 mr-1" />
+                    {farmBalance.isLoading ? (
+                      "Loading..."
+                    ) : farmBalance.error ? (
+                      "Error"
+                    ) : (
+                      `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'} FARM`
+                    )}
+                  </Badge>
+                  
+                  {/* GREEN Balance */}
+                  <Badge
+                    variant="outline"
+                    className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border-green-500/30 backdrop-blur-sm p-2 rounded-lg"
+                  >
+                    <Leaf className="w-4 h-4 mr-1" />
+                    {greenBalance.isLoading ? (
+                      "Loading..."
+                    ) : greenBalance.error ? (
+                      "Error"
+                    ) : (
+                      `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'} GREEN`
+                    )}
+                  </Badge>
+                </div>
 
                 <Button variant="ghost" size="icon" className="text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm">
                   <Bell className="w-5 h-5" />
@@ -244,13 +404,52 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   </Button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-green-200 z-50">
+                    <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-green-200 z-50">
                       <div className="p-4 border-b border-green-200">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 mb-3">
                           {getWalletIcon()}
                           <div>
                             <p className="font-medium text-green-800">{getWalletName()}</p>
                             <p className="text-sm text-green-600">{truncateAddress(address)}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Detailed Balance in Dropdown */}
+                        <div className="space-y-2">
+                          <div className="bg-amber-50 rounded-md p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Coins className="w-4 h-4 text-amber-600" />
+                                <span className="text-sm font-medium text-amber-700">FARM Balance</span>
+                              </div>
+                              <span className="text-sm font-bold text-amber-800">
+                                {farmBalance.isLoading ? (
+                                  "Loading..."
+                                ) : farmBalance.error ? (
+                                  "Error loading"
+                                ) : (
+                                  `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(4) : '0.0000'}`
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-green-50 rounded-md p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Leaf className="w-4 h-4 text-green-600" />
+                                <span className="text-sm font-medium text-green-700">GREEN Points</span>
+                              </div>
+                              <span className="text-sm font-bold text-green-800">
+                                {greenBalance.isLoading ? (
+                                  "Loading..."
+                                ) : greenBalance.error ? (
+                                  "Error loading"
+                                ) : (
+                                  `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}`
+                                )}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -259,14 +458,21 @@ export function Header({ onWalletConnect }: HeaderProps) {
                           <User className="w-4 h-4" />
                           Profile
                         </button>
+                        <Link
+                          href="/rewards"
+                          className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                        >
+                          <Target className="w-4 h-4" />
+                          My Rewards
+                        </Link>
                         <a
-                          href={`https://etherscan.io/address/${address}`}
+                          href={`https://mantlescan.xyz/address/${address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
                         >
                           <ExternalLink className="w-4 h-4" />
-                          View on Explorer
+                          View on Mantle Explorer
                         </a>
                         <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
                           <Settings className="w-4 h-4" />
@@ -300,6 +506,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
               size="icon"
               className="md:hidden text-slate-600"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-menu-toggle="true"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -308,22 +515,102 @@ export function Header({ onWalletConnect }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <nav className="md:hidden mt-4 pb-4 border-t border-emerald-500/20 pt-4 bg-slate-800/50 backdrop-blur-sm rounded-lg mx-4">
+          <nav ref={mobileMenuRef} className="md:hidden mt-4 pb-4 border-t border-emerald-500/20 pt-4 bg-slate-800/50 backdrop-blur-sm rounded-lg mx-4">
             <div className="flex flex-col gap-2">
-              {currentNav.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-600"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+              {/* Consumer Section */}
+              <div className="px-3 py-2">
+                <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">Consumer</h3>
+                {consumerRoutes.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      pathname === item.href
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "text-slate-300 hover:bg-emerald-800/30 hover:text-emerald-300"
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Farmer Section - only if connected */}
+              {isConnected && (
+                <div className="px-3 py-2 border-t border-emerald-500/20">
+                  <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">Farmer</h3>
+                  {farmerRoutes.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        pathname === item.href
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "text-slate-300 hover:bg-emerald-800/30 hover:text-emerald-300"
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* DAO Section - only if connected */}
+              {isConnected && (
+                <div className="px-3 py-2 border-t border-emerald-500/20">
+                  <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">DAO</h3>
+                  {daoRoutes.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        pathname === item.href
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "text-slate-300 hover:bg-emerald-800/30 hover:text-emerald-300"
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              
+              {/* Mobile Balance Display */}
+              {isConnected && (
+                <div className="mt-4 pt-4 border-t border-emerald-500/20">
+                  <div className="space-y-2">
+                    <div className="bg-amber-50 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-amber-600" />
+                          <span className="text-sm font-medium text-amber-700">FARM</span>
+                        </div>
+                        <span className="text-sm font-bold text-amber-800">
+                          {farmBalance.isLoading ? "Loading..." : farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Leaf className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">GREEN</span>
+                        </div>
+                        <span className="text-sm font-bold text-green-800">
+                          {greenBalance.isLoading ? "Loading..." : greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </nav>
         )}

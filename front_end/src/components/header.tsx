@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Leaf, Wallet, ChevronDown, ExternalLink, LogOut, Settings, Menu, X } from "lucide-react"
+import { Leaf, Wallet, ChevronDown, ExternalLink, LogOut, Settings, Menu, X, Coins } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
@@ -9,6 +9,7 @@ import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
 import { useDisconnect } from "@reown/appkit/react"
 import { useWalletInfo } from "@reown/appkit/react"
 import { useAccount, useDisconnect as useWagmiDisconnect } from "wagmi"
+import { useFarmTokenBalance } from "@/hooks/useAgriDAO"
 
 interface HeaderProps {
   onWalletConnect?: () => void
@@ -35,6 +36,9 @@ export function Header({ onWalletConnect }: HeaderProps) {
 
   const address = appkitAddress || wagmiAddress
   const isConnected = appkitIsConnected || wagmiIsConnected
+
+  // Farm token balance
+  const farmBalance = useFarmTokenBalance(address)
 
   useEffect(() => {
     if (isConnected && pathname !== "/dashboard") {
@@ -207,7 +211,21 @@ export function Header({ onWalletConnect }: HeaderProps) {
           </div>
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* Farm Balance Display */}
+          {mounted && isConnected && (
+            <div className="hidden sm:flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+              <Coins className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">
+                {farmBalance.isLoading ? (
+                  "Loading..."
+                ) : (
+                  `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'} FARM`
+                )}
+              </span>
+            </div>
+          )}
+
           {!mounted ? (
             <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white">
               <Wallet className="w-4 h-4 mr-2" />
@@ -227,25 +245,42 @@ export function Header({ onWalletConnect }: HeaderProps) {
               </Button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-green-200 z-50">
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-green-200 z-50">
                   <div className="p-4 border-b border-green-200">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 mb-3">
                       {getWalletIcon()}
                       <div>
                         <p className="font-medium text-green-800">{getWalletName()}</p>
                         <p className="text-sm text-green-600">{truncateAddress(address)}</p>
                       </div>
                     </div>
+                    
+                    {/* Farm Balance in Dropdown */}
+                    <div className="bg-green-50 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">FARM Balance</span>
+                        </div>
+                        <span className="text-sm font-bold text-green-800">
+                          {farmBalance.isLoading ? (
+                            "Loading..."
+                          ) : (
+                            `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(4) : '0.0000'}`
+                          )}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="p-2">
                     <a
-                      href={`https://etherscan.io/address/${address}`}
+                      href={`https://mantlescan.xyz/address/${address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      View on Explorer
+                      View on Mantle Explorer
                     </a>
                     <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
                       <Settings className="w-4 h-4" />
