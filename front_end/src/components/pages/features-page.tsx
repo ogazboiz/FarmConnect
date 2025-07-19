@@ -1,13 +1,22 @@
 "use client"
 
+import { useEffect } from "react"
 import { motion } from "framer-motion"
 import { Footer } from "../layout/footer"
 import { Header } from "../layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Globe, Coins, Sprout, Users2, Target, Leaf, Lock, Zap, Heart, Award } from "lucide-react"
+import { toast } from "react-hot-toast"
 
 export function FeaturesPage() {
+  // Welcome toast when component mounts
+  useEffect(() => {
+    toast.success('Welcome to AgriDAO Features! 🌱', {
+      icon: '🌱',
+      duration: 3000,
+    })
+  }, [])
   const mainFeatures = [
     {
       icon: Shield,

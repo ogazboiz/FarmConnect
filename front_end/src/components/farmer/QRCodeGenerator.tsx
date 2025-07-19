@@ -1,7 +1,7 @@
 // src/components/farmer/QRCodeGenerator.tsx
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,14 +17,23 @@ interface QRCodeGeneratorProps {
 
 export function QRCodeGenerator({ tokenId, cropType, onClose, isOpen = true }: QRCodeGeneratorProps) {
   const [copied, setCopied] = useState(false)
-  const [customDomain, setCustomDomain] = useState('localhost:3000') // Update this to your domain
+  const [customDomain, setCustomDomain] = useState('')
 
-  // Generate QR code data
-  const qrData = `https://${customDomain}/scan/${tokenId}`
+   useEffect(() => {
+    const isLocal = window.location.hostname === 'localhost'
+    const domain = isLocal
+      ? 'localhost:3000'
+      : 'agro-gamma-nine.vercel.app'
+
+    setCustomDomain(domain)
+  }, [])
+
+const qrData = customDomain ? `https://${customDomain}/scan/${tokenId}` : ''
   const filename = `crop-${tokenId}-qr-code.png`
 
-  // Generate QR code URL using online service
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&color=059669&bgcolor=ffffff&margin=10`
+  const qrImageUrl = qrData
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&color=059669&bgcolor=ffffff&margin=10`
+    : ''
 
   const downloadQRCode = async () => {
     try {

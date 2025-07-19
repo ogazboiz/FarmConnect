@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Leaf, Users, Award, Shield, Globe, Coins, TrendingUp, CheckCircle, Sparkles } from "lucide-react"
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
 import { useAccount } from "wagmi"
+import { toast } from "react-hot-toast"
 
 export function HomePage() {
   const [mounted, setMounted] = useState(false)
@@ -27,11 +28,20 @@ export function HomePage() {
 
   useEffect(() => setMounted(true), [])
 
+  // Show success toast when wallet connects
+  useEffect(() => {
+    if (mounted && isConnected) {
+      toast.success("🎉 Wallet connected successfully!")
+    }
+  }, [mounted, isConnected])
+
   const handleWalletConnect = async () => {
     try {
       await open()
+      // Note: Success toast will be handled by the connection state change effect
     } catch (error: unknown) {
       console.error("Connection error:", error instanceof Error ? error.message : String(error))
+      toast.error("Failed to connect wallet. Please try again.")
     }
   }
 

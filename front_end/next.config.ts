@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    domains: ['ipfs.io', 'api.qrserver.com', 'gateway.pinata.cloud', 'jade-adjacent-mosquito-859.mypinata.cloud', 'cloudflare-ipfs.com', 'dweb.link', 'media.istockphoto.com', 'encrypted-tbn0.gstatic.com', 'c8.alamy.com', 'eos.com'],
     remotePatterns: [
       {
         protocol: 'https',

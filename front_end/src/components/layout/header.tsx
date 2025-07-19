@@ -65,9 +65,9 @@ export function Header({ onWalletConnect }: HeaderProps) {
 
   // DAO-specific navigation for mobile dropdown
   const daoRoutes = [
-    { name: "Governance", href: "/dao", icon: Users },
+    { name: "Governance", href: "/dashboard/cooperative", icon: Users },
     { name: "Bounties", href: "/dashboard/bounties", icon: Target },
-    { name: "Proposals", href: "/proposals", icon: BarChart3 },
+    { name: "Proposals", href: "/dashboard/cooperative", icon: BarChart3 },
   ]
 
   // AppKit hooks
@@ -252,23 +252,23 @@ export function Header({ onWalletConnect }: HeaderProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-lg ">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container px-4 py-4 mx-auto">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 rounded-xl flex items-center justify-center shadow-lg glow-border">
+            <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 rounded-xl glow-border">
               <Leaf className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-amber-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-amber-600 bg-clip-text">
               AgriChain
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="items-center hidden gap-6 lg:flex">
             {/* Always show marketplace and track for consumers */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Consumer
                   <ChevronDown className="w-4 h-4 ml-1" />
@@ -290,7 +290,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
             {isConnected && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                  <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
                     <Leaf className="w-4 h-4 mr-2" />
                     Farmer
                     <ChevronDown className="w-4 h-4 ml-1" />
@@ -310,10 +310,10 @@ export function Header({ onWalletConnect }: HeaderProps) {
             )}
 
             {/* DAO routes - show if connected */}
-            {isConnected && (
+            {/* {isConnected && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-slate-300 hover:text-emerald-400 transition-colors">
+                  <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
                     <Users className="w-4 h-4 mr-2" />
                     DAO
                     <ChevronDown className="w-4 h-4 ml-1" />
@@ -330,7 +330,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            )}
+            )} */}
 
             {/* Show remaining navigation items */}
             {currentNav.filter(item => !['Marketplace', 'Track Product'].includes(item.name)).map((item) => (
@@ -351,17 +351,17 @@ export function Header({ onWalletConnect }: HeaderProps) {
           {/* Right side actions */}
           <div className="flex items-center gap-4">
             {!mounted ? (
-              <Button className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+              <Button className="text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl">
                 <Wallet className="w-4 h-4 mr-2" />
                 Connect Wallet
               </Button>
             ) : isConnected ? (
               <>
                 {/* Real FARM Balance */}
-                <div className="hidden sm:flex items-center gap-2">
+                <div className="items-center hidden gap-2 sm:flex">
                   <Badge
                     variant="outline"
-                    className="bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm p-2 rounded-lg"
+                    className="p-2 rounded-lg bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm"
                   >
                     <Coins className="w-4 h-4 mr-1" />
                     {farmBalance.isLoading ? (
@@ -376,7 +376,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   {/* GREEN Balance */}
                   <Badge
                     variant="outline"
-                    className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border-green-500/30 backdrop-blur-sm p-2 rounded-lg"
+                    className="p-2 text-green-300 rounded-lg bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/30 backdrop-blur-sm"
                   >
                     <Leaf className="w-4 h-4 mr-1" />
                     {greenBalance.isLoading ? (
@@ -404,7 +404,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   </Button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-green-200 z-50">
+                    <div className="absolute right-0 z-50 mt-2 border border-green-200 rounded-lg shadow-lg w-72 bg-white/95 backdrop-blur-sm">
                       <div className="p-4 border-b border-green-200">
                         <div className="flex items-center gap-3 mb-3">
                           {getWalletIcon()}
@@ -416,7 +416,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                         
                         {/* Detailed Balance in Dropdown */}
                         <div className="space-y-2">
-                          <div className="bg-amber-50 rounded-md p-3">
+                          <div className="p-3 rounded-md bg-amber-50">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Coins className="w-4 h-4 text-amber-600" />
@@ -434,7 +434,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                             </div>
                           </div>
                           
-                          <div className="bg-green-50 rounded-md p-3">
+                          <div className="p-3 rounded-md bg-green-50">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Leaf className="w-4 h-4 text-green-600" />
@@ -454,13 +454,13 @@ export function Header({ onWalletConnect }: HeaderProps) {
                         </div>
                       </div>
                       <div className="p-2">
-                        <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
+                        <button className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50">
                           <User className="w-4 h-4" />
                           Profile
                         </button>
                         <Link
                           href="/rewards"
-                          className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                          className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50"
                         >
                           <Target className="w-4 h-4" />
                           My Rewards
@@ -469,18 +469,18 @@ export function Header({ onWalletConnect }: HeaderProps) {
                           href={`https://mantlescan.xyz/address/${address}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                          className="flex items-center gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50"
                         >
                           <ExternalLink className="w-4 h-4" />
                           View on Mantle Explorer
                         </a>
-                        <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
+                        <button className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50">
                           <Settings className="w-4 h-4" />
                           Settings
                         </button>
                         <button
                           onClick={handleDisconnect}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          className="flex items-center w-full gap-3 px-3 py-2 text-red-600 transition-colors rounded-md hover:bg-red-50"
                         >
                           <LogOut className="w-4 h-4" />
                           Disconnect Wallet
@@ -493,7 +493,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
             ) : (
               <Button
                 onClick={handleConnect}
-                className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl"
               >
                 <Wallet className="w-4 h-4 mr-2" />
                 Connect Wallet
@@ -515,11 +515,11 @@ export function Header({ onWalletConnect }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <nav ref={mobileMenuRef} className="md:hidden mt-4 pb-4 border-t border-emerald-500/20 pt-4 bg-slate-800/50 backdrop-blur-sm rounded-lg mx-4">
+          <nav ref={mobileMenuRef} className="pt-4 pb-4 mx-4 mt-4 border-t rounded-lg md:hidden border-emerald-500/20 bg-slate-800/50 backdrop-blur-sm">
             <div className="flex flex-col gap-2">
               {/* Consumer Section */}
               <div className="px-3 py-2">
-                <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">Consumer</h3>
+                <h3 className="mb-2 text-xs font-semibold tracking-wider uppercase text-emerald-300">Consumer</h3>
                 {consumerRoutes.map((item) => (
                   <Link
                     key={item.name}
@@ -540,7 +540,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
               {/* Farmer Section - only if connected */}
               {isConnected && (
                 <div className="px-3 py-2 border-t border-emerald-500/20">
-                  <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">Farmer</h3>
+                  <h3 className="mb-2 text-xs font-semibold tracking-wider uppercase text-emerald-300">Farmer</h3>
                   {farmerRoutes.map((item) => (
                     <Link
                       key={item.name}
@@ -562,7 +562,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
               {/* DAO Section - only if connected */}
               {isConnected && (
                 <div className="px-3 py-2 border-t border-emerald-500/20">
-                  <h3 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-2">DAO</h3>
+                  <h3 className="mb-2 text-xs font-semibold tracking-wider uppercase text-emerald-300">DAO</h3>
                   {daoRoutes.map((item) => (
                     <Link
                       key={item.name}
@@ -583,9 +583,9 @@ export function Header({ onWalletConnect }: HeaderProps) {
               
               {/* Mobile Balance Display */}
               {isConnected && (
-                <div className="mt-4 pt-4 border-t border-emerald-500/20">
+                <div className="pt-4 mt-4 border-t border-emerald-500/20">
                   <div className="space-y-2">
-                    <div className="bg-amber-50 rounded-md p-3">
+                    <div className="p-3 rounded-md bg-amber-50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Coins className="w-4 h-4 text-amber-600" />
@@ -597,7 +597,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
                       </div>
                     </div>
                     
-                    <div className="bg-green-50 rounded-md p-3">
+                    <div className="p-3 rounded-md bg-green-50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Leaf className="w-4 h-4 text-green-600" />

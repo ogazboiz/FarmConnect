@@ -7,20 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Vote, Plus, MessageSquare, Users, Coins, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Wallet, 
+import {
+  Vote, Plus, MessageSquare, Users, Coins, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Wallet,
   Info, AlertTriangle, Shield, Target, Zap, Unlock, Lock
 } from "lucide-react"
 import { Footer } from "../layout/footer"
 import { Header } from "../layout/header"
-import { 
-  useFarmerDAO, 
-  useDAOMember, 
-  useProposal, 
+import { toast } from "react-hot-toast"
+import {
+  useFarmerDAO,
+  useDAOMember,
+  useProposal,
   useFarmTokenBalance,
   useFarmToken,
   formatTokenAmount,
-  parseTokenAmount 
+  parseTokenAmount
 } from "@/hooks/useAgriDAO"
 import { useReadContract } from "wagmi"
 import { FarmerDAOABI } from "@/config"
@@ -77,7 +78,7 @@ const useTotalProposals = () => {
     abi: FarmerDAOABI,
     functionName: 'getTotalProposals',
   })
-  
+
   return data ? Number(data) : 0
 }
 
@@ -88,7 +89,7 @@ const useMemberCount = () => {
     abi: FarmerDAOABI,
     functionName: 'getMemberCount',
   })
-  
+
   return data ? Number(data) : 0
 }
 
@@ -99,7 +100,7 @@ const useTreasuryBalance = () => {
     abi: FarmerDAOABI,
     functionName: 'treasuryBalance',
   })
-  
+
   return data || BigInt(0)
 }
 
@@ -110,7 +111,7 @@ const useTotalStaked = () => {
     abi: FarmerDAOABI,
     functionName: 'totalStaked',
   })
-  
+
   return data || BigInt(0)
 }
 
@@ -125,7 +126,7 @@ const useVotingPower = (address?: string) => {
       enabled: !!address,
     },
   })
-  
+
   return data || BigInt(0)
 }
 
@@ -140,14 +141,14 @@ const useStakedBalance = (address?: string) => {
       enabled: !!address,
     },
   })
-  
+
   return data || BigInt(0)
 }
 
 // Proposal status enum mapping
 const ProposalStatus = {
   0: 'ACTIVE',
-  1: 'PASSED', 
+  1: 'PASSED',
   2: 'FAILED',
   3: 'EXECUTED',
   4: 'CANCELLED'
@@ -176,16 +177,16 @@ const getProposalTypeColor = (type: number) => {
 const ProposalCard = ({ proposalId, userAddress }: { proposalId: bigint, userAddress?: string }) => {
   const proposalQuery = useProposal(proposalId)
   const hasVotedResult = useReadContract({
-  address: contracts.FARMER_DAO,
-  abi: FarmerDAOABI,
-  functionName: 'hasUserVoted',
-  args: proposalId && userAddress ? [proposalId, userAddress] : undefined,
-  query: {
-    enabled: !!(proposalId && userAddress),
-  },
-})
-const hasVoted = hasVotedResult.data as boolean
- 
+    address: contracts.FARMER_DAO,
+    abi: FarmerDAOABI,
+    functionName: 'hasUserVoted',
+    args: proposalId && userAddress ? [proposalId, userAddress] : undefined,
+    query: {
+      enabled: !!(proposalId && userAddress),
+    },
+  })
+  const hasVoted = hasVotedResult.data as boolean
+
   const { vote, isConfirming } = useFarmerDAO()
   const proposal = proposalQuery.data as ProposalData | null
 
@@ -202,17 +203,17 @@ const hasVoted = hasVotedResult.data as boolean
   const votesFor = Number(proposal.votesFor)
   const votesAgainst = Number(proposal.votesAgainst)
   const progressPercentage = totalVotes > 0 ? (votesFor / totalVotes) * 100 : 0
-  const isExpired = Number(proposal.deadline ) <= Math.floor(Date.now() / 1000)
+  const isExpired = Number(proposal.deadline) <= Math.floor(Date.now() / 1000)
 
   const formatTimeLeft = (deadline: bigint) => {
     const now = Math.floor(Date.now() / 1000)
     const timeLeft = Number(deadline) - now
-    
+
     if (timeLeft <= 0) return "Expired"
-    
+
     const days = Math.floor(timeLeft / 86400)
     const hours = Math.floor((timeLeft % 86400) / 3600)
-    
+
     if (days > 0) return `${days} day${days > 1 ? 's' : ''}`
     return `${hours} hour${hours > 1 ? 's' : ''}`
   }
@@ -255,26 +256,32 @@ const hasVoted = hasVotedResult.data as boolean
       </div>
 
       <div className="mb-6 space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-6">
+        <div className="grid items-start grid-cols-1 gap-2 text-sm sm:grid-cols-2 md:grid-cols-3 sm:items-center">
+          {/* Votes section */}
+          <div className="flex flex-wrap items-center gap-4">
             <span className="flex items-center gap-1 font-medium text-emerald-600">
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4 shrink-0" />
               For: {votesFor}
             </span>
             <span className="flex items-center gap-1 font-medium text-red-600">
-              <XCircle className="w-4 h-4" />
+              <XCircle className="w-4 h-4 shrink-0" />
               Against: {votesAgainst}
             </span>
           </div>
-          <span className="font-medium text-slate-600">Total: {totalVotes}</span>
+
+          {/* Total section */}
+          <div className="font-medium text-slate-600 sm:text-right md:text-left">
+            Total: {totalVotes}
+          </div>
         </div>
+
         <Progress value={progressPercentage} className="h-3" />
         <div className="text-xs text-center text-slate-500">
           {progressPercentage.toFixed(1)}% in favor • Quorum needed: {QUORUM_PERCENTAGE}% of staked tokens
         </div>
       </div>
 
-      <ProposalActions 
+      <ProposalActions
         proposalId={proposalId}
         userAddress={userAddress}
         hasVoted={hasVoted || false}
@@ -287,13 +294,13 @@ const hasVoted = hasVotedResult.data as boolean
 }
 
 // Separate component for proposal actions
-const ProposalActions = ({ 
-  proposalId, 
-  userAddress, 
-  hasVoted, 
-  isExpired, 
-  isConfirming, 
-  onVote 
+const ProposalActions = ({
+  proposalId,
+  userAddress,
+  hasVoted,
+  isExpired,
+  isConfirming,
+  onVote
 }: {
   proposalId: bigint
   userAddress?: string
@@ -302,7 +309,7 @@ const ProposalActions = ({
   isConfirming: boolean
   onVote: (support: boolean) => void
 }) => {
-  const daoMember = useDAOMember(userAddress) 
+  const daoMember = useDAOMember(userAddress)
   const stakedBalance = useStakedBalance(userAddress) as bigint
   const votingPower = useVotingPower(userAddress) as bigint
 
@@ -313,8 +320,8 @@ const ProposalActions = ({
   if (isMember && canVote && !hasVoted && !isExpired) {
     return (
       <div className="flex gap-3">
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           onClick={() => onVote(true)}
           disabled={isConfirming}
           className="flex-1 text-white bg-emerald-600 hover:bg-emerald-700"
@@ -378,37 +385,56 @@ export function CooperativePage() {
   const totalProposals = useTotalProposals()
   const memberCount = useMemberCount()
   const treasuryBalance = useTreasuryBalance() as bigint
-  const totalStaked = useTotalStaked()  as bigint
-const votingPowerResult = useVotingPower(address)
-const stakedBalanceResult = useStakedBalance(address)
+  const totalStaked = useTotalStaked() as bigint
+  const votingPowerResult = useVotingPower(address)
+  const stakedBalanceResult = useStakedBalance(address)
 
-const votingPower = votingPowerResult as bigint
-const stakedBalance = stakedBalanceResult as bigint
+  const votingPower = votingPowerResult as bigint
+  const stakedBalance = stakedBalanceResult as bigint
 
   const handleJoinDAO = async () => {
-    if (!address || !farmLocation.trim()) return
-    await joinDAO(farmLocation.trim())
+    if (!address || !farmLocation.trim()) {
+      toast.error('Please enter your farm location')
+      return
+    }
+    try {
+      await joinDAO(farmLocation.trim())
+      toast.success('DAO join request submitted! ⏳')
+    } catch (error) {
+      toast.error('Failed to join DAO. Please try again.')
+      console.error('Join DAO error:', error)
+    }
   }
 
   const handleApprove = async () => {
-    if (!approvalAmount || !address) return
+    if (!approvalAmount || !address) {
+      toast.error('Please enter an approval amount')
+      return
+    }
     try {
       const amount = parseTokenAmount(approvalAmount)
       await approve(contracts.FARMER_DAO, amount)
       setApprovalAmount('')
+      toast.success('Token approval submitted! ⏳')
     } catch (error) {
       console.error('Error approving tokens:', error)
+      toast.error('Failed to approve tokens. Please try again.')
     }
   }
 
   const handleStakeTokens = async () => {
-    if (!stakeAmount || !address) return
+    if (!stakeAmount || !address) {
+      toast.error('Please enter a stake amount')
+      return
+    }
     try {
       const amount = parseTokenAmount(stakeAmount)
       await stakeTokens(amount)
       setStakeAmount('')
+      toast.success('Token staking submitted! ⏳')
     } catch (error) {
       console.error('Error staking tokens:', error)
+      toast.error('Failed to stake tokens. Please try again.')
     }
   }
 
@@ -449,12 +475,12 @@ const stakedBalance = stakedBalanceResult as bigint
   // Check if user is a DAO member
   const memberData = daoMember.data as DAOMemberData | null
   const isMember = memberData?.[0] || false
- const reputation = memberData ? Number(memberData[3]) : 0
-const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || BigInt(0)))
- const stakedBalanceNum = Number(formatTokenAmount(stakedBalance as bigint))
- const votingPowerNum = Number(formatTokenAmount(votingPower as bigint))
+  const reputation = memberData ? Number(memberData[3]) : 0
+  const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || BigInt(0)))
+  const stakedBalanceNum = Number(formatTokenAmount(stakedBalance as bigint))
+  const votingPowerNum = Number(formatTokenAmount(votingPower as bigint))
 
-  
+
   // Check user capabilities
   const canJoin = farmBalanceNum > 0 && !isMember
   const canVote = isMember && stakedBalanceNum >= 10
@@ -479,7 +505,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                 Participate in decentralized farmer governance and decision making
               </p>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowRequirements(!showRequirements)}
               variant="outline"
               className="bg-transparent border-emerald-300 text-emerald-100 hover:bg-emerald-800/60"
@@ -629,7 +655,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {address && !isMember && farmBalanceNum === 0 && (
                     <Alert className="border-red-300 bg-red-50">
                       <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -638,7 +664,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {address && !isMember && farmBalanceNum > 0 && (
                     <Alert className="border-green-300 bg-green-50">
                       <CheckCircle className="w-4 h-4 text-green-600" />
@@ -647,7 +673,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {isMember && stakedBalanceNum < 10 && (
                     <Alert className="border-blue-300 bg-blue-50">
                       <Info className="w-4 h-4 text-blue-600" />
@@ -656,7 +682,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {isMember && stakedBalanceNum >= 10 && stakedBalanceNum < 100 && (
                     <Alert className="border-emerald-300 bg-emerald-50">
                       <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -665,7 +691,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {isMember && stakedBalanceNum >= 100 && (
                     <Alert className="border-purple-300 bg-purple-50">
                       <Zap className="w-4 h-4 text-purple-600" />
@@ -680,8 +706,8 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                     <Alert className="mt-4 border-indigo-300 bg-indigo-50">
                       <Unlock className="w-4 h-4 text-indigo-600" />
                       <AlertDescription className="text-indigo-800">
-                        <strong>Token Recovery:</strong> You have {formatTokenAmount(stakedBalance)} FARM staked. 
-                        You can unstake any amount anytime - no penalties or lock periods! 
+                        <strong>Token Recovery:</strong> You have {formatTokenAmount(stakedBalance)} FARM staked.
+                        You can unstake any amount anytime - no penalties or lock periods!
                         Your tokens are safe and under your control.
                       </AlertDescription>
                     </Alert>
@@ -764,7 +790,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleJoinDAO}
                     disabled={isConfirming || !farmLocation.trim()}
                     className="w-full bg-blue-600 hover:bg-blue-700"
@@ -814,7 +840,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                           onChange={(e) => setApprovalAmount(e.target.value)}
                           className="flex-1 p-3 border rounded-lg border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         />
-                        <Button 
+                        <Button
                           onClick={handleApprove}
                           disabled={isConfirming || !approvalAmount}
                           className="bg-emerald-600 hover:bg-emerald-700"
@@ -847,7 +873,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                           onChange={(e) => setStakeAmount(e.target.value)}
                           className="flex-1 p-3 border rounded-lg border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         />
-                        <Button 
+                        <Button
                           onClick={handleStakeTokens}
                           disabled={isConfirming || !stakeAmount}
                           className="bg-emerald-600 hover:bg-emerald-700"
@@ -866,7 +892,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                           <div className="flex items-center gap-2 text-sm text-blue-700">
                             <Unlock className="w-4 h-4" />
                             <span>
-                              <strong>No penalties!</strong> You can unstake any amount up to {formatTokenAmount(stakedBalance)} FARM. 
+                              <strong>No penalties!</strong> You can unstake any amount up to {formatTokenAmount(stakedBalance)} FARM.
                               Your tokens return to your wallet immediately.
                             </span>
                           </div>
@@ -880,7 +906,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                             max={formatTokenAmount(stakedBalance)}
                             className="flex-1 p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
-                          <Button 
+                          <Button
                             onClick={handleUnstakeTokens}
                             disabled={isConfirming || !unstakeAmount || Number(unstakeAmount) > stakedBalanceNum}
                             variant="outline"
@@ -933,20 +959,20 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                       type="text"
                       placeholder="Proposal title"
                       value={newProposal.title}
-                      onChange={(e) => setNewProposal({...newProposal, title: e.target.value})}
+                      onChange={(e) => setNewProposal({ ...newProposal, title: e.target.value })}
                       disabled={!canPropose}
                       className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                     <textarea
                       placeholder="Description"
                       value={newProposal.description}
-                      onChange={(e) => setNewProposal({...newProposal, description: e.target.value})}
+                      onChange={(e) => setNewProposal({ ...newProposal, description: e.target.value })}
                       disabled={!canPropose}
                       className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-[100px] disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                     <select
                       value={newProposal.proposalType}
-                      onChange={(e) => setNewProposal({...newProposal, proposalType: Number(e.target.value)})}
+                      onChange={(e) => setNewProposal({ ...newProposal, proposalType: Number(e.target.value) })}
                       disabled={!canPropose}
                       className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
@@ -962,7 +988,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                           type="number"
                           placeholder="Amount (ETH)"
                           value={newProposal.amount}
-                          onChange={(e) => setNewProposal({...newProposal, amount: e.target.value})}
+                          onChange={(e) => setNewProposal({ ...newProposal, amount: e.target.value })}
                           disabled={!canPropose}
                           className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
@@ -970,13 +996,13 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                           type="text"
                           placeholder="Recipient address"
                           value={newProposal.recipient}
-                          onChange={(e) => setNewProposal({...newProposal, recipient: e.target.value})}
+                          onChange={(e) => setNewProposal({ ...newProposal, recipient: e.target.value })}
                           disabled={!canPropose}
                           className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
                       </>
                     )}
-                    <Button 
+                    <Button
                       onClick={handleCreateProposal}
                       disabled={isConfirming || !newProposal.title || !canPropose}
                       className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -990,33 +1016,38 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
           )}
 
           {/* Active Proposals */}
-          <Card className="mb-8 border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
+          <Card className="w-full max-w-full mb-8 overflow-hidden border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-800">
-                <Vote className="w-5 h-5 text-emerald-600" />
-                Active Proposals ({activeProposalIds.length})
+              <CardTitle className="flex flex-wrap items-center gap-2 text-base break-words text-slate-800 sm:text-lg">
+                <Vote className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span className="truncate">{`Active Proposals (${activeProposalIds.length})`}</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+
+            <CardContent className="w-full overflow-x-auto">
               {activeProposalIds.length === 0 ? (
                 <div className="py-12 text-center text-slate-600">
                   <Vote className="w-16 h-16 mx-auto mb-4 text-slate-400" />
-                  <h3 className="mb-2 text-lg font-medium">No Active Proposals</h3>
-                  <p className="text-sm">Be the first to create a proposal and shape the DAO&apos;s future!</p>
+                  <h3 className="mb-2 text-base font-medium sm:text-lg">No Active Proposals</h3>
+                  <p className="text-sm sm:text-base">
+                    Be the first to create a proposal and shape the DAO&apos;s future!
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {activeProposalIds.map((proposalId) => (
-                    <ProposalCard 
-                      key={proposalId.toString()} 
-                      proposalId={proposalId} 
-                      userAddress={address} 
+                    <ProposalCard
+                      key={proposalId.toString()}
+                      proposalId={proposalId}
+                      userAddress={address}
                     />
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
+
+
 
           {/* DAO Stats */}
           <Card className="border-2 bg-white/80 backdrop-blur-sm border-emerald-200/50">
@@ -1045,7 +1076,7 @@ const farmBalanceNum = Number(formatTokenAmount(farmBalance.data as bigint || Bi
                   <div className="text-sm text-slate-600">FARM Staked</div>
                 </div>
               </div>
-              
+
               {/* Additional metrics */}
               <div className="grid grid-cols-1 gap-6 mt-6 md:grid-cols-3">
                 <div className="p-4 text-center border border-purple-200 rounded-lg bg-purple-50/50">
