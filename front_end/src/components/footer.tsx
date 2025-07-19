@@ -82,7 +82,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-green-800 mt-8 pt-8 text-center text-green-200">
-          <p>&copy; 2025 AgriChain. Built for Mantle Hackathon. All rights reserved.</p>
+          <p>&copy; 2025 AgriChain. Built for Mantle Hackathon.</p>
         </div>
       </div>
     </footer>
