@@ -17,18 +17,37 @@ interface QRScannerProps {
 export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isInitializingRef = useRef(false)
+  
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
 
   useEffect(() => {
-    if (!isOpen || !videoRef.current) return
+    if (!isOpen) return
 
     const initializeCamera = async () => {
+      // Prevent multiple simultaneous initializations
+      if (isInitializingRef.current) return
+      isInitializingRef.current = true
+
       try {
         setError(null)
         setIsScanning(false)
+
+        // Stop any existing stream first
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop())
+          streamRef.current = null
+        }
+
+        // Clear any existing scan interval
+        if (scanIntervalRef.current) {
+          clearInterval(scanIntervalRef.current)
+          scanIntervalRef.current = null
+        }
 
         // Check if getUserMedia is available
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -39,19 +58,22 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         // Request camera permission
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: { ideal: 'environment' }, // Prefer back camera
+            facingMode: { ideal: 'environment' },
             width: { ideal: 1280 },
             height: { ideal: 720 }
           }
         })
 
-        setStream(mediaStream)
+        streamRef.current = mediaStream
         setHasPermission(true)
 
-        if (videoRef.current) {
+        if (videoRef.current && isOpen) {
           videoRef.current.srcObject = mediaStream
-          videoRef.current.play()
+          await videoRef.current.play()
           setIsScanning(true)
+          
+          // Start scanning after video is playing
+          startScanning()
         }
 
       } catch (err) {
@@ -62,6 +84,9 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
             setHasPermission(false)
           } else if (err.name === 'NotFoundError') {
             setError('No camera found on this device')
+          } else if (err.name === 'AbortError') {
+            console.log('Camera initialization was aborted - this is normal when switching cameras')
+            return // Don't show error for abort
           } else {
             setError(`Camera error: ${err.message}`)
           }
@@ -69,30 +94,48 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           setError('Failed to initialize camera')
         }
         setIsScanning(false)
+      } finally {
+        isInitializingRef.current = false
       }
     }
 
-    initializeCamera()
+    if (isOpen) {
+      initializeCamera()
+    }
 
     // Cleanup function
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-        setStream(null)
+      isInitializingRef.current = false
+      
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current)
+        scanIntervalRef.current = null
+      }
+      
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+        streamRef.current = null
+      }
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
       }
     }
-  }, [isOpen, stream]) // Added stream to dependencies
+  }, [isOpen])
 
-  // Simple QR code detection using canvas (basic implementation)
-  useEffect(() => {
-    if (!isScanning || !videoRef.current) return
+  const startScanning = () => {
+    if (!videoRef.current || scanIntervalRef.current) return
 
     const video = videoRef.current
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
 
-    const scanInterval = setInterval(() => {
-      if (video.videoWidth > 0 && video.videoHeight > 0 && context) {
+    scanIntervalRef.current = setInterval(() => {
+      if (!isOpen || !video || !context || video.videoWidth === 0 || video.videoHeight === 0) {
+        return
+      }
+
+      try {
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
         context.drawImage(video, 0, 0)
@@ -105,14 +148,24 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         // if (code) {
         //   handleScanResult(code.data)
         // }
+      } catch (err) {
+        console.error('Scanning error:', err)
       }
     }, 500)
+  }
 
-    return () => clearInterval(scanInterval)
-  }, [isScanning])
+  const stopScanning = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+      scanIntervalRef.current = null
+    }
+  }
 
   const handleScanResult = (data: string) => {
     console.log('Scanned data:', data)
+    
+    // Stop scanning immediately to prevent multiple scans
+    stopScanning()
     
     // Extract token ID from various QR code formats
     let tokenId: string | null = null
@@ -143,8 +196,9 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
       if (tokenId) {
         // Stop camera
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop())
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop())
+          streamRef.current = null
         }
         
         toast.success(`🎯 QR Code scanned successfully! Token ID: ${tokenId}`)
@@ -163,20 +217,36 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
       } else {
         setError('Invalid QR code format. Please scan a valid product QR code.')
         toast.error('Invalid QR code format. Please scan a valid product QR code.')
-        setTimeout(() => setError(null), 3000)
+        setTimeout(() => {
+          setError(null)
+          // Restart scanning after error
+          if (isOpen && isScanning) {
+            startScanning()
+          }
+        }, 3000)
       }
     } catch (err) {
       console.error('Error processing QR code:', err)
       setError('Failed to process QR code')
       toast.error('Failed to process QR code. Please try again.')
-      setTimeout(() => setError(null), 3000)
+      setTimeout(() => {
+        setError(null)
+        // Restart scanning after error
+        if (isOpen && isScanning) {
+          startScanning()
+        }
+      }, 3000)
     }
   }
 
   const handleClose = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop())
+    stopScanning()
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
     }
+    
     if (onClose) {
       onClose()
     }
@@ -189,9 +259,14 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
       const testStream = await navigator.mediaDevices.getUserMedia({ video: true })
       testStream.getTracks().forEach(track => track.stop()) // Stop the test stream
       setHasPermission(true)
+      toast.dismiss()
       toast.success('Camera permission granted! 📸')
-      window.location.reload() // Reload to restart scanner
-    } catch {
+      // Don't reload, just reinitialize
+      if (isOpen) {
+        window.location.reload()
+      }
+    } catch (err) {
+      toast.dismiss()
       setError('Camera permission is required to scan QR codes')
       setHasPermission(false)
       toast.error('Camera permission denied. Please allow camera access to scan QR codes.')
@@ -266,6 +341,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
                 style={{ maxHeight: '300px' }}
                 playsInline
                 muted
+                autoPlay
               />
               
               {/* Loading Overlay */}
