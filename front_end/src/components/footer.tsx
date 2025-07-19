@@ -45,41 +45,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Resources</h3>
-            <ul className="space-y-2 text-green-200">
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  API Reference
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Smart Contracts
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Whitepaper
-                </a>
-              </li>
-            </ul>
-          </div>
+        
 
-          <div>
-            <h3 className="font-semibold mb-4">Community</h3>
-            <div className="flex gap-4">
-              <Twitter className="w-6 h-6 text-green-200 hover:text-white cursor-pointer transition-colors" />
-              <Github className="w-6 h-6 text-green-200 hover:text-white cursor-pointer transition-colors" />
-              <Discord className="w-6 h-6 text-green-200 hover:text-white cursor-pointer transition-colors" />
-            </div>
-          </div>
-        </div>
+      
 
         <div className="border-t border-green-800 mt-8 pt-8 text-center text-green-200">
           <p>&copy; 2025 AgriChain. Built for Mantle Hackathon.</p>
