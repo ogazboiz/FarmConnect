@@ -8,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Camera, CameraOff, Loader2, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
+// Import QR Scanner
+// You need to install: npm install qr-scanner
+import QrScannerLib from 'qr-scanner'
+
 interface QRScannerProps {
   onScan?: (result: string) => void
   onClose?: () => void
@@ -17,8 +21,7 @@ interface QRScannerProps {
 export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const qrScannerRef = useRef<QrScannerLib | null>(null)
   const isInitializingRef = useRef(false)
   
   const [isScanning, setIsScanning] = useState(false)
@@ -26,9 +29,11 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || !videoRef.current) return
 
-    const initializeCamera = async () => {
+    const videoElement = videoRef.current // Capture the current value
+    
+    const initializeScanner = async () => {
       // Prevent multiple simultaneous initializations
       if (isInitializingRef.current) return
       isInitializingRef.current = true
@@ -37,62 +42,74 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         setError(null)
         setIsScanning(false)
 
-        // Stop any existing stream first
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop())
-          streamRef.current = null
+        // Stop any existing scanner
+        if (qrScannerRef.current) {
+          qrScannerRef.current.stop()
+          qrScannerRef.current.destroy()
+          qrScannerRef.current = null
         }
 
-        // Clear any existing scan interval
-        if (scanIntervalRef.current) {
-          clearInterval(scanIntervalRef.current)
-          scanIntervalRef.current = null
+        // Check if camera is supported
+        let hasCamera = false
+        try {
+          hasCamera = await QrScannerLib.hasCamera()
+        } catch (cameraCheckError) {
+          console.warn('Camera check failed:', cameraCheckError)
+          hasCamera = false
         }
-
-        // Check if getUserMedia is available
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setError('Camera not supported on this device')
+        
+        if (!hasCamera) {
+          setError('No camera found on this device')
           return
         }
 
-        // Request camera permission
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        })
+        // Check if video element is available
+        if (!videoElement) {
+          setError('Video element not available')
+          return
+        }
 
-        streamRef.current = mediaStream
+        // Create QR Scanner instance
+        const qrScanner = new QrScannerLib(
+          videoElement,
+          (result) => handleScanResult(result.data),
+          {
+            onDecodeError: (err) => {
+              // Don't show decode errors as they're normal when scanning
+              console.log('Decode attempt:', typeof err === 'string' ? err : err.message)
+            },
+            preferredCamera: 'environment', // Use back camera
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            returnDetailedScanResult: true,
+          }
+        )
+
+        qrScannerRef.current = qrScanner
         setHasPermission(true)
 
-        if (videoRef.current && isOpen) {
-          videoRef.current.srcObject = mediaStream
-          await videoRef.current.play()
-          setIsScanning(true)
-          
-          // Start scanning after video is playing
-          startScanning()
-        }
+        // Start scanning
+        await qrScanner.start()
+        setIsScanning(true)
 
       } catch (err) {
-        console.error('Camera initialization error:', err)
-        if (err instanceof Error) {
-          if (err.name === 'NotAllowedError') {
-            setError('Camera permission denied. Please allow camera access and try again.')
-            setHasPermission(false)
-          } else if (err.name === 'NotFoundError') {
-            setError('No camera found on this device')
-          } else if (err.name === 'AbortError') {
-            console.log('Camera initialization was aborted - this is normal when switching cameras')
-            return // Don't show error for abort
-          } else {
-            setError(`Camera error: ${err.message}`)
-          }
+        console.error('QR Scanner initialization error:', err)
+        
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        const errorName = err instanceof Error ? err.name : 'UnknownError'
+        
+        if (errorName === 'NotAllowedError') {
+          setError('Camera permission denied. Please allow camera access and try again.')
+          setHasPermission(false)
+        } else if (errorName === 'NotFoundError') {
+          setError('No camera found on this device')
+        } else if (errorName === 'AbortError') {
+          console.log('Scanner initialization was aborted - this is normal when switching scanners')
+          return
         } else {
-          setError('Failed to initialize camera')
+          setError(`Scanner error: ${errorMessage}`)
         }
+        
         setIsScanning(false)
       } finally {
         isInitializingRef.current = false
@@ -100,86 +117,53 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
     }
 
     if (isOpen) {
-      initializeCamera()
+      initializeScanner()
     }
 
     // Cleanup function
     return () => {
       isInitializingRef.current = false
       
-      if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current)
-        scanIntervalRef.current = null
-      }
-      
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
-        streamRef.current = null
-      }
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = null
+      if (qrScannerRef.current) {
+        qrScannerRef.current.stop()
+        qrScannerRef.current.destroy()
+        qrScannerRef.current = null
       }
     }
   }, [isOpen])
 
-  const startScanning = () => {
-    if (!videoRef.current || scanIntervalRef.current) return
-
-    const video = videoRef.current
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')
-
-    scanIntervalRef.current = setInterval(() => {
-      if (!isOpen || !video || !context || video.videoWidth === 0 || video.videoHeight === 0) {
-        return
-      }
-
-      try {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        context.drawImage(video, 0, 0)
-
-        // For a real implementation, you would use a QR code library here
-        // This is a placeholder - you'll need to install qr-scanner or jsQR
-        // Example with jsQR:
-        // const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-        // const code = jsQR(imageData.data, imageData.width, imageData.height)
-        // if (code) {
-        //   handleScanResult(code.data)
-        // }
-      } catch (err) {
-        console.error('Scanning error:', err)
-      }
-    }, 500)
-  }
-
-  const stopScanning = () => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
-    }
-  }
-
   const handleScanResult = (data: string) => {
-    console.log('Scanned data:', data)
+    console.log('🔍 RAW QR SCAN DATA:', data)
     
-    // Stop scanning immediately to prevent multiple scans
-    stopScanning()
+    // Stop scanner immediately to prevent multiple scans
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop()
+    }
+    
+    // Show what was scanned for debugging
+    toast.success(`📱 QR Code detected: ${data.substring(0, 50)}${data.length > 50 ? '...' : ''}`)
     
     // Extract token ID from various QR code formats
     let tokenId: string | null = null
     
     try {
-      // Format 1: Full URL like "https://yourapp.com/scan/123"
+      console.log('🔍 Processing QR data:', {
+        original: data,
+        trimmed: data.trim(),
+        isNumeric: /^\d+$/.test(data.trim())
+      })
+      
+      // Format 1: Full URL like "https://yourapp.com/scan/123" or "yourapp.com/scan/123"
       const urlMatch = data.match(/\/scan\/(\d+)/)
       if (urlMatch) {
         tokenId = urlMatch[1]
+        console.log('✅ Matched URL format, token:', tokenId)
       }
       
       // Format 2: Just the token ID like "123"
       else if (/^\d+$/.test(data.trim())) {
         tokenId = data.trim()
+        console.log('✅ Matched numeric format, token:', tokenId)
       }
       
       // Format 3: JSON format like {"tokenId": "123"}
@@ -188,42 +172,54 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           const parsed = JSON.parse(data)
           if (parsed.tokenId) {
             tokenId = parsed.tokenId.toString()
+            console.log('✅ Matched JSON format, token:', tokenId)
           }
         } catch {
-          // Not JSON, continue with other formats
+          console.log('❌ Not JSON format')
+        }
+      }
+      
+      // Format 4: Any URL with numbers - extract any number from the URL
+      if (!tokenId) {
+        const anyNumberMatch = data.match(/(\d+)/)
+        if (anyNumberMatch) {
+          tokenId = anyNumberMatch[1]
+          console.log('✅ Extracted number from URL, token:', tokenId)
         }
       }
 
+      console.log('🎯 Final extracted token ID:', tokenId)
+
       if (tokenId) {
-        // Stop camera
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop())
-          streamRef.current = null
-        }
-        
         toast.success(`🎯 QR Code scanned successfully! Token ID: ${tokenId}`)
+        console.log('🎯 Final extracted token ID:', tokenId)
         
-        // Call custom handler or navigate to scan page
+        // Always call the onScan handler if provided (parent handles navigation)
         if (onScan) {
+          console.log('📞 Calling onScan handler with:', tokenId)
           onScan(tokenId)
         } else {
+          // Only navigate directly if no onScan handler is provided
+          console.log('🔄 Using router.push to navigate')
           router.push(`/scan/${tokenId}`)
         }
         
         // Close scanner
         if (onClose) {
+          console.log('❌ Closing scanner')
           onClose()
         }
       } else {
-        setError('Invalid QR code format. Please scan a valid product QR code.')
-        toast.error('Invalid QR code format. Please scan a valid product QR code.')
+        console.log('❌ No valid token ID found')
+        setError(`No valid product ID found in QR code: "${data}"`)
+        toast.error(`No valid product ID found in QR code. Scanned: "${data.substring(0, 30)}..."`)
         setTimeout(() => {
           setError(null)
-          // Restart scanning after error
-          if (isOpen && isScanning) {
-            startScanning()
+          // Restart scanner after error
+          if (qrScannerRef.current && isOpen) {
+            qrScannerRef.current.start()
           }
-        }, 3000)
+        }, 5000)
       }
     } catch (err) {
       console.error('Error processing QR code:', err)
@@ -231,20 +227,19 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
       toast.error('Failed to process QR code. Please try again.')
       setTimeout(() => {
         setError(null)
-        // Restart scanning after error
-        if (isOpen && isScanning) {
-          startScanning()
+        // Restart scanner after error
+        if (qrScannerRef.current && isOpen) {
+          qrScannerRef.current.start()
         }
       }, 3000)
     }
   }
 
   const handleClose = () => {
-    stopScanning()
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
-      streamRef.current = null
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop()
+      qrScannerRef.current.destroy()
+      qrScannerRef.current = null
     }
     
     if (onClose) {
@@ -256,12 +251,16 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
     try {
       setError(null)
       toast.loading('Requesting camera permission...')
+      
+      // Test camera access
       const testStream = await navigator.mediaDevices.getUserMedia({ video: true })
-      testStream.getTracks().forEach(track => track.stop()) // Stop the test stream
+      testStream.getTracks().forEach(track => track.stop())
+      
       setHasPermission(true)
       toast.dismiss()
       toast.success('Camera permission granted! 📸')
-      // Don't reload, just reinitialize
+      
+      // Reinitialize scanner
       if (isOpen) {
         window.location.reload()
       }
@@ -275,9 +274,9 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
   // Manual scan simulation for testing (remove in production)
   const handleManualTest = () => {
-    const testTokenId = prompt('Enter token ID for testing:')
-    if (testTokenId) {
-      handleScanResult(testTokenId)
+    const testData = prompt('Enter test QR data (URL or token ID):')
+    if (testData) {
+      handleScanResult(testData)
     }
   }
 
@@ -349,19 +348,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
                 <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                   <div className="text-center text-white">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                    <p className="text-sm">Starting camera...</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Scan Region Indicator */}
-              {isScanning && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-emerald-500 rounded-lg">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 rounded-br-lg"></div>
+                    <p className="text-sm">Starting QR scanner...</p>
                   </div>
                 </div>
               )}
@@ -372,7 +359,10 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           {isScanning && (
             <div className="bg-emerald-50 p-3 rounded-lg">
               <p className="text-emerald-800 text-sm text-center">
-                📱 Position the QR code within the frame
+                📱 Position the QR code within the camera view
+              </p>
+              <p className="text-emerald-600 text-xs text-center mt-1">
+                The scanner will automatically detect and process QR codes
               </p>
             </div>
           )}
@@ -385,7 +375,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
                 variant="outline"
                 className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
               >
-                🧪 Test with Token ID (Dev Only)
+                🧪 Test with Manual Input (Dev Only)
               </Button>
             </div>
           )}

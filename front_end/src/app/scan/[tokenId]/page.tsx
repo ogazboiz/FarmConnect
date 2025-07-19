@@ -315,9 +315,11 @@ export default function CropScanPage() {
                     <div className="container mx-auto">
                         <Card className="max-w-2xl mx-auto bg-red-900/40 border-red-600/40">
                             <CardContent className="py-16 text-center">
-                                <div className="mb-4 text-red-300">❌ Crop Not Found</div>
-                                <h3 className="mb-2 text-xl font-semibold text-red-200">Invalid QR Code</h3>
-                                <p className="mb-6 text-red-300/80">The crop you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+                         <div className="mb-4 text-emerald-300">🚀 Ready to Explore</div>
+<h3 className="mb-2 text-xl font-semibold text-emerald-200">Connect Wallet to View Details</h3>
+<p className="mb-6 text-emerald-300/80">
+  This QR code is valid! Connect your wallet to unlock product details, farming information, and claim your GREEN points reward.
+</p>
                                 <div className="flex justify-center gap-2">
                                     <Button
                                         onClick={() => router.back()}

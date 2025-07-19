@@ -19,9 +19,12 @@ export default function TrackPage() {
 
   const handleScan = () => {
     if (tokenId.trim()) {
+      console.log('🔍 Manual track - Token ID:', tokenId.trim())
       toast.success(`Tracking product ${tokenId.trim()}... 🔍`)
+      console.log('🚀 Manual track navigating to:', `/scan/${tokenId.trim()}`)
       router.push(`/scan/${tokenId.trim()}`)
     } else {
+      console.log('❌ Manual track - No token ID entered')
       toast.error('Please enter a valid Token ID')
     }
   }
@@ -33,9 +36,17 @@ export default function TrackPage() {
   }
 
   const handleScanResult = (scannedTokenId: string) => {
-    // QR scanner will automatically navigate, but we can also handle it here
+    console.log('🎯 Track page received scanned token:', scannedTokenId)
+    
+    // Close scanner first
     setShowScanner(false)
+    
+    // Show success message
     toast.success(`Redirecting to product ${scannedTokenId}... 🚀`)
+    
+    // Navigate to scan page
+    console.log('🚀 Track page navigating to:', `/scan/${scannedTokenId}`)
+    router.push(`/scan/${scannedTokenId}`)
   }
 
   const handleCloseScanner = () => {
