@@ -21,6 +21,7 @@ import {
 import Link from "next/link"
 import { useAccount } from "wagmi"
 import { useFarmTokenBalance, useGreenPointsBalance, useFarmerCrops, useFarmTokenInfo } from "@/hooks/useAgriDAO"
+import { toast } from "react-hot-toast"
 
 export function DashboardPage() {
   const { address, isConnected } = useAccount();
@@ -375,7 +376,10 @@ export function DashboardPage() {
                   <Button 
                     variant="outline" 
                     className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
-                    onClick={() => window.open(`https://mantlescan.xyz/address/${address}`, '_blank')}
+                    onClick={() => {
+                      window.open(`https://mantlescan.xyz/address/${address}`, '_blank')
+                      toast.success('Opening Mantle explorer in new tab 🔍')
+                    }}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
                     View on Explorer

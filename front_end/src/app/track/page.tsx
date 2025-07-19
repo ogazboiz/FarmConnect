@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { QrCode, Search, ArrowRight, Camera } from "lucide-react"
 import { QRScanner } from "@/components/scanner/QRScanner"
+import { toast } from "react-hot-toast"
 
 export default function TrackPage() {
   const router = useRouter()
@@ -18,7 +19,10 @@ export default function TrackPage() {
 
   const handleScan = () => {
     if (tokenId.trim()) {
+      toast.success(`Tracking product ${tokenId.trim()}... 🔍`)
       router.push(`/scan/${tokenId.trim()}`)
+    } else {
+      toast.error('Please enter a valid Token ID')
     }
   }
 
@@ -31,6 +35,7 @@ export default function TrackPage() {
   const handleScanResult = (scannedTokenId: string) => {
     // QR scanner will automatically navigate, but we can also handle it here
     setShowScanner(false)
+    toast.success(`Redirecting to product ${scannedTokenId}... 🚀`)
   }
 
   return (

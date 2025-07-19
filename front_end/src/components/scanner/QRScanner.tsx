@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Camera, CameraOff, Loader2, X } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 interface QRScannerProps {
   onScan?: (result: string) => void
@@ -146,6 +147,8 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           stream.getTracks().forEach(track => track.stop())
         }
         
+        toast.success(`🎯 QR Code scanned successfully! Token ID: ${tokenId}`)
+        
         // Call custom handler or navigate to scan page
         if (onScan) {
           onScan(tokenId)
@@ -159,11 +162,13 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         }
       } else {
         setError('Invalid QR code format. Please scan a valid product QR code.')
+        toast.error('Invalid QR code format. Please scan a valid product QR code.')
         setTimeout(() => setError(null), 3000)
       }
     } catch (err) {
       console.error('Error processing QR code:', err)
       setError('Failed to process QR code')
+      toast.error('Failed to process QR code. Please try again.')
       setTimeout(() => setError(null), 3000)
     }
   }
@@ -180,13 +185,16 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   const requestCameraPermission = async () => {
     try {
       setError(null)
+      toast.loading('Requesting camera permission...')
       const testStream = await navigator.mediaDevices.getUserMedia({ video: true })
       testStream.getTracks().forEach(track => track.stop()) // Stop the test stream
       setHasPermission(true)
+      toast.success('Camera permission granted! 📸')
       window.location.reload() // Reload to restart scanner
     } catch {
       setError('Camera permission is required to scan QR codes')
       setHasPermission(false)
+      toast.error('Camera permission denied. Please allow camera access to scan QR codes.')
     }
   }
 

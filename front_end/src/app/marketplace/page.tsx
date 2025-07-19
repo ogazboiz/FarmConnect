@@ -12,6 +12,7 @@ import {
   Search, Filter, MapPin, Calendar, Leaf, Star, Eye, QrCode, Share, 
   Loader2, ShoppingCart, Users, TrendingUp, Award, Hash, Wallet, Lock
 } from "lucide-react"
+import { toast } from "react-hot-toast"
 import { 
   useCropNFT, 
   useGreenPointsBalance,
@@ -236,6 +237,7 @@ export default function ConsumerMarketplacePage() {
                       setSearchTerm('')
                       setFilterStatus('all')
                       setFilterOrganic('all')
+                      toast.success('Filters cleared! 🧹')
                     }}
                     variant="outline"
                     className="border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30"
@@ -243,7 +245,10 @@ export default function ConsumerMarketplacePage() {
                     Clear Filters
                   </Button>
                   <Button 
-                    onClick={refetch}
+                    onClick={() => {
+                      refetch()
+                      toast.success('Marketplace refreshed! 🔄')
+                    }}
                     className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     Refresh
