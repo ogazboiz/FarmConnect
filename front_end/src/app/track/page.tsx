@@ -38,6 +38,10 @@ export default function TrackPage() {
     toast.success(`Redirecting to product ${scannedTokenId}... 🚀`)
   }
 
+  const handleCloseScanner = () => {
+    setShowScanner(false)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
@@ -181,14 +185,12 @@ export default function TrackPage() {
         </div>
       </div>
 
-      {/* QR Scanner Modal */}
-      {showScanner && (
-        <QRScanner
-          onScan={handleScanResult}
-          onClose={() => setShowScanner(false)}
-          isOpen={showScanner}
-        />
-      )}
+      {/* QR Scanner - Always render, control visibility with isOpen prop */}
+      <QRScanner
+        onScan={handleScanResult}
+        onClose={handleCloseScanner}
+        isOpen={showScanner}
+      />
 
       <Footer />
     </div>
