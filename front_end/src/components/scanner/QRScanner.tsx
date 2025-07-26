@@ -1,7 +1,7 @@
 // src/components/scanner/QRScanner.tsx
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,22 +17,59 @@ interface QRScannerProps {
 export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
 
+  // Cleanup function to stop camera and abort operations
+  const cleanupCamera = useCallback(() => {
+    // Abort any ongoing operations
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+
+    // Stop video stream
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+      setStream(null)
+    }
+
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+
+    setIsScanning(false)
+  }, [stream])
+
   useEffect(() => {
-    if (!isOpen || !videoRef.current) return
+    if (!isOpen) {
+      cleanupCamera()
+      return
+    }
+
+    if (!videoRef.current) return
+
+    // Create new AbortController for this effect
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
 
     const initializeCamera = async () => {
       try {
+        // Check if operation was aborted
+        if (abortController.signal.aborted) return
+
         setError(null)
         setIsScanning(false)
 
         // Check if getUserMedia is available
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setError('Camera not supported on this device')
+          if (!abortController.signal.aborted) {
+            setError('Camera not supported on this device')
+          }
           return
         }
 
@@ -45,28 +82,59 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           }
         })
 
+        // Check if operation was aborted after getting stream
+        if (abortController.signal.aborted) {
+          mediaStream.getTracks().forEach(track => track.stop())
+          return
+        }
+
         setStream(mediaStream)
         setHasPermission(true)
 
-        if (videoRef.current) {
+        if (videoRef.current && !abortController.signal.aborted) {
           videoRef.current.srcObject = mediaStream
-          videoRef.current.play()
-          setIsScanning(true)
+          
+          // Handle video play promise properly
+          try {
+            await videoRef.current.play()
+            if (!abortController.signal.aborted) {
+              setIsScanning(true)
+            }
+          } catch (playError) {
+            // Handle AbortError and other play errors
+            if (playError instanceof Error && playError.name === 'AbortError') {
+              console.log('Video play aborted (expected in React Strict Mode)')
+            } else {
+              console.error('Video play error:', playError)
+              if (!abortController.signal.aborted) {
+                throw playError
+              }
+            }
+          }
         }
 
       } catch (err) {
+        // Don't show errors if operation was aborted
+        if (abortController.signal.aborted) return
+
         console.error('Camera initialization error:', err)
         if (err instanceof Error) {
           if (err.name === 'NotAllowedError') {
             setError('Camera permission denied. Please allow camera access and try again.')
+            toast.error('Camera permission denied. Please allow camera access and try again.')
+            setTimeout(() => setError(null), 3000)
             setHasPermission(false)
           } else if (err.name === 'NotFoundError') {
             setError('No camera found on this device')
+            toast.error('No camera found on this device. Please connect a camera and try again.')
+            setTimeout(() => setError(null), 3000)
           } else {
             setError(`Camera error: ${err.message}`)
           }
         } else {
           setError('Failed to initialize camera')
+          toast.error('Failed to initialize camera. Please try again.')
+          setTimeout(() => setError(null), 3000)
         }
         setIsScanning(false)
       }
@@ -76,12 +144,9 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
     // Cleanup function
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-        setStream(null)
-      }
+      cleanupCamera()
     }
-  }, [isOpen, stream]) // Added stream to dependencies
+  }, [isOpen, cleanupCamera]) // Include cleanupCamera in dependencies
 
   // Simple QR code detection using canvas (basic implementation)
   useEffect(() => {
@@ -143,9 +208,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
       if (tokenId) {
         // Stop camera
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop())
-        }
+        cleanupCamera()
         
         toast.success(`🎯 QR Code scanned successfully! Token ID: ${tokenId}`)
         
@@ -174,9 +237,7 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   }
 
   const handleClose = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop())
-    }
+    cleanupCamera()
     if (onClose) {
       onClose()
     }
@@ -186,11 +247,20 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
     try {
       setError(null)
       toast.loading('Requesting camera permission...')
+      
+      // Clean up any existing streams first
+      cleanupCamera()
+      
       const testStream = await navigator.mediaDevices.getUserMedia({ video: true })
       testStream.getTracks().forEach(track => track.stop()) // Stop the test stream
+      
       setHasPermission(true)
       toast.success('Camera permission granted! 📸')
-      window.location.reload() // Reload to restart scanner
+      
+      // Force re-initialization instead of reload
+      setTimeout(() => {
+        setHasPermission(null) // Reset to trigger re-initialization
+      }, 100)
     } catch {
       setError('Camera permission is required to scan QR codes')
       setHasPermission(false)
@@ -209,24 +279,24 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+      <Card className="relative w-full max-w-md bg-white">
         {/* Close Button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={handleClose}
-          className="absolute top-4 right-4 z-10 text-slate-500 hover:text-slate-700"
+          className="absolute z-10 top-4 right-4 text-slate-500 hover:text-slate-700"
         >
           <X className="w-4 h-4" />
         </Button>
 
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-xl font-bold text-slate-800 flex items-center justify-center gap-2">
+        <CardHeader className="pb-4 text-center">
+          <CardTitle className="flex items-center justify-center gap-2 text-xl font-bold text-slate-800">
             <Camera className="w-5 h-5" />
             Scan QR Code
           </CardTitle>
-          <p className="text-slate-600 text-sm">
+          <p className="text-sm text-slate-600">
             Point your camera at the QR code on the product packaging
           </p>
         </CardHeader>
@@ -234,13 +304,13 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
         <CardContent className="space-y-4">
           {/* Camera Permission Error */}
           {hasPermission === false && (
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <div className="space-y-4 text-center">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
                 <CameraOff className="w-8 h-8 text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 mb-2">Camera Access Required</h3>
-                <p className="text-slate-600 text-sm mb-4">
+                <h3 className="mb-2 font-semibold text-slate-800">Camera Access Required</h3>
+                <p className="mb-4 text-sm text-slate-600">
                   We need camera permission to scan QR codes
                 </p>
                 <Button onClick={requestCameraPermission} className="bg-emerald-600 hover:bg-emerald-700">
@@ -252,8 +322,8 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm">{error}</p>
+            <div className="p-3 border border-red-200 rounded-lg bg-red-50">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
@@ -270,9 +340,9 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
               
               {/* Loading Overlay */}
               {!isScanning && !error && (
-                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
                   <div className="text-center text-white">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
                     <p className="text-sm">Starting camera...</p>
                   </div>
                 </div>
@@ -281,11 +351,11 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
               {/* Scan Region Indicator */}
               {isScanning && (
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-emerald-500 rounded-lg">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 rounded-br-lg"></div>
+                  <div className="absolute w-48 h-48 transform -translate-x-1/2 -translate-y-1/2 border-2 rounded-lg top-1/2 left-1/2 border-emerald-500">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg border-emerald-500"></div>
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg border-emerald-500"></div>
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 rounded-bl-lg border-emerald-500"></div>
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 rounded-br-lg border-emerald-500"></div>
                   </div>
                 </div>
               )}
@@ -294,8 +364,8 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
           {/* Instructions */}
           {isScanning && (
-            <div className="bg-emerald-50 p-3 rounded-lg">
-              <p className="text-emerald-800 text-sm text-center">
+            <div className="p-3 rounded-lg bg-emerald-50">
+              <p className="text-sm text-center text-emerald-800">
                 📱 Position the QR code within the frame
               </p>
             </div>
@@ -303,11 +373,11 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
 
           {/* Development Testing Button */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="border-t pt-4">
+            <div className="pt-4 border-t">
               <Button
                 onClick={handleManualTest}
                 variant="outline"
-                className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                className="w-full text-yellow-700 border-yellow-300 hover:bg-yellow-50"
               >
                 🧪 Test with Token ID (Dev Only)
               </Button>
@@ -315,8 +385,8 @@ export function QRScanner({ onScan, onClose, isOpen = true }: QRScannerProps) {
           )}
 
           {/* Manual Input Alternative */}
-          <div className="border-t pt-4">
-            <p className="text-slate-600 text-sm text-center mb-2">
+          <div className="pt-4 border-t">
+            <p className="mb-2 text-sm text-center text-slate-600">
               Having trouble scanning?
             </p>
             <Button
