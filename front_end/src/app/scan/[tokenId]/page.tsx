@@ -315,9 +315,11 @@ export default function CropScanPage() {
                     <div className="container mx-auto">
                         <Card className="max-w-2xl mx-auto bg-red-900/40 border-red-600/40">
                             <CardContent className="py-16 text-center">
-                                <div className="mb-4 text-red-300">❌ Crop Not Found</div>
-                                <h3 className="mb-2 text-xl font-semibold text-red-200">Invalid QR Code</h3>
-                                <p className="mb-6 text-red-300/80">The crop you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+                         <div className="mb-4 text-emerald-300">🚀 Ready to Explore</div>
+<h3 className="mb-2 text-xl font-semibold text-emerald-200">Connect Wallet to View Details</h3>
+<p className="mb-6 text-emerald-300/80">
+  This QR code is valid! Connect your wallet to unlock product details, farming information, and claim your GREEN points reward.
+</p>
                                 <div className="flex justify-center gap-2">
                                     <Button
                                         onClick={() => router.back()}
@@ -355,28 +357,28 @@ export default function CropScanPage() {
             <div className="px-4 pt-24 pb-16">
                 <div className="container max-w-6xl mx-auto">
                     {/* Header with Back Button */}
-                    <div className="flex items-center gap-4 mb-6">
+                 <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center">
                         <Button
                             onClick={() => router.back()}
                             variant="outline"
                             size="sm"
-                            className="border-emerald-600/40 text-emerald-300 hover:bg-emerald-700/30 bg-emerald-800/20"
+                            className="border-slate-600/40 text-slate-300 hover:bg-slate-700/30 bg-slate-800/20 w-fit"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back
                         </Button>
 
-                        <div>
-                            <h1 className="text-2xl font-bold text-white">Product Details</h1>
-                            <p className="text-emerald-200/80">
+                        <div className="flex-1">
+                            <h1 className="text-xl font-bold text-white sm:text-2xl">Product Details</h1>
+                            <p className="text-sm text-slate-300/80 sm:text-base">
                                 {hasViewed ? 'Product Information Available' : 'Scanned from QR Code'}
                             </p>
                         </div>
 
                         {/* User Points */}
                         {address && (
-                            <div className="ml-auto">
-                                <Badge className="px-3 py-1 bg-emerald-800/40 text-emerald-300 border-emerald-600/40">
+                            <div className="w-fit">
+                                <Badge className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border-emerald-400/50">
                                     💚 {greenBalance.formatted || '0'} GREEN Points
                                 </Badge>
                             </div>

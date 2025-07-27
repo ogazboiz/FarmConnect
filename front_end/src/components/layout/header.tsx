@@ -162,7 +162,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
             alt={walletInfo.name || "Wallet"}
             width={20}
             height={20}
-            className="w-5 h-5 rounded-full"
+            className="w-4 h-4 rounded-full sm:w-5 sm:h-5"
             onError={(e) => {
               (e.currentTarget.style.display = "none")
               console.warn('Failed to load wallet icon:', sanitizedUrl)
@@ -182,7 +182,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
             alt={connector.name || "Wallet"}
             width={20}
             height={20}
-            className="w-5 h-5 rounded-full"
+            className="w-4 h-4 rounded-full sm:w-5 sm:h-5"
             onError={(e) => {
               (e.currentTarget.style.display = "none")
               console.warn('Failed to load connector icon:', sanitizedUrl)
@@ -193,7 +193,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
       }
     }
 
-    return <Wallet className="w-5 h-5 text-green-600" />
+    return <Wallet className="w-4 h-4 text-green-600 sm:w-5 sm:h-5" />
   }
 
   const getWalletName = () => walletInfo?.name || connector?.name || "Connected Wallet"
@@ -251,33 +251,34 @@ export function Header({ onWalletConnect }: HeaderProps) {
   }, [pathname])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-lg ">
-      <div className="container px-4 py-4 mx-auto">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-lg">
+      <div className="container px-4 py-3 mx-auto sm:px-6 lg:px-8 sm:py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 rounded-xl glow-border">
-              <Leaf className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-center w-8 h-8 shadow-lg sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 via-green-400 to-lime-400 rounded-xl glow-border">
+              <Leaf className="w-4 h-4 text-white sm:w-6 sm:h-6" />
             </div>
-            <span className="text-2xl font-bold text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-amber-600 bg-clip-text">
+            <span className="text-lg font-bold text-transparent sm:text-xl lg:text-2xl bg-gradient-to-r from-emerald-600 via-green-600 to-amber-600 bg-clip-text">
               AgriChain
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="items-center hidden gap-6 lg:flex">
+          <nav className="items-center hidden gap-4 xl:gap-6 md:flex">
             {/* Always show marketplace and track for consumers */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Consumer
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                <Button variant="ghost" className="px-2 text-sm transition-colors text-slate-300 hover:text-emerald-400 lg:text-base lg:px-3">
+                  <ShoppingCart className="w-3 h-3 mr-1 lg:w-4 lg:h-4 lg:mr-2" />
+                  <span className="hidden xl:inline">Consumer</span>
+                  <span className="xl:hidden">Shop</span>
+                  <ChevronDown className="w-3 h-3 ml-1 lg:w-4 lg:h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
+              <DropdownMenuContent align="start" className="w-44 sm:w-48 bg-white/95 backdrop-blur-sm">
                 {consumerRoutes.map((item) => (
                   <DropdownMenuItem key={item.name} asChild>
-                    <Link href={item.href} className="flex items-center cursor-pointer">
+                    <Link href={item.href} className="flex items-center text-sm cursor-pointer">
                       <item.icon className="w-4 h-4 mr-2" />
                       {item.name}
                     </Link>
@@ -290,16 +291,17 @@ export function Header({ onWalletConnect }: HeaderProps) {
             {isConnected && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
-                    <Leaf className="w-4 h-4 mr-2" />
-                    Farmer
-                    <ChevronDown className="w-4 h-4 ml-1" />
+                  <Button variant="ghost" className="px-2 text-sm transition-colors text-slate-300 hover:text-emerald-400 lg:text-base lg:px-3">
+                    <Leaf className="w-3 h-3 mr-1 lg:w-4 lg:h-4 lg:mr-2" />
+                    <span className="hidden xl:inline">Farmer</span>
+                    <span className="xl:hidden">Farm</span>
+                    <ChevronDown className="w-3 h-3 ml-1 lg:w-4 lg:h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
+                <DropdownMenuContent align="start" className="w-44 sm:w-48 bg-white/95 backdrop-blur-sm">
                   {farmerRoutes.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
-                      <Link href={item.href} className="flex items-center cursor-pointer">
+                      <Link href={item.href} className="flex items-center text-sm cursor-pointer">
                         <item.icon className="w-4 h-4 mr-2" />
                         {item.name}
                       </Link>
@@ -309,120 +311,128 @@ export function Header({ onWalletConnect }: HeaderProps) {
               </DropdownMenu>
             )}
 
-            {/* DAO routes - show if connected */}
-            {/* {isConnected && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="transition-colors text-slate-300 hover:text-emerald-400">
-                    <Users className="w-4 h-4 mr-2" />
-                    DAO
-                    <ChevronDown className="w-4 h-4 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-sm">
-                  {daoRoutes.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild>
-                      <Link href={item.href} className="flex items-center cursor-pointer">
-                        <item.icon className="w-4 h-4 mr-2" />
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )} */}
-
             {/* Show remaining navigation items */}
             {currentNav.filter(item => !['Marketplace', 'Track Product'].includes(item.name)).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-emerald-400 ${
+                className={`text-xs lg:text-sm font-medium transition-colors hover:text-emerald-400 px-1 lg:px-2 ${
                   pathname === item.href
                     ? "text-emerald-400 border-b-2 border-emerald-400 pb-1 glow-text"
                     : "text-slate-300"
                 }`}
               >
-                {item.name}
+                <span className="hidden xl:inline">{item.name}</span>
+                <span className="xl:hidden">
+                  {item.name === "How It Works" ? "Guide" : 
+                   item.name === "Dashboard" ? "Home" :
+                   item.name === "Crop Tracking" ? "Crops" :
+                   item.name === "Cooperative" ? "Co-op" :
+                   item.name}
+                </span>
               </Link>
             ))}
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
             {!mounted ? (
-              <Button className="text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl">
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
+              <Button className="px-3 py-2 text-xs text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl sm:text-sm sm:px-4">
+                <Wallet className="w-3 h-3 mr-1 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Connect Wallet</span>
+                <span className="sm:hidden">Connect</span>
               </Button>
             ) : isConnected ? (
               <>
-                {/* Real FARM Balance */}
-                <div className="items-center hidden gap-2 sm:flex">
+                {/* Real FARM Balance - hide on smaller screens */}
+                <div className="items-center hidden gap-1 sm:gap-2 md:flex">
                   <Badge
                     variant="outline"
-                    className="p-2 rounded-lg bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm"
+                    className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-amber-900/50 to-yellow-900/50 text-amber-300 border-amber-500/30 backdrop-blur-sm text-xs"
                   >
-                    <Coins className="w-4 h-4 mr-1" />
-                    {farmBalance.isLoading ? (
-                      "Loading..."
-                    ) : farmBalance.error ? (
-                      "Error"
-                    ) : (
-                      `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'} FARM`
-                    )}
+                    <Coins className="w-3 h-3 mr-1 sm:w-4 sm:h-4" />
+                    <span className="hidden lg:inline">
+                      {farmBalance.isLoading ? (
+                        "Loading..."
+                      ) : farmBalance.error ? (
+                        "Error"
+                      ) : (
+                        `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(2) : '0.00'} FARM`
+                      )}
+                    </span>
+                    <span className="lg:hidden">
+                      {farmBalance.isLoading ? (
+                        "..."
+                      ) : farmBalance.error ? (
+                        "Err"
+                      ) : (
+                        `${farmBalance.formatted ? parseFloat(farmBalance.formatted).toFixed(1) : '0.0'}`
+                      )}
+                    </span>
                   </Badge>
                   
                   {/* GREEN Balance */}
                   <Badge
                     variant="outline"
-                    className="p-2 text-green-300 rounded-lg bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/30 backdrop-blur-sm"
+                    className="p-1.5 sm:p-2 text-green-300 rounded-lg bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/30 backdrop-blur-sm text-xs"
                   >
-                    <Leaf className="w-4 h-4 mr-1" />
-                    {greenBalance.isLoading ? (
-                      "Loading..."
-                    ) : greenBalance.error ? (
-                      "Error"
-                    ) : (
-                      `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'} GREEN`
-                    )}
+                    <Leaf className="w-3 h-3 mr-1 sm:w-4 sm:h-4" />
+                    <span className="hidden lg:inline">
+                      {greenBalance.isLoading ? (
+                        "Loading..."
+                      ) : greenBalance.error ? (
+                        "Error"
+                      ) : (
+                        `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'} GREEN`
+                      )}
+                    </span>
+                    <span className="lg:hidden">
+                      {greenBalance.isLoading ? (
+                        "..."
+                      ) : greenBalance.error ? (
+                        "Err"
+                      ) : (
+                        `${greenBalance.formatted ? parseFloat(greenBalance.formatted).toFixed(0) : '0'}`
+                      )}
+                    </span>
                   </Badge>
                 </div>
 
-                <Button variant="ghost" size="icon" className="text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm">
-                  <Bell className="w-5 h-5" />
+                {/* Notifications - hide on mobile */}
+                <Button variant="ghost" size="icon" className="hidden w-8 h-8 sm:flex text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm sm:w-9 sm:h-9">
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
 
                 <div className="relative" ref={dropdownRef}>
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm"
+                    className="w-8 h-8 text-slate-600 hover:text-emerald-600 bg-white/95 backdrop-blur-sm sm:w-9 sm:h-9"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
                   
                   {isDropdownOpen && (
-                    <div className="absolute right-0 z-50 mt-2 border border-green-200 rounded-lg shadow-lg w-72 bg-white/95 backdrop-blur-sm">
-                      <div className="p-4 border-b border-green-200">
-                        <div className="flex items-center gap-3 mb-3">
+                    <div className="absolute right-0 z-50 w-64 mt-2 border border-green-200 rounded-lg shadow-lg sm:w-72 bg-white/95 backdrop-blur-sm">
+                      <div className="p-3 border-b border-green-200 sm:p-4">
+                        <div className="flex items-center gap-2 mb-3 sm:gap-3">
                           {getWalletIcon()}
-                          <div>
-                            <p className="font-medium text-green-800">{getWalletName()}</p>
-                            <p className="text-sm text-green-600">{truncateAddress(address)}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-green-800 truncate sm:text-base">{getWalletName()}</p>
+                            <p className="text-xs text-green-600 sm:text-sm">{truncateAddress(address)}</p>
                           </div>
                         </div>
                         
                         {/* Detailed Balance in Dropdown */}
                         <div className="space-y-2">
-                          <div className="p-3 rounded-md bg-amber-50">
+                          <div className="p-2 rounded-md sm:p-3 bg-amber-50">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Coins className="w-4 h-4 text-amber-600" />
-                                <span className="text-sm font-medium text-amber-700">FARM Balance</span>
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" />
+                                <span className="text-xs font-medium sm:text-sm text-amber-700">FARM Balance</span>
                               </div>
-                              <span className="text-sm font-bold text-amber-800">
+                              <span className="text-xs font-bold sm:text-sm text-amber-800">
                                 {farmBalance.isLoading ? (
                                   "Loading..."
                                 ) : farmBalance.error ? (
@@ -434,13 +444,13 @@ export function Header({ onWalletConnect }: HeaderProps) {
                             </div>
                           </div>
                           
-                          <div className="p-3 rounded-md bg-green-50">
+                          <div className="p-2 rounded-md sm:p-3 bg-green-50">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Leaf className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-medium text-green-700">GREEN Points</span>
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Leaf className="w-3 h-3 text-green-600 sm:w-4 sm:h-4" />
+                                <span className="text-xs font-medium text-green-700 sm:text-sm">GREEN Points</span>
                               </div>
-                              <span className="text-sm font-bold text-green-800">
+                              <span className="text-xs font-bold text-green-800 sm:text-sm">
                                 {greenBalance.isLoading ? (
                                   "Loading..."
                                 ) : greenBalance.error ? (
@@ -454,35 +464,36 @@ export function Header({ onWalletConnect }: HeaderProps) {
                         </div>
                       </div>
                       <div className="p-2">
-                        <button className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50">
-                          <User className="w-4 h-4" />
+                        <button className="flex items-center w-full gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50">
+                          <User className="w-3 h-3 sm:w-4 sm:h-4" />
                           Profile
                         </button>
                         <Link
                           href="/rewards"
-                          className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50"
+                          className="flex items-center w-full gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50"
                         >
-                          <Target className="w-4 h-4" />
+                          <Target className="w-3 h-3 sm:w-4 sm:h-4" />
                           My Rewards
                         </Link>
                         <a
                           href={`https://mantlescan.xyz/address/${address}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50"
+                          className="flex items-center gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                          View on Mantle Explorer
+                          <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">View on Mantle Explorer</span>
+                          <span className="sm:hidden">Mantle Explorer</span>
                         </a>
-                        <button className="flex items-center w-full gap-3 px-3 py-2 text-green-700 transition-colors rounded-md hover:bg-green-50">
-                          <Settings className="w-4 h-4" />
+                        <button className="flex items-center w-full gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50">
+                          <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
                           Settings
                         </button>
                         <button
                           onClick={handleDisconnect}
-                          className="flex items-center w-full gap-3 px-3 py-2 text-red-600 transition-colors rounded-md hover:bg-red-50"
+                          className="flex items-center w-full gap-2 px-2 py-2 text-sm text-red-600 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-red-50"
                         >
-                          <LogOut className="w-4 h-4" />
+                          <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
                           Disconnect Wallet
                         </button>
                       </div>
@@ -493,10 +504,11 @@ export function Header({ onWalletConnect }: HeaderProps) {
             ) : (
               <Button
                 onClick={handleConnect}
-                className="text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl"
+                className="px-3 py-2 text-xs text-white transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 hover:shadow-xl sm:text-sm sm:px-4"
               >
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
+                <Wallet className="w-3 h-3 mr-1 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Connect Wallet</span>
+                <span className="sm:hidden">Connect</span>
               </Button>
             )}
 
@@ -504,18 +516,18 @@ export function Header({ onWalletConnect }: HeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-slate-600"
+              className="w-8 h-8 lg:hidden text-slate-600 sm:w-9 sm:h-9"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-menu-toggle="true"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <nav ref={mobileMenuRef} className="pt-4 pb-4 mx-4 mt-4 border-t rounded-lg md:hidden border-emerald-500/20 bg-slate-800/50 backdrop-blur-sm">
+          <nav ref={mobileMenuRef} className="pt-4 pb-4 mx-2 mt-4 border-t rounded-lg sm:mx-4 lg:hidden border-emerald-500/20 bg-slate-800/50 backdrop-blur-sm">
             <div className="flex flex-col gap-2">
               {/* Consumer Section */}
               <div className="px-3 py-2">
