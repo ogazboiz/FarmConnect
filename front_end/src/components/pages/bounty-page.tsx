@@ -1,29 +1,54 @@
+// ============================================
+// MAIN ISSUES FIXED:
+// 1. Removed duplicate showManagement variable references
+// 2. Fixed the submissions viewing logic
+// 3. Added proper imports
+// 4. Fixed component integration
+// ============================================
+
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { toast } from 'react-hot-toast'
-import { useAccount } from "wagmi"
-import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Header } from "@/components/layout/header"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Target, Clock, Coins, Plus, CheckCircle, Users, Award, TrendingUp, Filter,
-  User, FileText, Info, Star, Trophy, AlertTriangle, Send, RefreshCw
-} from "lucide-react"
-import { 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AgriBountiesABI, getContractAddresses } from "@/config"
+import {
+  formatTokenAmount,
+  parseTokenAmount,
   useAgriBounties,
   useBounty,
-  useFarmTokenBalance,
   useFarmToken,
-  formatTokenAmount,
-  parseTokenAmount
+  useFarmTokenBalance,
+  useHasSubmitted
 } from "@/hooks/useAgriDAO"
-import { useReadContract } from "wagmi"
-import { AgriBountiesABI } from "@/config"
-import { getContractAddresses } from "@/config"
+import {
+  AlertTriangle,
+  Award,
+  CheckCircle,
+  Clock, 
+  Coins,
+  FileText,
+  Filter,
+  Info,
+  Plus,
+  RefreshCw,
+  Send,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
+  User,
+  Users,
+  Vote,
+  Settings,  // ADDED
+  Crown      // ADDED
+} from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { toast } from 'react-hot-toast'
+import { useAccount, useReadContract } from "wagmi"
 
 const contracts = getContractAddresses()
 
@@ -60,105 +85,113 @@ interface UserProfileData {
   5: boolean // isVerified
 }
 
-// Better hook to find existing bounties using getBounty function
+// FIXED: Added missing interfaces
+interface SubmissionCardProps {
+  submissionId: bigint
+  bountyCreator: string
+  userAddress: string | undefined
+  refreshTrigger: number
+}
+
+interface SubmissionsListProps {
+  bountyId: bigint
+  userAddress: string | undefined
+  bountyCreator: string
+  refreshTrigger: number
+  isCreator: boolean
+}
+
+interface BountyCardProps {
+  bountyId: bigint
+  userAddress: string | undefined
+  refreshTrigger: number
+}
+
+const useHasVoted = (submissionId?: bigint, userAddress?: string) => {
+  const result = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'hasVoted',
+    args: submissionId && userAddress ? [submissionId, userAddress] : undefined,
+    query: {
+      enabled: !!(submissionId && userAddress),
+      gcTime: 5000,
+      staleTime: 0,
+    },
+  });
+
+  return result.data as boolean || false;
+};
+
+// Better hook to find existing bounties - truly dynamic approach
 const useAllBounties = () => {
   const [bounties, setBounties] = useState<bigint[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  
-  // Check multiple bounty IDs using getBounty function with aggressive cache settings
-  const bountyCheck1 = useReadContract({
+
+  // Use a single contract call to get all bounties more efficiently
+  const bountyCountResult = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
-    functionName: 'getBounty',
-    args: [BigInt(1)],
+    functionName: 'nextBountyId', // Assuming your contract has this
     query: {
-      retry: false,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
   })
+
+  // If nextBountyId doesn't exist, we'll scan up to 50 bounties
+  const maxBounties = bountyCountResult.data ? Number(bountyCountResult.data) - 1 : 50
+
+  // Create exactly the number of hooks we need (always the same on each render)
+  const NUM_BOUNTY_HOOKS = 50 // Fixed number to satisfy Rules of Hooks
   
-  const bountyCheck2 = useReadContract({
-    address: contracts.AGRI_BOUNTIES,
-    abi: AgriBountiesABI,
-    functionName: 'getBounty',
-    args: [BigInt(2)],
-    query: {
-      retry: false,
-      staleTime: 0,
-      gcTime: 5000,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-    },
+  const bountyChecks = Array.from({ length: NUM_BOUNTY_HOOKS }, (_, index) => {
+    return useReadContract({
+      address: contracts.AGRI_BOUNTIES,
+      abi: AgriBountiesABI,
+      functionName: 'getBounty',
+      args: [BigInt(index + 1)],
+      query: {
+        enabled: index < maxBounties, // Only query what we need
+        retry: false,
+        staleTime: 0,
+        gcTime: 5000,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+      },
+    })
   })
-  
-  const bountyCheck3 = useReadContract({
-    address: contracts.AGRI_BOUNTIES,
-    abi: AgriBountiesABI,
-    functionName: 'getBounty',
-    args: [BigInt(3)],
-    query: {
-      retry: false,
-      staleTime: 0,
-      gcTime: 5000,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-    },
-  })
-  
-  const bountyCheck4 = useReadContract({
-    address: contracts.AGRI_BOUNTIES,
-    abi: AgriBountiesABI,
-    functionName: 'getBounty',
-    args: [BigInt(4)],
-    query: {
-      retry: false,
-      staleTime: 0,
-      gcTime: 5000,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-    },
-  })
-  
-  const bountyCheck5 = useReadContract({
-    address: contracts.AGRI_BOUNTIES,
-    abi: AgriBountiesABI,
-    functionName: 'getBounty',
-    args: [BigInt(5)],
-    query: {
-      retry: false,
-      staleTime: 0,
-      gcTime: 5000,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-    },
-  })
-  
-  const bountyChecks = [bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4, bountyCheck5]
 
   useEffect(() => {
     const existingBounties: bigint[] = []
     
-    bountyChecks.forEach((check, index) => {
-  // Check if bounty exists by looking at the creator field
-  const bountyData = check.data as BountyData | null
-  if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
-    existingBounties.push(BigInt(index + 1))
-  }
-})
+    // Process all bounty checks up to maxBounties
+    for (let i = 0; i < Math.min(maxBounties, NUM_BOUNTY_HOOKS); i++) {
+      const check = bountyChecks[i]
+      const bountyData = check.data as BountyData | null
+      if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
+        existingBounties.push(BigInt(i + 1))
+      }
+    }
+    
     setBounties(existingBounties.reverse()) // Newest first
     setTotalCount(existingBounties.length)
-    setIsLoading(bountyChecks.some(check => check.isLoading))
+    setIsLoading(bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).some(check => check.isLoading))
     
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },  [bountyChecks.map(check => (check.data as BountyData | null)?.creator).join(',')])// Intentionally minimal deps to avoid infinite loops
+    console.log(`Found ${existingBounties.length} bounties out of ${maxBounties} checked`)
+    
+  }, [
+    maxBounties,
+    ...bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).map(check => check.data)
+  ])
   
   const refetch = () => {
-    console.log('useAllBounties refetch called - refetching all bounty checks')
-    bountyChecks.forEach(check => check.refetch?.())
+    console.log('Refetching bounty data...')
+    bountyCountResult.refetch?.()
+    bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).forEach(check => check.refetch?.())
   }
   
   return { 
@@ -178,8 +211,8 @@ const useUserProfile = (address: string | undefined) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      staleTime: 0, // Always consider stale
-      gcTime: 5000, // Keep in cache for 5 seconds
+      staleTime: 0,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -200,8 +233,8 @@ const useCreatorBounties = (address: string | undefined) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      staleTime: 0, // Always consider stale
-      gcTime: 5000, // Keep in cache for 5 seconds
+      staleTime: 0,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -230,8 +263,8 @@ const useBountySubmissions = (bountyId: bigint | undefined) => {
     args: bountyId ? [bountyId] : undefined,
     query: {
       enabled: !!bountyId,
-      staleTime: 0, // Always consider stale
-      gcTime: 5000, // Keep in cache for 5 seconds
+      staleTime: 0,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -252,8 +285,8 @@ const useSubmission = (submissionId: bigint | undefined) => {
     args: submissionId ? [submissionId] : undefined,
     query: {
       enabled: !!submissionId,
-      staleTime: 0, // Always consider stale
-      gcTime: 5000, // Keep in cache for 5 seconds
+      staleTime: 0,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -274,8 +307,8 @@ const useSubmitterBounties = (address: string | undefined) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      staleTime: 0, // Always consider stale
-      gcTime: 5000, // Keep in cache for 5 seconds
+      staleTime: 0,
+      gcTime: 5000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     },
@@ -287,20 +320,13 @@ const useSubmitterBounties = (address: string | undefined) => {
   }
 }
 
-// Fixed Submission Card Component
-interface SubmissionCardProps {
-  submissionId: bigint
-  bountyCreator: string
-  userAddress: string | undefined
-  refreshTrigger: number
-}
-
+// FIXED: Updated Submission Card Component
 const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigger }: SubmissionCardProps) => {
   const submissionResult = useSubmission(submissionId)
   const submission = submissionResult.data
-  const { completeBounty, isConfirming } = useAgriBounties()
+  const { completeBounty, voteOnSubmission, isConfirming } = useAgriBounties()
+  const hasVoted = useHasVoted(submissionId, userAddress)
 
-  // Refetch when refreshTrigger changes
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {
       console.log('SubmissionCard refetch triggered for submission:', submissionId.toString(), 'trigger:', refreshTrigger)
@@ -313,8 +339,7 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
       
       return () => clearTimeout(timer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger]) // Intentionally excluding submission to avoid infinite loops
+  }, [refreshTrigger])
 
   if (!submission) {
     return (
@@ -338,11 +363,22 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
     }
   }
 
+  const handleVote = async (support: boolean) => {
+    if (!userAddress || hasVoted) return
+    try {
+      await voteOnSubmission(submissionId, support)
+      toast.success(`${support ? '👍 Upvote' : '👎 Downvote'} submitted!`)
+    } catch (error) {
+      console.error('Error voting:', error)
+      toast.error('Failed to vote. You may have already voted.')
+    }
+  }
+
   return (
-    <div className={`border rounded-lg p-4 ${
+    <div className={`border rounded-lg p-4 ml-3 ${
       submission.selected 
         ? 'border-green-500 bg-green-50/90' 
-        : 'border-emerald-600/50 bg-emerald-900/10'
+        : 'border-slate-600/50 bg-slate-900/10'
     }`}>
       {/* Submission Header */}
       <div className="flex items-start justify-between mb-3">
@@ -357,12 +393,12 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
             {submission.selected && (
               <Badge className="text-green-800 bg-green-100">
                 <Trophy className="w-3 h-3 mr-1" />
-                Winner
+                🏆 Winner
               </Badge>
             )}
           </div>
           
-          {/* Submission Content */}
+          {/* Submission Content - ALWAYS VISIBLE */}
           <div className="p-3 mb-3 border rounded bg-emerald-800/20 border-emerald-600/30">
             <p className="text-sm leading-relaxed text-emerald-100">
               💡 {submission.submissionData}
@@ -371,29 +407,95 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
         </div>
       </div>
       
-      {/* Submission Stats */}
+      {/* Submission Stats - ALWAYS VISIBLE */}
       <div className="flex items-center justify-between mb-3 text-xs text-emerald-200/80">
         <span>📅 {new Date(Number(submission.timestamp) * 1000).toLocaleString()}</span>
-        <span>👥 {Number(submission.votes)} votes</span>
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1">
+            👍 {Number(submission.votes)} votes
+          </span>
+          {hasVoted && userAddress && (
+            <Badge className="text-blue-800 bg-blue-100">
+              Voted
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* Action Button */}
-      {isCreator && !submission.selected && (
-        <Button
-          size="sm"
-          onClick={handleSelectWinner}
-          disabled={isConfirming}
-          className="w-full text-white bg-green-600 hover:bg-green-700"
-        >
-          {isConfirming ? '⏳ Selecting...' : '🏆 Select as Winner'}
-        </Button>
-      )}
+      {/* Action Buttons - VISIBLE TO EVERYONE */}
+      <div className="space-y-2">
+        {/* Creator Actions */}
+        {isCreator && !submission.selected && (
+          <Button
+            size="sm"
+            onClick={handleSelectWinner}
+            disabled={isConfirming}
+            className="w-full text-white bg-green-600 hover:bg-green-700"
+          >
+            {isConfirming ? '⏳ Selecting...' : '🏆 Select as Winner'}
+          </Button>
+        )}
+
+        {/* Community Voting Actions - AVAILABLE TO ALL USERS */}
+        {userAddress && !isCreator && !isSubmitter && !submission.selected && !hasVoted && (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => handleVote(true)}
+              disabled={isConfirming}
+              className="flex-1 text-white bg-blue-600 hover:bg-blue-700"
+            >
+              {isConfirming ? '⏳' : '👍 Upvote'}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleVote(false)}
+              disabled={isConfirming}
+              variant="outline"
+              className="flex-1 text-red-700 bg-transparent border-red-300 hover:bg-red-50"
+            >
+              {isConfirming ? '⏳' : '👎 Downvote'}
+            </Button>
+          </div>
+        )}
+
+        {/* Status Messages */}
+        {!userAddress && (
+          <p className="text-xs italic text-center text-emerald-400">
+            Connect wallet to vote on solutions
+          </p>
+        )}
+        
+        {userAddress && hasVoted && !submission.selected && (
+          <p className="text-xs italic text-center text-blue-400">
+            ✅ You have voted on this submission
+          </p>
+        )}
+
+        {userAddress && isCreator && (
+          <p className="text-xs italic text-center text-amber-400">
+            👑 You are the bounty creator - select the best solution
+          </p>
+        )}
+
+        {userAddress && isSubmitter && (
+          <p className="text-xs italic text-center text-green-400">
+            📝 This is your submission
+          </p>
+        )}
+
+        {userAddress && !isCreator && !isSubmitter && hasVoted && (
+          <p className="text-xs italic text-center text-purple-400">
+            🗳️ Thanks for voting! Your vote helps identify quality solutions.
+          </p>
+        )}
+      </div>
 
       {/* Feedback Section */}
       {submission.feedback && (
         <div className="p-3 mt-3 border rounded bg-blue-900/20 border-blue-700/50">
           <p className="text-sm text-blue-200">
-            💬 Feedback: {submission.feedback}
+            💬 Creator Feedback: {submission.feedback}
           </p>
         </div>
       )}
@@ -401,48 +503,54 @@ const SubmissionCard = ({ submissionId, bountyCreator, userAddress, refreshTrigg
   )
 }
 
-// Fixed Submissions List Component
-interface BountySubmissionsListProps {
-  bountyId: bigint
-  userAddress: string | undefined
-  bountyCreator: string
-  refreshTrigger: number
-}
-
-const BountySubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTrigger }: BountySubmissionsListProps) => {
+// FIXED: Updated Submissions List Component
+const SubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTrigger, isCreator }: SubmissionsListProps) => {
   const submissionIdsResult = useBountySubmissions(bountyId)
   const submissionIds = submissionIdsResult.data
   
-  // Debug logging
-  console.log('BountySubmissionsList - bountyId:', bountyId)
-  console.log('BountySubmissionsList - submissionIds:', submissionIds)
-  console.log('BountySubmissionsList - userAddress:', userAddress)
+  console.log('SubmissionsList - bountyId:', bountyId)
+  console.log('SubmissionsList - submissionIds:', submissionIds)
+  console.log('SubmissionsList - userAddress:', userAddress)
   
   if (!submissionIds || submissionIds.length === 0) {
     return (
       <div className="py-8 text-center border rounded-lg text-emerald-200/60 bg-emerald-900/20 border-emerald-700/30">
         <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
         <h5 className="mb-1 font-medium">No Submissions Yet</h5>
-        <p className="text-sm">Waiting for community solutions...</p>
+        <p className="text-sm">Be the first to submit a solution!</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-3">
-      <h5 className="mb-3 font-medium text-emerald-200">
-        📋 Submissions ({submissionIds.length})
-      </h5>
+      <div className="flex items-center justify-between mb-3">
+        <h5 className="font-medium text-emerald-200">
+          📋 Solutions ({submissionIds.length})
+        </h5>
+        <div className="text-xs text-emerald-200/80">
+          {userAddress ? 
+            (isCreator ? "Select the best solution" : "Vote for quality solutions") 
+            : "Connect wallet to vote"
+          }
+        </div>
+      </div>
       
-      <div className="space-y-3 overflow-y-auto max-h-80">
-        {submissionIds.map((submissionId: bigint) => (
-          <SubmissionCard
-            key={submissionId.toString()}
-            submissionId={submissionId}
-            bountyCreator={bountyCreator}
-            userAddress={userAddress}
-            refreshTrigger={refreshTrigger}
-          />
+      <div className="space-y-4 overflow-y-auto max-h-96">
+        {submissionIds.map((submissionId: bigint, index: number) => (
+          <div key={submissionId.toString()} className="relative">
+            <div className="absolute -left-3 top-3 z-10">
+              <div className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-purple-600 rounded-full">
+                {index + 1}
+              </div>
+            </div>
+            <SubmissionCard
+              submissionId={submissionId}
+              bountyCreator={bountyCreator}
+              userAddress={userAddress}
+              refreshTrigger={refreshTrigger}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -459,23 +567,17 @@ const getStatusColor = (status: number) => {
   return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-300'
 }
 
-// Fixed Individual Bounty Component
-interface BountyCardProps {
-  bountyId: bigint
-  userAddress: string | undefined
-  refreshTrigger: number
-}
-
+// FIXED: Updated BountyCard Component
 const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) => {
   const bountyQuery = useBounty(bountyId)
   const { submitToBounty, isConfirming } = useAgriBounties()
   const [submissionData, setSubmissionData] = useState('')
   const [showSubmissionForm, setShowSubmissionForm] = useState(false)
-  const [showManagement, setShowManagement] = useState(false)
+  const [showSubmissions, setShowSubmissions] = useState(false) // RENAMED: was showManagement
 
+  const hasSubmitted = useHasSubmitted(bountyId, userAddress)
   const bounty = bountyQuery.data as BountyData | null
 
-  // Refetch when refreshTrigger changes, but with debouncing to avoid excessive calls
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {
       console.log('BountyCard refetch triggered for bounty:', bountyId.toString(), 'trigger:', refreshTrigger)
@@ -484,18 +586,16 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
           console.log('Executing BountyCard refetch for bounty:', bountyId.toString())
           bountyQuery.refetch()
         }
-      }, 500) // Debounce refetch calls
+      }, 500)
       
       return () => clearTimeout(timer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger]) // Intentionally excluding bountyQuery to avoid infinite loops
+  }, [refreshTrigger])
 
-  // Debug logging
   console.log('BountyCard - bountyId:', bountyId)
   console.log('BountyCard - bounty:', bounty)
   console.log('BountyCard - userAddress:', userAddress)
-  console.log('BountyCard - showManagement:', showManagement)
+  console.log('BountyCard - showSubmissions:', showSubmissions)
 
   const handleSubmit = async () => {
     if (!userAddress || !submissionData.trim()) return
@@ -542,6 +642,7 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
 
   return (
     <div className="p-6 transition-all duration-300 border rounded-lg border-emerald-700/50 hover:shadow-2xl bg-gradient-to-r from-emerald-900/30 to-green-900/30 hover:from-emerald-800/40 hover:to-green-800/40">
+      
       {/* Bounty Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -602,48 +703,51 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 mb-4">
+      {/* ACTION BUTTONS - UPDATED */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        {/* ALWAYS SHOW VIEW SUBMISSIONS BUTTON (for everyone) */}
+        <Button
+          size="sm"
+          onClick={() => setShowSubmissions(!showSubmissions)}
+          className="text-white bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600"
+        >
+          <Users className="w-4 h-4 mr-1" />
+          {showSubmissions ? 'Hide Submissions' : `View Submissions (${Number(bounty?.submissionCount || 0)})`}
+        </Button>
+
+        {/* SUBMISSION BUTTON - Only for active bounties */}
         {isActive && userAddress && (
           <>
-            {isCreator ? (
-              // Creator buttons
-              <div className="flex gap-2">
-                <Button 
-                  size="sm"
-                  onClick={() => {
-                    console.log('Toggling management from', showManagement, 'to', !showManagement)
-                    setShowManagement(!showManagement)
-                  }}
-                  className="text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
-                >
-                  <Users className="w-4 h-4 mr-1" />
-                  {showManagement ? 'Hide Management' : 'Manage Bounty'}
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => setShowSubmissionForm(!showSubmissionForm)}
-                  variant="outline"
-                  className="bg-transparent border-amber-600/50 text-amber-200 hover:bg-amber-800/60"
-                >
-                  <Send className="w-4 h-4 mr-1" />
-                  {showSubmissionForm ? 'Cancel Submit' : 'Submit Solution'}
-                </Button>
-              </div>
-            ) : (
-              // Regular user buttons
+            {!hasSubmitted ? (
               <Button 
                 size="sm" 
                 onClick={() => setShowSubmissionForm(!showSubmissionForm)}
                 className="font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900"
               >
                 <Send className="w-4 h-4 mr-1" />
-                {showSubmissionForm ? 'Cancel' : 'Submit Solution'}
+                {showSubmissionForm ? 'Cancel Submit' : 'Submit Solution'}
               </Button>
+            ) : (
+              <Badge className="text-green-800 bg-green-100 border-green-300">
+                ✅ Solution Submitted
+              </Badge>
             )}
           </>
         )}
-        
+
+        {/* CREATOR MANAGEMENT BUTTON */}
+        {isCreator && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-transparent border-blue-600/50 text-blue-200 hover:bg-blue-800/60"
+          >
+            <Settings className="w-4 h-4 mr-1" />
+            Creator Tools
+          </Button>
+        )}
+
+        {/* STATUS MESSAGES */}
         {!isActive && (
           <div className="flex items-center gap-2 text-sm text-emerald-400">
             <Info className="w-4 h-4" />
@@ -653,20 +757,20 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
         
         {!userAddress && (
           <div className="text-sm italic text-emerald-400">
-            Connect wallet to submit solutions
+            Connect wallet to submit solutions and vote
           </div>
         )}
       </div>
 
-      {/* Submission Form */}
-      {showSubmissionForm && (
+      {/* SUBMISSION FORM - Only show if user wants to submit */}
+      {showSubmissionForm && !hasSubmitted && isActive && userAddress && (
         <div className="p-4 mb-4 border rounded-lg bg-emerald-900/20 border-emerald-700/50">
           <h4 className="mb-3 font-medium text-emerald-100">Submit Your Solution</h4>
           {isCreator && (
             <Alert className="mb-3 border-amber-300 bg-amber-50">
               <AlertTriangle className="w-4 h-4 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                <strong>Warning:</strong> You&apos;re submitting to your own bounty. This may be seen as unfair by the community.
+                <strong>Warning:</strong> You're submitting to your own bounty. This may be seen as unfair by the community.
               </AlertDescription>
             </Alert>
           )}
@@ -701,53 +805,55 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
         </div>
       )}
 
-      {/* MANAGEMENT PANEL - This should now be visible */}
-      {showManagement && isCreator && (
-        <div className="p-4 border rounded-lg bg-blue-900/20 border-blue-700/50">
+      {/* SUBMISSIONS VIEWER - ALWAYS SHOW WHEN TOGGLED (for everyone) */}
+      {showSubmissions && (
+        <div className="p-4 border rounded-lg bg-slate-900/20 border-slate-700/50">
           <div className="flex items-center justify-between mb-4">
             <h4 className="flex items-center gap-2 font-medium text-emerald-100">
               <FileText className="w-4 h-4" />
-              🔧 Manage Your Bounty
+              💡 Community Solutions
             </h4>
-            <Badge className="text-blue-800 bg-blue-100">
-              {Number(bounty.submissionCount)} Submission{Number(bounty.submissionCount) !== 1 ? 's' : ''}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className="text-purple-800 bg-purple-100">
+                {Number(bounty?.submissionCount || 0)} Solution{Number(bounty?.submissionCount || 0) !== 1 ? 's' : ''}
+              </Badge>
+              {!userAddress && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300">
+                  Connect to Vote
+                </Badge>
+              )}
+            </div>
           </div>
 
-          {/* Debug Info */}
-          <div className="p-2 mb-4 text-xs text-yellow-200 border rounded bg-yellow-900/20 border-yellow-700/50">
-            🐛 Debug: Management panel is visible! BountyId: {bountyId.toString()}, Creator: {isCreator ? 'YES' : 'NO'}
-          </div>
+          {/* INFO CARD FOR VOTERS */}
+          {userAddress && !isCreator && (
+            <Alert className="mb-4 border-purple-300 bg-purple-50">
+              <Vote className="w-4 h-4 text-purple-600" />
+              <AlertDescription className="text-purple-800">
+                <strong>Community Voting:</strong> Review the solutions below and vote for the best ones. 
+                Your votes help the bounty creator identify quality solutions.
+              </AlertDescription>
+            </Alert>
+          )}
 
-          {/* Management Actions */}
-          <div className="flex gap-2 mb-4">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-transparent border-emerald-300 text-emerald-200 hover:bg-emerald-800/60"
-            >
-              <Filter className="w-4 h-4 mr-1" />
-              Refresh Submissions
-            </Button>
-            
-            {Number(bounty.submissionCount) === 0 && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-red-200 bg-transparent border-red-300 hover:bg-red-800/60"
-              >
-                <AlertTriangle className="w-4 h-4 mr-1" />
-                Cancel Bounty
-              </Button>
-            )}
-          </div>
+          {/* CREATOR INFO */}
+          {isCreator && (
+            <Alert className="mb-4 border-blue-300 bg-blue-50">
+              <Crown className="w-4 h-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Creator View:</strong> Review all submissions and select the winner. 
+                Community votes can help guide your decision.
+              </AlertDescription>
+            </Alert>
+          )}
 
-          {/* Submissions List */}
-          <BountySubmissionsList 
+          {/* SUBMISSIONS LIST - ALWAYS SHOW */}
+          <SubmissionsList 
             bountyId={bountyId} 
             userAddress={userAddress} 
-            bountyCreator={bounty.creator}
+            bountyCreator={bounty?.creator || ''}
             refreshTrigger={refreshTrigger}
+            isCreator={isCreator}
           />
         </div>
       )}
@@ -959,6 +1065,49 @@ const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
     </Card>
   )
 }
+
+const VotingInfoCard = () => (
+  <Card className="border-2 bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200/50">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-slate-800">
+        <Info className="w-5 h-5 text-purple-600" />
+        Community Voting
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3 text-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-purple-600 rounded-full">1</div>
+          <div>
+            <p className="font-medium text-slate-800">Review Solutions</p>
+            <p className="text-slate-600">Read submitted solutions carefully</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-purple-600 rounded-full">2</div>
+          <div>
+            <p className="font-medium text-slate-800">Vote for Quality</p>
+            <p className="text-slate-600">Upvote innovative and practical solutions</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-purple-600 rounded-full">3</div>
+          <div>
+            <p className="font-medium text-slate-800">Creator Decides</p>
+            <p className="text-slate-600">Bounty creator selects final winner</p>
+          </div>
+        </div>
+      </div>
+      <Alert className="mt-4 border-purple-300 bg-purple-50">
+        <Info className="w-4 h-4 text-purple-600" />
+        <AlertDescription className="text-purple-800">
+          <strong>Note:</strong> Voting helps the bounty creator identify the best solutions, 
+          but they make the final decision on winners.
+        </AlertDescription>
+      </Alert>
+    </CardContent>
+  </Card>
+)
 
 export function BountyPage() {
   const { address } = useAccount()
@@ -1303,6 +1452,8 @@ export function BountyPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              <VotingInfoCard />
             </div>
           </div>
         </div>

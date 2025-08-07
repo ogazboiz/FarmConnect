@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  Vote, Plus, MessageSquare, Users, Coins, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Wallet,
+  Vote, Plus, MessageSquare, Users, Coins, Star, TrendingUp, CheckCircle, XCircle, Clock, Wallet,
   Info, AlertTriangle, Shield, Target, Zap, Unlock, Lock
 } from "lucide-react"
 import { Footer } from "../layout/footer"
@@ -21,7 +21,8 @@ import {
   useFarmTokenBalance,
   useFarmToken,
   formatTokenAmount,
-  parseTokenAmount
+  parseTokenAmount,
+  useFarmerReputation
 } from "@/hooks/useAgriDAO"
 import { useReadContract } from "wagmi"
 import { FarmerDAOABI } from "@/config"
@@ -375,6 +376,14 @@ export function CooperativePage() {
     proposalType: 0,
     recipient: ''
   })
+  const getReputationLevel = (reputation: number) => {
+    if (reputation >= 1000) return { level: "Expert Farmer", color: "text-purple-600", icon: "🏆" }
+    if (reputation >= 500) return { level: "Master Farmer", color: "text-blue-600", icon: "🥇" }
+    if (reputation >= 200) return { level: "Experienced Farmer", color: "text-green-600", icon: "🥈" }
+    if (reputation >= 50) return { level: "Skilled Farmer", color: "text-yellow-600", icon: "🥉" }
+    if (reputation >= 10) return { level: "Farmer", color: "text-orange-600", icon: "🌱" }
+    return { level: "New Farmer", color: "text-gray-600", icon: "🌿" }
+  }
 
   // All hooks called at the top level, in the same order every time
   const { joinDAO, stakeTokens, unstakeTokens, createProposal, isConfirming } = useFarmerDAO() // NEW: Added unstakeTokens
@@ -388,6 +397,10 @@ export function CooperativePage() {
   const totalStaked = useTotalStaked() as bigint
   const votingPowerResult = useVotingPower(address)
   const stakedBalanceResult = useStakedBalance(address)
+  const farmerReputationResult = useFarmerReputation(address) // ADD THIS
+  const farmerReputation = farmerReputationResult as bigint
+  const totalReputation = Number(farmerReputation)
+  const reputationInfo = getReputationLevel(totalReputation)
 
   const votingPower = votingPowerResult as bigint
   const stakedBalance = stakedBalanceResult as bigint
@@ -605,7 +618,7 @@ export function CooperativePage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Reputation:</span>
-                        <span className="font-medium text-purple-700">{reputation}</span>
+                        <span className="font-medium text-purple-700">{totalReputation}</span> {/* FIXED: Use totalReputation */}
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-600">Vote Share:</span>
@@ -749,7 +762,7 @@ export function CooperativePage() {
               </div>
 
               {isMember && (
-                <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-4">
                   <div className="p-4 text-center border rounded-lg bg-green-900/30 border-green-700/30">
                     <p className="mb-2 text-green-200/80">Your Staked</p>
                     <p className="text-lg font-bold text-green-100">{formatTokenAmount(stakedBalance)} FARM</p>
@@ -762,6 +775,45 @@ export function CooperativePage() {
                     <p className="mb-2 text-green-200/80">Vote Share</p>
                     <p className="text-lg font-bold text-green-100">{calculateVotingPercentage(totalStaked, votingPower)}%</p>
                   </div>
+                  {/* NEW: Reputation Display */}
+                  <div className="p-4 text-center border rounded-lg bg-purple-900/30 border-purple-700/30">
+                    <p className="mb-2 text-purple-200/80">Reputation</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-lg">{reputationInfo.icon}</span>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-purple-100">{totalReputation}</p>
+                        <p className={`text-xs ${reputationInfo.color}`}>{reputationInfo.level}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {isMember && totalReputation > 0 && (
+                <div className="mt-6">
+                  <Card className="border-purple-200 bg-purple-50/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-sm text-purple-800">
+                        <Star className="w-4 h-4" />
+                        Your Farming Reputation
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                          <span className="text-2xl">{reputationInfo.icon}</span>
+                          <div>
+                            <p className="text-xl font-bold text-purple-800">{totalReputation} points</p>
+                            <p className={`text-sm ${reputationInfo.color} font-medium`}>{reputationInfo.level}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          Earn reputation by creating crops and receiving scans, ratings, and shares from consumers!
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
             </CardContent>
