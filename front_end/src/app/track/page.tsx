@@ -19,12 +19,9 @@ export default function TrackPage() {
 
   const handleScan = () => {
     if (tokenId.trim()) {
-      console.log('🔍 Manual track - Token ID:', tokenId.trim())
       toast.success(`Tracking product ${tokenId.trim()}... 🔍`)
-      console.log('🚀 Manual track navigating to:', `/scan/${tokenId.trim()}`)
       router.push(`/scan/${tokenId.trim()}`)
     } else {
-      console.log('❌ Manual track - No token ID entered')
       toast.error('Please enter a valid Token ID')
     }
   }
@@ -36,21 +33,9 @@ export default function TrackPage() {
   }
 
   const handleScanResult = (scannedTokenId: string) => {
-    console.log('🎯 Track page received scanned token:', scannedTokenId)
-    
-    // Close scanner first
+    // QR scanner will automatically navigate, but we can also handle it here
     setShowScanner(false)
-    
-    // Show success message
     toast.success(`Redirecting to product ${scannedTokenId}... 🚀`)
-    
-    // Navigate to scan page
-    console.log('🚀 Track page navigating to:', `/scan/${scannedTokenId}`)
-    router.push(`/scan/${scannedTokenId}`)
-  }
-
-  const handleCloseScanner = () => {
-    setShowScanner(false)
   }
 
   return (
@@ -196,12 +181,14 @@ export default function TrackPage() {
         </div>
       </div>
 
-      {/* QR Scanner - Always render, control visibility with isOpen prop */}
-      <QRScanner
-        onScan={handleScanResult}
-        onClose={handleCloseScanner}
-        isOpen={showScanner}
-      />
+      {/* QR Scanner Modal */}
+      {showScanner && (
+        <QRScanner
+          onScan={handleScanResult}
+          onClose={() => setShowScanner(false)}
+          isOpen={showScanner}
+        />
+      )}
 
       <Footer />
     </div>

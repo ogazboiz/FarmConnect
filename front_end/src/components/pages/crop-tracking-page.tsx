@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useAgriDAO"
 import { QRCodeGenerator } from "@/components/farmer/QRCodeGenerator"
 import { useGlobalRefresh } from "@/contexts/RefreshContext"
+import { DashboardChatbot } from "../dashboard/DashboardChatbot"
 import Image from "next/image"
 
 
@@ -792,6 +793,9 @@ const selectedCropBatch = {
       </Dialog>
 
       <Footer />
+      
+      {/* Dashboard Chatbot */}
+      <DashboardChatbot />
     </div>
   )
 }

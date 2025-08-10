@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { 
-  Award, Coins, Star, Share, QrCode, TrendingUp, 
-  Gift, Users, Target, Wallet, Loader2
+  Award, Star, Share, QrCode, TrendingUp, 
+  Gift, Wallet, Loader2
 } from "lucide-react"
 import { useGreenPointsBalance, useFarmTokenBalance, useGreenPoints } from "@/hooks/useAgriDAO"
 import { ConnectWalletModal } from "@/components/consumer/ConnectWalletModal"

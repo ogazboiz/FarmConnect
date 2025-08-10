@@ -133,7 +133,7 @@ export function HowItWorksPage() {
               <span className="text-white">How</span>
               <br />
               <span className="text-transparent bg-gradient-to-r from-emerald-300 via-green-300 to-yellow-300 bg-clip-text">
-                AgriChain Works
+                FarmConnect Works
               </span>
             </h1>
 
@@ -204,7 +204,7 @@ export function HowItWorksPage() {
               </span>
             </h2>
             <p className="max-w-4xl px-4 mx-auto text-lg leading-relaxed sm:text-xl text-emerald-200/80">
-              Follow these simple steps to get started with AgriChain and transform your farming operations
+              Follow these simple steps to get started with FarmConnect and transform your farming operations
             </p>
           </motion.div>
 
@@ -269,7 +269,7 @@ export function HowItWorksPage() {
               </span>
             </h2>
             <p className="max-w-3xl px-4 mx-auto text-lg sm:text-xl text-emerald-200/80">
-              A step-by-step breakdown of your journey on AgriChain
+              A step-by-step breakdown of your journey on FarmConnect
             </p>
           </motion.div>
 
