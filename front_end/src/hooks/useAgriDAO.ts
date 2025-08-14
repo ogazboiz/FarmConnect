@@ -75,7 +75,7 @@ export const useFarmTokenBalance = (address?: string) => {
     address: contracts.FARM_TOKEN,
     abi: FarmTokenABI,
     functionName: 'balanceOf',
-    args: address ? [address] : undefined,
+    args: address ? [address as `0x${string}`] : undefined,
     query: {
       enabled: !!address,
       gcTime: 5000,
@@ -165,7 +165,7 @@ export const useGreenPointsBalance = (address?: string) => {
     address: contracts.GREEN_POINTS,
     abi: GreenPointsABI,
     functionName: 'balanceOf',
-    args: address ? [address] : undefined,
+    args: address ? [address as `0x${string}`] : undefined,
     query: {
       enabled: !!address,
       gcTime: 5000,
@@ -290,20 +290,20 @@ export const useCropNFT = () => {
   };
 
   const updateCropImage = async (tokenId: bigint, newImage: string) => {
-  try {
-    console.log('Submitting updateCropImage transaction...');
-    writeContract({
-      address: contracts.CROP_NFT,
-      abi: CropNFTABI,
-      functionName: 'updateCropImage',
-      args: [tokenId, newImage],
-    });
-    toast.success('Transaction submitted! Waiting for confirmation... 📸');
-  } catch (error) {
-    toast.error('Failed to update crop image');
-    console.error('updateCropImage error:', error);
-  }
-};
+    try {
+      console.log('Submitting updateCropImage transaction...');
+      writeContract({
+        address: contracts.CROP_NFT,
+        abi: CropNFTABI,
+        functionName: 'updateCropImage',
+        args: [tokenId, newImage],
+      });
+      toast.success('Transaction submitted! Waiting for confirmation... 📸');
+    } catch (error) {
+      toast.error('Failed to update crop image');
+      console.error('updateCropImage error:', error);
+    }
+  };
 
   return {
     createCropBatch,
@@ -329,9 +329,8 @@ export const useCropBatch = (tokenId?: bigint) => {
     args: tokenId ? [tokenId] : undefined,
     query: {
       enabled: !!tokenId,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -345,9 +344,8 @@ export const useFarmerCrops = (farmerAddress?: string) => {
     args: farmerAddress ? [farmerAddress] : undefined,
     query: {
       enabled: !!farmerAddress,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 
@@ -382,6 +380,31 @@ export const useFarmerStats = (farmerAddress?: string) => {
   };
 };
 
+// NEW: Hook to get farmer reputation from CropNFT contract
+export const useFarmerReputation = (address?: string) => {
+  const { data } = useReadContract({
+    address: contracts.CROP_NFT,
+    abi: [
+      {
+        "inputs": [{"name": "farmer", "type": "address"}],
+        "name": "farmerReputation",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    functionName: 'farmerReputation',
+    args: address ? [address as `0x${string}`] : undefined,
+    query: {
+      enabled: !!address,
+      gcTime: 5000,
+      staleTime: 0,
+    },
+  });
+
+  return data || BigInt(0);
+};
+
 // Hook to get NFT total supply
 export const useCropNFTTotalSupply = () => {
   return useReadContract({
@@ -389,9 +412,8 @@ export const useCropNFTTotalSupply = () => {
     abi: CropNFTABI,
     functionName: 'totalSupply',
     query: {
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -433,7 +455,6 @@ export const useFarmerDAO = () => {
     }
   };
 
-  // NEW: Add unstakeTokens function
   const unstakeTokens = async (amount: bigint) => {
     try {
       console.log('Submitting unstakeTokens transaction...');
@@ -507,7 +528,7 @@ export const useFarmerDAO = () => {
   return {
     joinDAO,
     stakeTokens,
-    unstakeTokens, // NEW: Add unstakeTokens to return object
+    unstakeTokens,
     createProposal,
     vote,
     executeProposal,
@@ -527,9 +548,8 @@ export const useStakedBalance = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -541,9 +561,8 @@ export const useTotalStaked = () => {
     abi: FarmerDAOABI,
     functionName: 'totalStaked',
     query: {
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -555,9 +574,8 @@ export const useTreasuryBalance = () => {
     abi: FarmerDAOABI,
     functionName: 'treasuryBalance',
     query: {
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -571,9 +589,8 @@ export const useDAOMember = (address?: string) => {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -587,9 +604,23 @@ export const useProposal = (proposalId?: bigint) => {
     args: proposalId ? [proposalId] : undefined,
     query: {
       enabled: !!proposalId,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
+    },
+  });
+};
+
+// Hook to get voting power
+export const useVotingPower = (address?: string) => {
+  return useReadContract({
+    address: contracts.FARMER_DAO,
+    abi: FarmerDAOABI,
+    functionName: 'getVotingPower',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -653,10 +684,31 @@ export const useAgriBounties = () => {
     }
   };
 
+  // ADD THIS NEW VOTING FUNCTION:
+  const voteOnSubmission = async (submissionId: bigint, support: boolean) => {
+    try {
+      console.log('Submitting vote transaction...');
+      writeContract({
+        address: contracts.AGRI_BOUNTIES,
+        abi: AgriBountiesABI,
+        functionName: 'voteOnSubmission',
+        args: [submissionId, support],
+      });
+      toast.success(`Transaction submitted! ${support ? '👍' : '👎'} Vote cast...`);
+    } catch (error) {
+      toast.error('Failed to vote on submission');
+      console.error('voteOnSubmission error:', error);
+    }
+  };
+
+
+  
+
   return {
     createBounty,
     submitToBounty,
     completeBounty,
+    voteOnSubmission, // ADD THIS
     isPending,
     isConfirming,
     isSuccess,
@@ -664,6 +716,22 @@ export const useAgriBounties = () => {
   };
 };
 
+
+export const useHasSubmitted = (bountyId?: bigint, userAddress?: string) => {
+  const result = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'hasSubmitted',
+    args: bountyId && userAddress ? [bountyId, userAddress] : undefined,
+    query: {
+      enabled: !!(bountyId && userAddress),
+      gcTime: 5000,
+      staleTime: 0,
+    },
+  });
+
+  return result.data as boolean || false;
+};
 // Hook to read bounty data
 export const useBounty = (bountyId?: bigint) => {
   return useReadContract({
@@ -673,9 +741,8 @@ export const useBounty = (bountyId?: bigint) => {
     args: bountyId ? [bountyId] : undefined,
     query: {
       enabled: !!bountyId,
-      // Reduce cache time to ensure fresh data after transactions
-      gcTime: 5000, // 5 seconds
-      staleTime: 0, // Always consider stale to force refetch
+      gcTime: 5000,
+      staleTime: 0,
     },
   });
 };
@@ -688,6 +755,7 @@ export const useUserDashboard = (address?: string) => {
   const farmerStats = useFarmerStats(address);
   const daoMember = useDAOMember(address);
   const farmTokenInfo = useFarmTokenInfo();
+  const farmerReputation = useFarmerReputation(address); // NEW: Include farmer reputation
 
   return {
     farmBalance: farmBalance.data,
@@ -698,6 +766,7 @@ export const useUserDashboard = (address?: string) => {
     cropCount: farmerCrops.count,
     farmerStats: farmerStats.data,
     reputation: farmerStats.data?.reputationFormatted || '0',
+    cropReputation: Number(farmerReputation), // NEW: Crop reputation from CropNFT
     totalScans: farmerStats.data?.totalScans || BigInt(0),
     totalRatings: farmerStats.data?.totalRatings || BigInt(0),
     daoMember: daoMember.data,

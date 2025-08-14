@@ -4,12 +4,12 @@ import { Leaf, Twitter, Github, DiscIcon as Discord } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="bg-green-900 text-white py-12 px-4">
+    <footer className="px-4 py-12 text-white bg-green-900">
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold">AgriChain</span>
@@ -20,25 +20,25 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Platform</h3>
+            <h3 className="mb-4 font-semibold">Platform</h3>
             <ul className="space-y-2 text-green-200">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="transition-colors hover:text-white">
                   Crop Tracking
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="transition-colors hover:text-white">
                   Farmer DAOs
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="transition-colors hover:text-white">
                   Bounty System
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="transition-colors hover:text-white">
                   Marketplace
                 </a>
               </li>
@@ -49,9 +49,10 @@ export function Footer() {
 
       
 
-        <div className="border-t border-green-800 mt-8 pt-8 text-center text-green-200">
+        <div className="pt-8 mt-8 text-center text-green-200 border-t border-green-800">
           <p>&copy; 2025 AgriChain. Built for Mantle Hackathon.</p>
         </div>
+      </div>
       </div>
     </footer>
   )
