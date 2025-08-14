@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
   Leaf, Wallet, Bell, User, Menu, X, ChevronDown, ExternalLink, LogOut, Settings, Coins,
-  ShoppingCart, QrCode, Target, Users, BarChart3
+  ShoppingCart, QrCode, Target, Users, BarChart3, Brain, DollarSign
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react"
@@ -35,6 +35,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
   const publicNavigation = [
     { name: "Home", href: "/" },
     { name: "Marketplace", href: "/marketplace", icon: ShoppingCart },
+    { name: "Lending", href: "/lending", icon: DollarSign },
     { name: "Track Product", href: "/track", icon: QrCode },
     { name: "Features", href: "/features" },
     { name: "How It Works", href: "/how-it-works" },
@@ -43,8 +44,10 @@ export function Header({ onWalletConnect }: HeaderProps) {
   // Navigation for connected users (dashboard routes)
   const dashboardNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+    // { name: "Intelligence", href: "/intelligence", icon: Brain },
     { name: "Crop Tracking", href: "/dashboard/crops", icon: Leaf },
     { name: "Marketplace", href: "/marketplace", icon: ShoppingCart },
+    { name: "Lending", href: "/lending", icon: DollarSign },
     { name: "Cooperative", href: "/dashboard/cooperative", icon: Users },
     { name: "Bounties", href: "/dashboard/bounties", icon: Target },
   ]
@@ -60,6 +63,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
   const farmerRoutes = [
     { name: "My Crops", href: "/dashboard/crops", icon: Leaf },
     { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+    { name: "Lending", href: "/lending", icon: DollarSign },
     { name: "Generate QR Codes", href: "/qr-generator", icon: QrCode },
   ]
 
@@ -259,7 +263,7 @@ export function Header({ onWalletConnect }: HeaderProps) {
               <Leaf className="w-4 h-4 text-white sm:w-6 sm:h-6" />
             </div>
             <span className="text-lg font-bold text-transparent sm:text-xl lg:text-2xl bg-gradient-to-r from-emerald-600 via-green-600 to-amber-600 bg-clip-text">
-              AgriChain
+              FarmConnect
             </span>
           </Link>
 

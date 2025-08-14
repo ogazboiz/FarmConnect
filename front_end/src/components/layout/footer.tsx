@@ -15,7 +15,7 @@ export function Footer() {
                 <Leaf className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-lime-400 bg-clip-text text-transparent">
-                AgriChain
+                FarmConnect
               </span>
             </div>
             <p className="text-emerald-200 mb-6 leading-relaxed">
@@ -102,7 +102,7 @@ export function Footer() {
         <div className="border-t border-emerald-800/50 mt-12 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-emerald-300 text-sm">
-              &copy; 2024 AgriChain. Built for Mantle Hackathon. All rights reserved.
+              &copy; 2024 FarmConnect. Built for Mantle Hackathon. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm">
               <Link href="/privacy" className="text-emerald-200 hover:text-emerald-100 transition-colors">

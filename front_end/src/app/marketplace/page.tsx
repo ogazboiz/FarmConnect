@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useAccount } from "wagmi"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -9,14 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { 
-  Search, Filter, MapPin, Calendar, Leaf, Star, Eye, QrCode, Share, 
-  Loader2, ShoppingCart, Users, TrendingUp, Award, Hash, Wallet, Lock
+  Search, Star,  QrCode, Share, 
+  Loader2, ShoppingCart,TrendingUp, Wallet
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { 
   useCropNFT, 
   useGreenPointsBalance,
-  formatTokenAmount 
 } from "@/hooks/useAgriDAO"
 import { CropData, useAllCropsForConsumers } from "@/hooks/useConsumerCrops"
 import { ConnectWalletModal } from "@/components/consumer/ConnectWalletModal"

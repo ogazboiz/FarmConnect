@@ -148,22 +148,45 @@ const useAllBounties = () => {
   // Create exactly the number of hooks we need (always the same on each render)
   const NUM_BOUNTY_HOOKS = 50 // Fixed number to satisfy Rules of Hooks
   
-  const bountyChecks = Array.from({ length: NUM_BOUNTY_HOOKS }, (_, index) => {
-    return useReadContract({
-      address: contracts.AGRI_BOUNTIES,
-      abi: AgriBountiesABI,
-      functionName: 'getBounty',
-      args: [BigInt(index + 1)],
-      query: {
-        enabled: index < maxBounties, // Only query what we need
-        retry: false,
-        staleTime: 0,
-        gcTime: 5000,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-      },
-    })
+  // Call hooks directly at the top level - not in a callback
+  const bountyCheck0 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(1)],
+    query: { enabled: 0 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
+  const bountyCheck1 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(2)],
+    query: { enabled: 1 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck2 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(3)],
+    query: { enabled: 2 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck3 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(4)],
+    query: { enabled: 3 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck4 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(5)],
+    query: { enabled: 4 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  
+  // Combine all hook results into an array for processing
+  const bountyChecks = [bountyCheck0, bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4]
 
   useEffect(() => {
     const existingBounties: bigint[] = []
@@ -539,7 +562,7 @@ const SubmissionsList = ({ bountyId, userAddress, bountyCreator, refreshTrigger,
       <div className="space-y-4 overflow-y-auto max-h-96">
         {submissionIds.map((submissionId: bigint, index: number) => (
           <div key={submissionId.toString()} className="relative">
-            <div className="absolute -left-3 top-3 z-10">
+            <div className="absolute z-10 -left-3 top-3">
               <div className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-purple-600 rounded-full">
                 {index + 1}
               </div>
@@ -740,7 +763,7 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
           <Button
             size="sm"
             variant="outline"
-            className="bg-transparent border-blue-600/50 text-blue-200 hover:bg-blue-800/60"
+            className="text-blue-200 bg-transparent border-blue-600/50 hover:bg-blue-800/60"
           >
             <Settings className="w-4 h-4 mr-1" />
             Creator Tools
@@ -770,7 +793,7 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
             <Alert className="mb-3 border-amber-300 bg-amber-50">
               <AlertTriangle className="w-4 h-4 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                <strong>Warning:</strong> You're submitting to your own bounty. This may be seen as unfair by the community.
+                <strong>Warning:</strong> You&apos;re submitting to your own bounty. This may be seen as unfair by the community.
               </AlertDescription>
             </Alert>
           )}

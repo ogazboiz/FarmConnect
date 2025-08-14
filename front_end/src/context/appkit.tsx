@@ -1,51 +1,51 @@
 "use client";
 import { createAppKit } from "@reown/appkit/react";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
-import { sepolia, mantle, mantleSepoliaTestnet } from "@reown/appkit/networks";
+import { sepolia, mantle, mantleSepoliaTestnet, coreTestnet2} from "@reown/appkit/networks";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 import { ReactNode } from "react";
 
-// Custom Mantle Network definitions (if not available in @reown/appkit/networks)
-// const mantleMainnet: AppKitNetwork = {
-//   id: 5000,
-//   name: 'Mantle',
-//   nativeCurrency: {
-//     decimals: 18,
-//     name: 'Mantle',
-//     symbol: 'MNT',
-//   },
-//   rpcUrls: {
-//     default: {
-//       http: ['https://rpc.mantle.xyz'],
-//     },
-//     public: {
-//       http: ['https://rpc.mantle.xyz'],
-//     },
-//   },
-//   blockExplorers: {
-//     default: { name: 'Mantle Explorer', url: 'https://explorer.mantle.xyz' },
-//   },
-//   testnet: false,
-// };
+// Custom Core Network definitions
+const coreMainnet: AppKitNetwork = {
+  id: 1116,
+  name: 'Core',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'CORE',
+    symbol: 'CORE',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.coredao.org'],
+    },
+    public: {
+      http: ['https://rpc.coredao.org'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'CoreScan', url: 'https://scan.coredao.org' },
+  },
+  testnet: false,
+};
 
-// const mantleSepoliaTestnet: AppKitNetwork = {
-//   id: 5003,
-//   name: 'Mantle Sepolia',
+// const coreTestnet2: AppKitNetwork = {
+//   id: 1114,
+//   name: 'Core Testnet2',
 //   nativeCurrency: {
 //     decimals: 18,
-//     name: 'Mantle',
-//     symbol: 'MNT',
+//     name: 'tCORE2',
+//     symbol: 'tCORE2',
 //   },
 //   rpcUrls: {
 //     default: {
-//       http: ['https://rpc.sepolia.mantle.xyz'],
+//       http: ['https://rpc.test2.btcs.network'],
 //     },
 //     public: {
-//       http: ['https://rpc.sepolia.mantle.xyz'],
+//       http: ['https://rpc.test2.btcs.network'],
 //     },
 //   },
 //   blockExplorers: {
-//     default: { name: 'Mantle Sepolia Explorer', url: 'https://explorer.sepolia.mantle.xyz' },
+//     default: { name: 'CoreScan Testnet', url: 'https://scan.test2.btcs.network' },
 //   },
 //   testnet: true,
 // };
@@ -53,15 +53,16 @@ import { ReactNode } from "react";
 // Environment detection
 const isMainnet = process.env.NEXT_PUBLIC_ENVIRONMENT === 'mainnet';
 
-// Network configurations for AgriDAO
+// Network configurations for AgriDAO - Multi-chain support
 const mainnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  mantle,
-  // Add other mainnet networks if needed
+  coreMainnet,  // Primary: Core Mainnet
+  mantle,       // Secondary: Mantle Mainnet
 ];
 
 const testnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  mantleSepoliaTestnet,
-  sepolia, // Keep Sepolia for testing fallback
+  coreTestnet2,         // Primary: Core Testnet2 (LIVE DEPLOYMENT)
+  mantleSepoliaTestnet, // Secondary: Mantle Sepolia Testnet  
+  sepolia,              // Fallback: Ethereum Sepolia
 ];
 
 // Use appropriate networks based on environment
@@ -78,10 +79,20 @@ const metadata = {
   icons: ["https://agridao.com/logo.png"], // Your AgriDAO logo
 };
 
+// Get primary network info for logging
+const primaryNetwork = supportedNetworks[0];
+const networkType = isMainnet ? 'Mainnet' : 'Testnet';
+
 // Log environment info for debugging
-console.log(`🌍 AgriDAO Environment: ${isMainnet ? 'Mantle Mainnet' : 'Mantle Testnet'}`);
-console.log(`📡 Supported Networks:`, supportedNetworks.map(n => n.name));
-console.log(`🌾 AgriDAO on Mantle Network ready!`);
+console.log(`🌾 AgriDAO Environment: ${primaryNetwork.name} ${networkType}`);
+console.log(`📡 Supported Networks:`, supportedNetworks.map(n => `${n.name} (${n.id})`));
+console.log(`🚀 Primary Network: ${primaryNetwork.name} - Chain ID ${primaryNetwork.id}`);
+
+if (!isMainnet && primaryNetwork.id === 1114) {
+  console.log(`✅ Core Testnet2 LIVE contracts ready!`);
+  console.log(`🔗 Explorer: https://scan.test2.btcs.network`);
+  console.log(`💧 Faucet: https://scan.test2.btcs.network/faucet`);
+}
 
 // 3. Create the AppKit instance
 createAppKit({
@@ -91,16 +102,20 @@ createAppKit({
   projectId,
   features: {
     analytics: true,
+    email: true,      // Enable email login
+    socials: ['google', 'x', 'github'], // Social logins
   },
-  // Mantle-specific configurations
+  // Environment-specific configurations
   ...(isMainnet ? {
     // Mainnet specific configurations
     enableExplorer: true,
-    enableOnramp: true, // Enable for real MNT purchases
+    enableOnramp: true, // Enable for real token purchases
+    defaultNetwork: coreMainnet,
   } : {
     // Testnet specific configurations  
     enableExplorer: true,
     enableOnramp: false, // Disable on-ramp for testnets
+    defaultNetwork: coreTestnet2, // Default to Core Testnet2 (where contracts are live)
   })
 });
 
@@ -111,3 +126,12 @@ interface AppKitProps {
 export function AppKit({ children }: AppKitProps) {
   return <>{children}</>;
 }
+
+// Export network info for use in other components
+export const NETWORK_INFO = {
+  isMainnet,
+  primaryNetwork,
+  supportedNetworks,
+  coreTestnet2,
+  coreMainnet,
+};

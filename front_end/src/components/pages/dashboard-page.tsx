@@ -35,12 +35,12 @@ export function DashboardPage() {
   // Show loading state
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+      <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
         <Header />
-        <div className="pt-24 pb-16 px-4">
+        <div className="px-4 pt-24 pb-16">
           <div className="container mx-auto">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-emerald-100 mb-4">
+              <h1 className="mb-4 text-4xl font-bold text-emerald-100">
                 Please connect your wallet to view your dashboard
               </h1>
               <p className="text-emerald-200/80">Connect your wallet to start tracking your crops and earning rewards</p>
@@ -56,13 +56,13 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+      <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
         <Header />
-        <div className="pt-24 pb-16 px-4">
+        <div className="px-4 pt-24 pb-16">
           <div className="container mx-auto">
             <div className="text-center">
-              <Loader2 className="w-12 h-12 text-emerald-300 animate-spin mx-auto mb-4" />
-              <h1 className="text-4xl font-bold text-emerald-100 mb-4">
+              <Loader2 className="w-12 h-12 mx-auto mb-4 text-emerald-300 animate-spin" />
+              <h1 className="mb-4 text-4xl font-bold text-emerald-100">
                 Loading your dashboard...
               </h1>
               <p className="text-emerald-200/80">Fetching your data from the blockchain</p>
@@ -122,16 +122,16 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800 relative">
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
       <Header />
 
-      <div className="pt-24 pb-16 px-4">
+      <div className="px-4 pt-24 pb-16">
         <div className="container mx-auto">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-emerald-100 mb-2">
-              Welcome to AgriChain,{" "}
-              <span className="bg-gradient-to-r from-emerald-300 to-yellow-300 bg-clip-text text-transparent">
+            <h1 className="mb-2 text-4xl font-bold text-emerald-100">
+              Welcome to FarmConnect,{" "}
+              <span className="text-transparent bg-gradient-to-r from-emerald-300 to-yellow-300 bg-clip-text">
                 Farmer!
               </span>
             </h1>
@@ -139,9 +139,9 @@ export function DashboardPage() {
               Your decentralized agriculture platform is ready.
             </p>
             {address && (
-              <div className="mt-2 p-3 bg-emerald-800/40 rounded-lg border border-emerald-700/40 inline-block">
+              <div className="inline-block p-3 mt-2 border rounded-lg bg-emerald-800/40 border-emerald-700/40">
                 <p className="text-sm text-emerald-200/80">Connected Wallet:</p>
-                <p className="font-mono text-emerald-300 text-sm">
+                <p className="font-mono text-sm text-emerald-300">
                   {address.slice(0, 6)}...{address.slice(-4)}
                 </p>
               </div>
@@ -149,14 +149,14 @@ export function DashboardPage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
               <Link key={stat.title} href={stat.href}>
-                <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer group">
+                <Card className="transition-all duration-300 transform border cursor-pointer bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40 hover:border-emerald-600/60 hover:shadow-2xl hover:scale-105 group">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-emerald-200/80 mb-1">{stat.title}</p>
+                        <p className="mb-1 text-sm text-emerald-200/80">{stat.title}</p>
                         <p className="text-2xl font-bold text-emerald-100">{stat.value}</p>
                       </div>
                       <div className={`p-4 rounded-2xl ${stat.bg} border border-emerald-600/30 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -169,11 +169,11 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 gap-8 mb-8 lg:grid-cols-2">
             {/* Recent Activity */}
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
                   <TrendingUp className="w-5 h-5 text-emerald-400" />
                   Recent Activity
                 </CardTitle>
@@ -181,7 +181,7 @@ export function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                       <div>
                         <p className="font-medium text-emerald-100">{activity.action}</p>
                         <p className="text-sm text-emerald-200/80">{activity.time}</p>
@@ -199,15 +199,15 @@ export function DashboardPage() {
             </Card>
 
             {/* Your Crops */}
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-emerald-100 flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-emerald-100">
                     <Sprout className="w-5 h-5 text-green-400" />
                     Your Crops ({farmerCrops.count})
                   </CardTitle>
                   <Link href="/dashboard/crops">
-                    <Button size="sm" className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white border-0">
+                    <Button size="sm" className="text-white border-0 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
                       <Plus className="w-4 h-4 mr-1" />
                       Create Crop
                     </Button>
@@ -218,7 +218,7 @@ export function DashboardPage() {
                 {farmerCrops.count > 0 ? (
                   <div className="space-y-3">
                     {farmerCrops.data.slice(0, 3).map((tokenId: bigint, index: number) => (
-                      <div key={index} className="p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                      <div key={index} className="p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="font-medium text-emerald-100">Crop NFT #{tokenId.toString()}</h3>
@@ -233,7 +233,7 @@ export function DashboardPage() {
                     <Link href="/dashboard/crops">
                       <Button
                         variant="outline"
-                        className="w-full mt-4 border-green-600/50 text-green-200 hover:bg-green-800/60 bg-transparent hover:border-green-500"
+                        className="w-full mt-4 text-green-200 bg-transparent border-green-600/50 hover:bg-green-800/60 hover:border-green-500"
                       >
                         View All Crops
                         <ArrowRight className="w-4 h-4 ml-2" />
@@ -241,11 +241,11 @@ export function DashboardPage() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Sprout className="w-12 h-12 text-emerald-400 mx-auto mb-4 opacity-50" />
-                    <p className="text-emerald-200/80 mb-4">No crops yet. Create your first crop batch!</p>
+                  <div className="py-8 text-center">
+                    <Sprout className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
+                    <p className="mb-4 text-emerald-200/80">No crops yet. Create your first crop batch!</p>
                     <Link href="/dashboard/crops">
-                      <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
+                      <Button className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
                         <Plus className="w-4 h-4 mr-2" />
                         Create First Crop
                       </Button>
@@ -256,18 +256,18 @@ export function DashboardPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Token Information */}
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
                   <BarChart3 className="w-5 h-5 text-emerald-400" />
                   Token Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <div>
                       <p className="font-medium text-emerald-100">FARM Token</p>
                       <p className="text-sm text-emerald-200/80">Your balance</p>
@@ -279,7 +279,7 @@ export function DashboardPage() {
                       <p className="text-sm text-emerald-200/80">FARM</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <div>
                       <p className="font-medium text-emerald-100">GREEN Points</p>
                       <p className="text-sm text-emerald-200/80">Sustainability rewards</p>
@@ -291,7 +291,7 @@ export function DashboardPage() {
                       <p className="text-sm text-emerald-200/80">GREEN</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <div>
                       <p className="font-medium text-emerald-100">Token Name</p>
                       <p className="text-sm text-emerald-200/80">Farm token info</p>
@@ -310,9 +310,9 @@ export function DashboardPage() {
             </Card>
 
             {/* Getting Started */}
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
                   <Calendar className="w-5 h-5 text-amber-400" />
                   Getting Started
                 </CardTitle>
@@ -320,7 +320,7 @@ export function DashboardPage() {
               <CardContent>
                 <div className="space-y-3">
                   {upcomingTasks.map((task, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                       <div>
                         <p className="font-medium text-emerald-100">{task.task}</p>
                         <p className="text-sm text-emerald-200/80">{task.due}</p>
@@ -346,36 +346,36 @@ export function DashboardPage() {
 
           {/* Quick Actions */}
           <div className="mt-8">
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
                   <Target className="w-5 h-5 text-emerald-400" />
                   Quick Actions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Link href="/dashboard/crops">
-                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
+                    <Button className="w-full text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
                       <Plus className="w-4 h-4 mr-2" />
                       Create Crop Batch
                     </Button>
                   </Link>
                   <Link href="/dashboard/cooperative">
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                    <Button className="w-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                       <Users className="w-4 h-4 mr-2" />
                       Join DAO
                     </Button>
                   </Link>
                   <Link href="/dashboard/bounties">
-                    <Button className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white">
+                    <Button className="w-full text-white bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700">
                       <Target className="w-4 h-4 mr-2" />
                       View Bounties
                     </Button>
                   </Link>
                   <Button 
                     variant="outline" 
-                    className="w-full border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 bg-transparent hover:border-emerald-500"
+                    className="w-full bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
                     onClick={() => {
                       window.open(`https://mantlescan.xyz/address/${address}`, '_blank')
                       toast.success('Opening Mantle explorer in new tab 🔍')
@@ -391,33 +391,33 @@ export function DashboardPage() {
 
           {/* Contract Information */}
           <div className="mt-8">
-            <Card className="bg-emerald-800/40 backdrop-blur-sm border border-emerald-700/40">
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
-                <CardTitle className="text-emerald-100 flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
                   <Award className="w-5 h-5 text-emerald-400" />
                   Contract Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
-                    <h3 className="font-medium text-emerald-100 mb-2">Network</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <h3 className="mb-2 font-medium text-emerald-100">Network</h3>
                     <p className="text-sm text-emerald-200/80">Mantle Sepolia Testnet</p>
                   </div>
-                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
-                    <h3 className="font-medium text-emerald-100 mb-2">Environment</h3>
+                  <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <h3 className="mb-2 font-medium text-emerald-100">Environment</h3>
                     <p className="text-sm text-emerald-200/80">
                       {process.env.NEXT_PUBLIC_ENVIRONMENT || 'testnet'}
                     </p>
                   </div>
-                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
-                    <h3 className="font-medium text-emerald-100 mb-2">Total Supply</h3>
+                  <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <h3 className="mb-2 font-medium text-emerald-100">Total Supply</h3>
                     <p className="text-sm text-emerald-200/80">
                       {farmTokenInfo.totalSupplyFormatted || 'Loading...'} FARM
                     </p>
                   </div>
-                  <div className="p-4 bg-emerald-900/30 border border-emerald-700/30 rounded-lg">
-                    <h3 className="font-medium text-emerald-100 mb-2">Decimals</h3>
+                  <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <h3 className="mb-2 font-medium text-emerald-100">Decimals</h3>
                     <p className="text-sm text-emerald-200/80">
                       {farmTokenInfo.decimals?.toString() || 'Loading...'}
                     </p>

@@ -15,11 +15,11 @@ export const getContractAddresses = () => {
   } else {
     // Testnet addresses
     return {
-      FARM_TOKEN: process.env.NEXT_PUBLIC_MANTLE_TESTNET_FARM_TOKEN_ADDRESS as `0x${string}`,
-      GREEN_POINTS: process.env.NEXT_PUBLIC_MANTLE_TESTNET_GREEN_POINTS_ADDRESS as `0x${string}`,
-      CROP_NFT: process.env.NEXT_PUBLIC_MANTLE_TESTNET_CROP_NFT_ADDRESS as `0x${string}`,
-      FARMER_DAO: process.env.NEXT_PUBLIC_MANTLE_TESTNET_FARMER_DAO_ADDRESS as `0x${string}`,
-      AGRI_BOUNTIES: process.env.NEXT_PUBLIC_MANTLE_TESTNET_AGRI_BOUNTIES_ADDRESS as `0x${string}`,
+      FARM_TOKEN: process.env.NEXT_PUBLIC_CORE_TESTNET_FARM_TOKEN_ADDRESS as `0x${string}`,
+      GREEN_POINTS: process.env.NEXT_PUBLIC_CORE_TESTNET_GREEN_POINTS_ADDRESS as `0x${string}`,
+      CROP_NFT: process.env.NEXT_PUBLIC_CORE_TESTNET_CROP_NFT_ADDRESS as `0x${string}`,
+      FARMER_DAO: process.env.NEXT_PUBLIC_CORE_TESTNET_FARMER_DAO_ADDRESS as `0x${string}`,
+      AGRI_BOUNTIES: process.env.NEXT_PUBLIC_CORE_TESTNET_AGRI_BOUNTIES_ADDRESS as `0x${string}`,
     };
   }
 };

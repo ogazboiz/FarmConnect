@@ -58,16 +58,16 @@ contract DeployAgriDAO is Script {
         console.log("FarmerDAO:", address(farmerDAO));
         console.log("AgriBounties:", address(agriBounties));
         
-        // Save addresses to file for frontend integration
-        string memory addresses = string(abi.encodePacked(
-            "export const FARM_TOKEN = '", vm.toString(address(farmToken)), "';\n",
-            "export const GREEN_POINTS = '", vm.toString(address(greenPoints)), "';\n",
-            "export const CROP_NFT = '", vm.toString(address(cropNFT)), "';\n",
-            "export const FARMER_DAO = '", vm.toString(address(farmerDAO)), "';\n",
-            "export const AGRI_BOUNTIES = '", vm.toString(address(agriBounties)), "';\n"
-        ));
+        // // Save addresses to file for frontend integration
+        // string memory addresses = string(abi.encodePacked(
+        //     "export const FARM_TOKEN = '", vm.toString(address(farmToken)), "';\n",
+        //     "export const GREEN_POINTS = '", vm.toString(address(greenPoints)), "';\n",
+        //     "export const CROP_NFT = '", vm.toString(address(cropNFT)), "';\n",
+        //     "export const FARMER_DAO = '", vm.toString(address(farmerDAO)), "';\n",
+        //     "export const AGRI_BOUNTIES = '", vm.toString(address(agriBounties)), "';\n"
+        // ));
         
-        vm.writeFile("./deployed-addresses.js", addresses);
+        // vm.writeFile("./deployed-addresses.js", addresses);
         console.log("Contract addresses saved to deployed-addresses.js");
     }
 }

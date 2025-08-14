@@ -12,7 +12,7 @@ export function Footer() {
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">AgriChain</span>
+              <span className="text-xl font-bold">FarmConnect</span>
             </div>
             <p className="text-green-200">
               Revolutionizing agriculture through blockchain technology and decentralized governance.
@@ -50,7 +50,7 @@ export function Footer() {
       
 
         <div className="pt-8 mt-8 text-center text-green-200 border-t border-green-800">
-          <p>&copy; 2025 AgriChain. Built for Mantle Hackathon.</p>
+          <p>&copy; 2025 FarmConnect. Built for Mantle Hackathon.</p>
         </div>
       </div>
       </div>
