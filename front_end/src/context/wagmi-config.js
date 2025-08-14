@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi';
-import { mantle, mantleSepoliaTestnet, sepolia, coreTestnet2 } from 'wagmi/chains';
+import { coreTestnet2 } from 'wagmi/chains';
 
 // AgriDAO Contract Addresses - Multi-chain Support
 export const AGRIDAO_CONTRACT_ADDRESSES = {

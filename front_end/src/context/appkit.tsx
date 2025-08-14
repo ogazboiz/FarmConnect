@@ -1,7 +1,7 @@
 "use client";
 import { createAppKit } from "@reown/appkit/react";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
-import { sepolia, mantle, mantleSepoliaTestnet, coreTestnet2} from "@reown/appkit/networks";
+import { coreTestnet2} from "@reown/appkit/networks";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 import { ReactNode } from "react";
 
@@ -56,13 +56,12 @@ const isMainnet = process.env.NEXT_PUBLIC_ENVIRONMENT === 'mainnet';
 // Network configurations for AgriDAO - Multi-chain support
 const mainnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
   coreMainnet,  // Primary: Core Mainnet
-  mantle,       // Secondary: Mantle Mainnet
+     // Secondary: Mantle Mainnet
 ];
 
 const testnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
   coreTestnet2,         // Primary: Core Testnet2 (LIVE DEPLOYMENT)
-  mantleSepoliaTestnet, // Secondary: Mantle Sepolia Testnet  
-  sepolia,              // Fallback: Ethereum Sepolia
+
 ];
 
 // Use appropriate networks based on environment
