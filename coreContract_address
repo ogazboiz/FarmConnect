@@ -1,0 +1,252 @@
+No files changed, compilation skipped
+Traces:
+  [10534043] DeployAgriDAO::run()
+    ├─ [0] VM::envUint("PRIVATE_KEY") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::addr(<pk>) [staticcall]
+    │   └─ ← [Return] 0xd2df53D9791e98Db221842Dd085F4144014BBE2a
+    ├─ [0] console::log("Deploying AgriDAO contracts...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deployer address:", 0xd2df53D9791e98Db221842Dd085F4144014BBE2a) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deployer balance:", 1935067300000000000 [1.935e18]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] VM::startBroadcast(<pk>)
+    │   └─ ← [Return]
+    ├─ [0] console::log("Deploying FarmToken...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [687982] → new FarmToken@0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a, value: 1000000000000000000000000 [1e24])
+    │   └─ ← [Return] 2858 bytes of code
+    ├─ [0] console::log("FarmToken deployed at:", FarmToken: [0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deploying GreenPoints...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [1375464] → new GreenPoints@0x59315b3ffB558850259bB1C269966BF4dd1eb28E
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    │   └─ ← [Return] 6526 bytes of code
+    ├─ [0] console::log("GreenPoints deployed at:", GreenPoints: [0x59315b3ffB558850259bB1C269966BF4dd1eb28E]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deploying CropNFT...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2960091] → new CropNFT@0x3e91E05302a457F367374780f373e418220377DA
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    │   └─ ← [Return] 14218 bytes of code
+    ├─ [0] console::log("CropNFT deployed at:", CropNFT: [0x3e91E05302a457F367374780f373e418220377DA]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deploying FarmerDAO...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2506941] → new FarmerDAO@0xC23dcB8a45183F74A669b8fCB05Fce15291CF789
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    │   └─ ← [Return] 12070 bytes of code
+    ├─ [0] console::log("FarmerDAO deployed at:", FarmerDAO: [0xC23dcB8a45183F74A669b8fCB05Fce15291CF789]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Deploying AgriBounties...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2760312] → new AgriBounties@0xD490818200d1B0Fa2091B514EE8AE202E86E38ED
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    │   └─ ← [Return] 13002 bytes of code
+    ├─ [0] console::log("AgriBounties deployed at:", AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Setting up permissions...") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [23963] GreenPoints::addMinter(CropNFT: [0x3e91E05302a457F367374780f373e418220377DA])
+    │   ├─ emit MinterAdded(minter: CropNFT: [0x3e91E05302a457F367374780f373e418220377DA])
+    │   └─ ← [Stop]
+    ├─ [23838] FarmToken::addMinter(AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED])
+    │   ├─ emit MinterAdded(minter: AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED])
+    │   └─ ← [Stop]
+    ├─ [0] VM::stopBroadcast()
+    │   └─ ← [Return]
+    ├─ [0] console::log("=== AgriDAO Deployment Complete ===") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("FarmToken:", FarmToken: [0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("GreenPoints:", GreenPoints: [0x59315b3ffB558850259bB1C269966BF4dd1eb28E]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("CropNFT:", CropNFT: [0x3e91E05302a457F367374780f373e418220377DA]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("FarmerDAO:", FarmerDAO: [0xC23dcB8a45183F74A669b8fCB05Fce15291CF789]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("AgriBounties:", AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("Contract addresses saved to deployed-addresses.js") [staticcall]
+    │   └─ ← [Stop]
+    └─ ← [Stop]
+
+
+Script ran successfully.
+
+== Logs ==
+  Deploying AgriDAO contracts...
+  Deployer address: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a
+  Deployer balance: 1935067300000000000
+  Deploying FarmToken...
+  FarmToken deployed at: 0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473
+  Deploying GreenPoints...
+  GreenPoints deployed at: 0x59315b3ffB558850259bB1C269966BF4dd1eb28E
+  Deploying CropNFT...
+  CropNFT deployed at: 0x3e91E05302a457F367374780f373e418220377DA
+  Deploying FarmerDAO...
+  FarmerDAO deployed at: 0xC23dcB8a45183F74A669b8fCB05Fce15291CF789
+  Deploying AgriBounties...
+  AgriBounties deployed at: 0xD490818200d1B0Fa2091B514EE8AE202E86E38ED
+  Setting up permissions...
+  === AgriDAO Deployment Complete ===
+  FarmToken: 0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473
+  GreenPoints: 0x59315b3ffB558850259bB1C269966BF4dd1eb28E
+  CropNFT: 0x3e91E05302a457F367374780f373e418220377DA
+  FarmerDAO: 0xC23dcB8a45183F74A669b8fCB05Fce15291CF789
+  AgriBounties: 0xD490818200d1B0Fa2091B514EE8AE202E86E38ED
+  Contract addresses saved to deployed-addresses.js
+
+## Setting up 1 EVM.
+==========================
+Simulated On-chain Traces:
+
+  [687982] → new FarmToken@0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a, value: 1000000000000000000000000 [1e24])
+    └─ ← [Return] 2858 bytes of code
+
+  [1375464] → new GreenPoints@0x59315b3ffB558850259bB1C269966BF4dd1eb28E
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    └─ ← [Return] 6526 bytes of code
+
+  [2960091] → new CropNFT@0x3e91E05302a457F367374780f373e418220377DA
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    └─ ← [Return] 14218 bytes of code
+
+  [2506941] → new FarmerDAO@0xC23dcB8a45183F74A669b8fCB05Fce15291CF789
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    └─ ← [Return] 12070 bytes of code
+
+  [2760312] → new AgriBounties@0xD490818200d1B0Fa2091B514EE8AE202E86E38ED
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0xd2df53D9791e98Db221842Dd085F4144014BBE2a)
+    └─ ← [Return] 13002 bytes of code
+
+  [25963] GreenPoints::addMinter(CropNFT: [0x3e91E05302a457F367374780f373e418220377DA])
+    ├─ emit MinterAdded(minter: CropNFT: [0x3e91E05302a457F367374780f373e418220377DA])
+    └─ ← [Stop]
+
+  [25838] FarmToken::addMinter(AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED])
+    ├─ emit MinterAdded(minter: AgriBounties: [0xD490818200d1B0Fa2091B514EE8AE202E86E38ED])
+    └─ ← [Stop]
+
+
+==========================
+
+Chain 1114
+
+Estimated gas price: 0.000000001 gwei
+
+Estimated total gas used for script: 14952163
+
+Estimated amount required: 0.000000000014952163 ETH
+
+==========================
+
+##### 1114
+✅  [Success] Hash: 0x4c8e9bff6066a20e6df965701570c984b9d9d5e4d6abd6bc33cca4baa0793eb1
+Contract Address: 0x59315b3ffB558850259bB1C269966BF4dd1eb28E
+Block: 7321636
+Paid: 0.00308948 ETH (1544740 gas * 2 gwei)
+
+
+##### 1114
+✅  [Success] Hash: 0x956f8a2b93d51fb4fc6221d36e6a3a43d9ad4e99f5d53f08f9802939043dda13
+Contract Address: 0x3e91E05302a457F367374780f373e418220377DA
+Block: 7321636
+Paid: 0.00651309 ETH (3256545 gas * 2 gwei)
+
+                                                                                                                                                                                   
+##### 1114                                                                                                                                                                         
+✅  [Success] Hash: 0x3a7c75572ad090456075e3a6cfab95a91cf6a10ceffc7100ee7a72e5f42d1d7f                                                                                             
+Contract Address: 0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473                                                                                                                       
+Block: 7321636                                                                                                                                                                     
+Paid: 0.001619904 ETH (809952 gas * 2 gwei)                                                                                                                                        
+                                                                                                                                                                                   
+
+##### 1114
+✅  [Success] Hash: 0x3fb7c22aeb66bf02777c33dc7d2849c0bfd9e51ba544b27272e178c9cd9843da
+Contract Address: 0xC23dcB8a45183F74A669b8fCB05Fce15291CF789
+Block: 7321637
+Paid: 0.00552223 ETH (2761115 gas * 2 gwei)
+
+                                                                                                                                                                                   
+##### 1114                                                                                                                                                                         
+✅  [Success] Hash: 0x2cd9121ca3d2b380692053e604cf2b3d4cad08243871e120609b5e7c3d36fdc1                                                                                             
+Contract Address: 0xD490818200d1B0Fa2091B514EE8AE202E86E38ED                                                                                                                       
+Block: 7321637                                                                                                                                                                     
+Paid: 0.00606666 ETH (3033330 gas * 2 gwei)
+
+                                                                                                                                                                                   
+##### 1114                                                                                                                                                                         
+✅  [Success] Hash: 0x4546dec72593cb28b4aa96edd98ddde584783b4e3269ef1f82a76f9d1be5df93                                                                                             
+Block: 7321637                                                                                                                                                                     
+Paid: 0.00009899 ETH (49495 gas * 2 gwei)
+
+                                                                                                                                                                                   
+##### 1114                                                                                                                                                                         
+✅  [Success] Hash: 0x6bee8ee630582c775682be3aabc1b5c503ee90629b73833828219c663f2e5ee1                                                                                             
+Block: 7321637
+Paid: 0.000098716 ETH (49358 gas * 2 gwei)
+
+✅ Sequence #1 on 1114 | Total Paid: 0.02300907 ETH (11504535 gas * avg 2 gwei)                                                                                                    
+                                                                                                                                                                                   
+                                                                                                                                                                                   
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+##
+Start verification for (5) contracts
+Start verifying contract `0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473` deployed on 1114
+EVM version: shanghai
+Compiler version: 0.8.20
+Optimizations:    200
+Attempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.
+
+Submitting verification for [FarmToken] "0x4ccdc62B9c2e0ef3FcC8329dBfe96823EEd7F473".
+Contract successfully verified
+Start verifying contract `0x59315b3ffB558850259bB1C269966BF4dd1eb28E` deployed on 1114
+EVM version: shanghai
+Compiler version: 0.8.20
+Optimizations:    200
+Attempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.
+
+Submitting verification for [GreenPoints] "0x59315b3ffB558850259bB1C269966BF4dd1eb28E".
+Contract successfully verified
+Start verifying contract `0x3e91E05302a457F367374780f373e418220377DA` deployed on 1114
+EVM version: shanghai
+Compiler version: 0.8.20
+Optimizations:    200
+Constructor args: 00000000000000000000000059315b3ffb558850259bb1c269966bf4dd1eb28e
+Attempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.
+
+Submitting verification for [CropNFT] "0x3e91E05302a457F367374780f373e418220377DA".
+Contract successfully verified
+Start verifying contract `0xC23dcB8a45183F74A669b8fCB05Fce15291CF789` deployed on 1114
+EVM version: shanghai
+Compiler version: 0.8.20
+Optimizations:    200
+Constructor args: 0000000000000000000000004ccdc62b9c2e0ef3fcc8329dbfe96823eed7f473
+Attempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.
+
+Submitting verification for [FarmerDAO] "0xC23dcB8a45183F74A669b8fCB05Fce15291CF789".
+Contract successfully verified
+Start verifying contract `0xD490818200d1B0Fa2091B514EE8AE202E86E38ED` deployed on 1114
+EVM version: shanghai
+Compiler version: 0.8.20
+Optimizations:    200
+Constructor args: 0000000000000000000000004ccdc62b9c2e0ef3fcc8329dbfe96823eed7f473000000000000000000000000d2df53d9791e98db221842dd085f4144014bbe2a
+Attempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.
+
+Submitting verification for [AgriBounties] "0xD490818200d1B0Fa2091B514EE8AE202E86E38ED".
+Contract successfully verified
+All (5) contracts were verified!
+
+Transactions saved to: C:/Users/Developer/Desktop/my work/hackathon/Agro/smart-contract/broadcast\Deploy.s.sol\1114\run-latest.json
+
+Sensitive values saved to: C:/Users/Developer/Desktop/my work/hackathon/Agro/smart-contract/cache\Deploy.s.sol\1114\run-latest.json
+
