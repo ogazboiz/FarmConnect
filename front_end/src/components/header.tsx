@@ -274,13 +274,13 @@ export function Header({ onWalletConnect }: HeaderProps) {
                   </div>
                   <div className="p-2">
                     <a
-                      href={`https://mantlescan.xyz/address/${address}`}
+                      href={`https://scan.test2.btcs.network/address/${address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      View on Mantle Explorer
+                      View on Core Explorer
                     </a>
                     <button className="w-full flex items-center gap-3 px-3 py-2 text-green-700 hover:bg-green-50 rounded-md transition-colors">
                       <Settings className="w-4 h-4" />

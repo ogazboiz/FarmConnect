@@ -1,11 +1,3 @@
-// ============================================
-// MAIN ISSUES FIXED:
-// 1. Removed duplicate showManagement variable references
-// 2. Fixed the submissions viewing logic
-// 3. Added proper imports
-// 4. Fixed component integration
-// ============================================
-
 "use client"
 
 import { Footer } from "@/components/layout/footer"
@@ -43,8 +35,8 @@ import {
   User,
   Users,
   Vote,
-  Settings,  // ADDED
-  Crown      // ADDED
+  Settings,
+  Crown
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from 'react-hot-toast'
@@ -152,7 +144,7 @@ const useAllBounties = () => {
   const maxBounties = bountyCountResult.data ? Number(bountyCountResult.data) - 1 : 50
 
   // Create exactly the number of hooks we need (always the same on each render)
-  const NUM_BOUNTY_HOOKS = 50 // Fixed number to satisfy Rules of Hooks
+  const NUM_BOUNTY_HOOKS = 20 // Reduced to 20 for better performance
   
   // Call hooks directly at the top level - not in a callback
   const bountyCheck0 = useReadContract({
@@ -160,42 +152,154 @@ const useAllBounties = () => {
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(1)],
-    query: { enabled: !!contracts.AGRI_BOUNTIES && 0 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck1 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(2)],
-    query: { enabled: !!contracts.AGRI_BOUNTIES && 1 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck2 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(3)],
-    query: { enabled: !!contracts.AGRI_BOUNTIES && 2 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck3 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(4)],
-    query: { enabled: !!contracts.AGRI_BOUNTIES && 3 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck4 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(5)],
-    query: { enabled: !!contracts.AGRI_BOUNTIES && 4 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck5 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(6)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck6 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(7)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck7 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(8)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck8 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(9)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck9 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(10)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck10 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(11)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck11 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(12)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck12 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(13)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck13 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(14)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck14 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(15)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck15 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(16)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck16 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(17)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck17 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(18)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck18 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(19)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck19 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(20)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   
   // Combine all hook results into an array for processing
-  const bountyChecks = [bountyCheck0, bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4]
+  const bountyChecks = [
+    bountyCheck0, bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4,
+    bountyCheck5, bountyCheck6, bountyCheck7, bountyCheck8, bountyCheck9,
+    bountyCheck10, bountyCheck11, bountyCheck12, bountyCheck13, bountyCheck14,
+    bountyCheck15, bountyCheck16, bountyCheck17, bountyCheck18, bountyCheck19
+  ]
 
+
+
+  // Effect to handle data updates when bounty checks change
   useEffect(() => {
-    // Early return if contract address is not available
     if (!contracts.AGRI_BOUNTIES) {
       setBounties([])
       setTotalCount(0)
@@ -206,10 +310,9 @@ const useAllBounties = () => {
     try {
       const existingBounties: bigint[] = []
       
-      // Process all bounty checks up to maxBounties
-      for (let i = 0; i < Math.min(maxBounties, NUM_BOUNTY_HOOKS); i++) {
+      // Process all bounty checks
+      for (let i = 0; i < NUM_BOUNTY_HOOKS; i++) {
         const check = bountyChecks[i]
-        // Add null check to prevent accessing data on undefined hooks
         if (check && check.data) {
           const bountyData = check.data as BountyData | null
           if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
@@ -218,33 +321,54 @@ const useAllBounties = () => {
         }
       }
       
-      setBounties(existingBounties.reverse()) // Newest first
+      setBounties(existingBounties.reverse())
       setTotalCount(existingBounties.length)
-      setIsLoading(bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).some(check => check && check.isLoading))
       
-      console.log(`Found ${existingBounties.length} bounties out of ${maxBounties} checked`)
+      // Check if any of the bounty checks are still loading
+      const anyLoading = bountyChecks.some(check => check && check.isLoading)
+      setIsLoading(anyLoading)
+      
+      // Debug logging
+      console.log(`Found ${existingBounties.length} bounties out of ${NUM_BOUNTY_HOOKS} checked. Loading: ${anyLoading}`)
+      
     } catch (error) {
-      console.error('Error in useAllBounties useEffect:', error)
+      console.error('Error updating bounty data:', error)
       setBounties([])
       setTotalCount(0)
       setIsLoading(false)
     }
-    
   }, [
-    maxBounties,
-    bountyChecks,
-    ...bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).map(check => check?.data)
+    bountyChecks[0]?.data, bountyChecks[1]?.data, bountyChecks[2]?.data, bountyChecks[3]?.data, bountyChecks[4]?.data,
+    bountyChecks[5]?.data, bountyChecks[6]?.data, bountyChecks[7]?.data, bountyChecks[8]?.data, bountyChecks[9]?.data,
+    bountyChecks[10]?.data, bountyChecks[11]?.data, bountyChecks[12]?.data, bountyChecks[13]?.data, bountyChecks[14]?.data,
+    bountyChecks[15]?.data, bountyChecks[16]?.data, bountyChecks[17]?.data, bountyChecks[18]?.data, bountyChecks[19]?.data,
+    bountyChecks[0]?.isLoading, bountyChecks[1]?.isLoading, bountyChecks[2]?.isLoading, bountyChecks[3]?.isLoading, bountyChecks[4]?.isLoading,
+    bountyChecks[5]?.isLoading, bountyChecks[6]?.isLoading, bountyChecks[7]?.isLoading, bountyChecks[8]?.isLoading, bountyChecks[9]?.isLoading,
+    bountyChecks[10]?.isLoading, bountyChecks[11]?.isLoading, bountyChecks[12]?.isLoading, bountyChecks[13]?.isLoading, bountyChecks[14]?.isLoading,
+    bountyChecks[15]?.isLoading, bountyChecks[16]?.isLoading, bountyChecks[17]?.isLoading, bountyChecks[18]?.isLoading, bountyChecks[19]?.isLoading
   ])
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (isLoading) {
+      const timeout = setTimeout(() => {
+        console.log('Loading timeout reached, forcing loading to false')
+        setIsLoading(false)
+      }, 15000) // 15 second timeout
+      
+      return () => clearTimeout(timeout)
+    }
+  }, [isLoading])
   
-  const refetch = () => {
+  const refetch = useCallback(() => {
     try {
       console.log('Refetching bounty data...')
       bountyCountResult.refetch?.()
-      bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).forEach(check => check?.refetch?.())
+      bountyChecks.forEach(check => check?.refetch?.())
     } catch (error) {
       console.error('Error in refetch:', error)
     }
-  }
+  }, [bountyCountResult, bountyChecks])
   
   // Early return if contract address is not available
   if (!contracts.AGRI_BOUNTIES) {
@@ -1177,25 +1301,18 @@ export function BountyPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const forceRefreshBounties = useCallback(async () => {
     console.log('Force refresh bounties triggered - updating refresh trigger and invalidating queries')
-    setRefreshTrigger(prev => {
-      const newValue = prev + 1
-      console.log('Bounty refresh trigger updated from', prev, 'to', newValue)
-      return newValue
-    })
+    
+    // Update refresh trigger
+    setRefreshTrigger(prev => prev + 1)
     
     // Initial refresh
     invalidateQueries()
     
-    // Retry mechanism - sometimes blockchain state takes time to propagate
+    // Single retry after delay to allow blockchain state to propagate
     setTimeout(() => {
-      console.log('Bounty retry refresh #1 after 3 seconds')
+      console.log('Bounty retry refresh after 3 seconds')
       invalidateQueries()
     }, 3000)
-    
-    setTimeout(() => {
-      console.log('Bounty retry refresh #2 after 6 seconds')
-      invalidateQueries()
-    }, 6000)
   }, [invalidateQueries])
 
   // Track processed transaction hashes to avoid duplicate refreshes
@@ -1228,26 +1345,30 @@ export function BountyPage() {
     }
   }, [bountyContract.isSuccess, bountyContract.hash, bountyContract.isConfirming, bountyContract.isPending, forceRefreshBounties, processedTxHashes])
 
-  // Refresh bounties when user creates one (keep existing logic)
+  // Refresh bounties periodically - but only when not loading to prevent spam
   useEffect(() => {
+    if (isLoading) return // Don't refresh while already loading
+    
     const interval = setInterval(() => {
-      refetch()
-    }, 5000) // Check every 5 seconds
+      if (!isLoading) {
+        refetch()
+      }
+    }, 10000) // Check every 10 seconds instead of 5 to reduce load
     
     return () => clearInterval(interval)
-  }, [refetch])
+  }, [refetch, isLoading])
 
-  // Debug: Log contract addresses and user data
+  // Debug: Log contract addresses and user data - only when important values change
   useEffect(() => {
     console.log('🔍 Debug Info:')
-            console.log('Contract Address:', contracts.AGRI_BOUNTIES || 'Not available')
+    console.log('Contract Address:', contracts.AGRI_BOUNTIES || 'Not available')
     console.log('User Address:', address)
     console.log('Farm Balance:', farmBalance.formatted)
     console.log('User Profile:', userProfile)
     console.log('Creator Bounties:', creatorBounties)
     console.log('Total Bounties Found:', totalBounties)
     console.log('Selected Bounties:', selectedBounties)
-  }, [totalBounties, userProfile, creatorBounties, selectedBounties, farmBalance.formatted, address])
+  }, [address, farmBalance.formatted]) // Only log when user or balance changes, not on every bounty update
 
   // Add safety check for contract availability AFTER all hooks
   if (!contracts.AGRI_BOUNTIES) {

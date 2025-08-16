@@ -115,7 +115,7 @@ export function HomePage() {
           >
             <Badge className="mb-6 bg-gradient-to-r from-emerald-500/20 to-yellow-500/20 text-emerald-200 border-emerald-400/50 px-4 py-2 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Built on Mantle Network
+              Built on Core Network
             </Badge>
 
             <h1 className="text-3xl md:text-5xl font-bold mb-8 leading-tight drop-shadow-lg">

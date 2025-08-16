@@ -50,7 +50,7 @@ export function Footer() {
       
 
         <div className="pt-8 mt-8 text-center text-green-200 border-t border-green-800">
-          <p>&copy; 2025 FarmConnect. Built for Mantle Hackathon.</p>
+          <p>&copy; 2025 FarmConnect. Built for Core Hackathon.</p>
         </div>
       </div>
       </div>

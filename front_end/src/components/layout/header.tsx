@@ -480,14 +480,14 @@ export function Header({ onWalletConnect }: HeaderProps) {
                           My Rewards
                         </Link>
                         <a
-                          href={`https://mantlescan.xyz/address/${address}`}
+                          href={`https://scan.test2.btcs.network/address/${address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50"
                         >
                           <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">View on Mantle Explorer</span>
-                          <span className="sm:hidden">Mantle Explorer</span>
+                          <span className="hidden sm:inline">View on Core Explorer</span>
+                          <span className="sm:hidden">Core Explorer</span>
                         </a>
                         <button className="flex items-center w-full gap-2 px-2 py-2 text-sm text-green-700 transition-colors rounded-md sm:gap-3 sm:px-3 hover:bg-green-50">
                           <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
