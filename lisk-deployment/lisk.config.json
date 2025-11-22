@@ -1,0 +1,47 @@
+{
+  "app": {
+    "label": "FarmConnect",
+    "version": "1.0.0",
+    "buildNumber": "1",
+    "protocolVersion": "3.0"
+  },
+  "components": {
+    "storage": {
+      "database": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "lisk_farmconnect",
+        "user": "lisk",
+        "password": "password"
+      }
+    },
+    "logger": {
+      "fileLogLevel": "info",
+      "consoleLogLevel": "info"
+    },
+    "network": {
+      "seedPeers": [
+        {
+          "ip": "127.0.0.1",
+          "port": 5001
+        }
+      ],
+      "port": 5000
+    }
+  },
+  "modules": {
+    "greenPoints": {
+      "moduleID": 1000,
+      "moduleName": "greenPoints"
+    },
+    "cropNFT": {
+      "moduleID": 1001,
+      "moduleName": "cropNFT"
+    },
+    "agriBounties": {
+      "moduleID": 1002,
+      "moduleName": "agriBounties"
+    }
+  }
+}
+
