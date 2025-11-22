@@ -1,11 +1,3 @@
-// ============================================
-// MAIN ISSUES FIXED:
-// 1. Removed duplicate showManagement variable references
-// 2. Fixed the submissions viewing logic
-// 3. Added proper imports
-// 4. Fixed component integration
-// ============================================
-
 "use client"
 
 import { Footer } from "@/components/layout/footer"
@@ -43,14 +35,19 @@ import {
   User,
   Users,
   Vote,
-  Settings,  // ADDED
-  Crown      // ADDED
+  Settings,
+  Crown
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from 'react-hot-toast'
 import { useAccount, useReadContract } from "wagmi"
 
 const contracts = getContractAddresses()
+
+// Add safety check for contract addresses
+if (!contracts.AGRI_BOUNTIES) {
+  console.error('AGRI_BOUNTIES contract address is not defined. Please check your environment variables.')
+}
 
 // Type definitions
 interface BountyData {
@@ -114,7 +111,7 @@ const useHasVoted = (submissionId?: bigint, userAddress?: string) => {
     functionName: 'hasVoted',
     args: submissionId && userAddress ? [submissionId, userAddress] : undefined,
     query: {
-      enabled: !!(submissionId && userAddress),
+      enabled: !!(submissionId && userAddress) && !!contracts.AGRI_BOUNTIES,
       gcTime: 5000,
       staleTime: 0,
     },
@@ -135,6 +132,7 @@ const useAllBounties = () => {
     abi: AgriBountiesABI,
     functionName: 'nextBountyId', // Assuming your contract has this
     query: {
+      enabled: !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -146,7 +144,7 @@ const useAllBounties = () => {
   const maxBounties = bountyCountResult.data ? Number(bountyCountResult.data) - 1 : 50
 
   // Create exactly the number of hooks we need (always the same on each render)
-  const NUM_BOUNTY_HOOKS = 50 // Fixed number to satisfy Rules of Hooks
+  const NUM_BOUNTY_HOOKS = 20 // Reduced to 20 for better performance
   
   // Call hooks directly at the top level - not in a callback
   const bountyCheck0 = useReadContract({
@@ -154,67 +152,232 @@ const useAllBounties = () => {
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(1)],
-    query: { enabled: 0 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck1 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(2)],
-    query: { enabled: 1 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck2 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(3)],
-    query: { enabled: 2 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck3 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(4)],
-    query: { enabled: 3 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   const bountyCheck4 = useReadContract({
     address: contracts.AGRI_BOUNTIES,
     abi: AgriBountiesABI,
     functionName: 'getBounty',
     args: [BigInt(5)],
-    query: { enabled: 4 < maxBounties, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck5 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(6)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck6 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(7)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck7 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(8)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck8 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(9)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck9 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(10)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck10 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(11)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck11 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(12)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck12 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(13)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck13 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(14)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck14 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(15)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck15 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(16)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck16 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(17)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck17 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(18)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck18 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(19)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
+  })
+  const bountyCheck19 = useReadContract({
+    address: contracts.AGRI_BOUNTIES,
+    abi: AgriBountiesABI,
+    functionName: 'getBounty',
+    args: [BigInt(20)],
+    query: { enabled: !!contracts.AGRI_BOUNTIES, retry: false, staleTime: 0, gcTime: 5000, refetchOnWindowFocus: true, refetchOnMount: true }
   })
   
   // Combine all hook results into an array for processing
-  const bountyChecks = [bountyCheck0, bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4]
+  const bountyChecks = [
+    bountyCheck0, bountyCheck1, bountyCheck2, bountyCheck3, bountyCheck4,
+    bountyCheck5, bountyCheck6, bountyCheck7, bountyCheck8, bountyCheck9,
+    bountyCheck10, bountyCheck11, bountyCheck12, bountyCheck13, bountyCheck14,
+    bountyCheck15, bountyCheck16, bountyCheck17, bountyCheck18, bountyCheck19
+  ]
 
+
+
+  // Effect to handle data updates when bounty checks change
   useEffect(() => {
-    const existingBounties: bigint[] = []
-    
-    // Process all bounty checks up to maxBounties
-    for (let i = 0; i < Math.min(maxBounties, NUM_BOUNTY_HOOKS); i++) {
-      const check = bountyChecks[i]
-      const bountyData = check.data as BountyData | null
-      if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
-        existingBounties.push(BigInt(i + 1))
-      }
+    if (!contracts.AGRI_BOUNTIES) {
+      setBounties([])
+      setTotalCount(0)
+      setIsLoading(false)
+      return
     }
-    
-    setBounties(existingBounties.reverse()) // Newest first
-    setTotalCount(existingBounties.length)
-    setIsLoading(bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).some(check => check.isLoading))
-    
-    console.log(`Found ${existingBounties.length} bounties out of ${maxBounties} checked`)
-    
+
+    try {
+      const existingBounties: bigint[] = []
+      
+      // Process all bounty checks
+      for (let i = 0; i < NUM_BOUNTY_HOOKS; i++) {
+        const check = bountyChecks[i]
+        if (check && check.data) {
+          const bountyData = check.data as BountyData | null
+          if (bountyData && bountyData.creator && bountyData.creator !== '0x0000000000000000000000000000000000000000') {
+            existingBounties.push(BigInt(i + 1))
+          }
+        }
+      }
+      
+      setBounties(existingBounties.reverse())
+      setTotalCount(existingBounties.length)
+      
+      // Check if any of the bounty checks are still loading
+      const anyLoading = bountyChecks.some(check => check && check.isLoading)
+      setIsLoading(anyLoading)
+      
+      // Debug logging
+      console.log(`Found ${existingBounties.length} bounties out of ${NUM_BOUNTY_HOOKS} checked. Loading: ${anyLoading}`)
+      
+    } catch (error) {
+      console.error('Error updating bounty data:', error)
+      setBounties([])
+      setTotalCount(0)
+      setIsLoading(false)
+    }
   }, [
-    maxBounties,
-    ...bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).map(check => check.data)
+    bountyChecks[0]?.data, bountyChecks[1]?.data, bountyChecks[2]?.data, bountyChecks[3]?.data, bountyChecks[4]?.data,
+    bountyChecks[5]?.data, bountyChecks[6]?.data, bountyChecks[7]?.data, bountyChecks[8]?.data, bountyChecks[9]?.data,
+    bountyChecks[10]?.data, bountyChecks[11]?.data, bountyChecks[12]?.data, bountyChecks[13]?.data, bountyChecks[14]?.data,
+    bountyChecks[15]?.data, bountyChecks[16]?.data, bountyChecks[17]?.data, bountyChecks[18]?.data, bountyChecks[19]?.data,
+    bountyChecks[0]?.isLoading, bountyChecks[1]?.isLoading, bountyChecks[2]?.isLoading, bountyChecks[3]?.isLoading, bountyChecks[4]?.isLoading,
+    bountyChecks[5]?.isLoading, bountyChecks[6]?.isLoading, bountyChecks[7]?.isLoading, bountyChecks[8]?.isLoading, bountyChecks[9]?.isLoading,
+    bountyChecks[10]?.isLoading, bountyChecks[11]?.isLoading, bountyChecks[12]?.isLoading, bountyChecks[13]?.isLoading, bountyChecks[14]?.isLoading,
+    bountyChecks[15]?.isLoading, bountyChecks[16]?.isLoading, bountyChecks[17]?.isLoading, bountyChecks[18]?.isLoading, bountyChecks[19]?.isLoading
   ])
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (isLoading) {
+      const timeout = setTimeout(() => {
+        console.log('Loading timeout reached, forcing loading to false')
+        setIsLoading(false)
+      }, 15000) // 15 second timeout
+      
+      return () => clearTimeout(timeout)
+    }
+  }, [isLoading])
   
-  const refetch = () => {
-    console.log('Refetching bounty data...')
-    bountyCountResult.refetch?.()
-    bountyChecks.slice(0, Math.min(maxBounties, NUM_BOUNTY_HOOKS)).forEach(check => check.refetch?.())
+  const refetch = useCallback(() => {
+    try {
+      console.log('Refetching bounty data...')
+      bountyCountResult.refetch?.()
+      bountyChecks.forEach(check => check?.refetch?.())
+    } catch (error) {
+      console.error('Error in refetch:', error)
+    }
+  }, [bountyCountResult, bountyChecks])
+  
+  // Early return if contract address is not available
+  if (!contracts.AGRI_BOUNTIES) {
+    return { 
+      bounties: [], 
+      totalCount: 0, 
+      isLoading: false,
+      refetch: () => console.warn('Cannot refetch: contract address not available')
+    }
   }
   
   return { 
@@ -233,7 +396,7 @@ const useUserProfile = (address: string | undefined) => {
     functionName: 'userProfiles',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address,
+      enabled: !!address && !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -255,7 +418,7 @@ const useCreatorBounties = (address: string | undefined) => {
     functionName: 'creatorBounties',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address,
+      enabled: !!address && !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -285,7 +448,7 @@ const useBountySubmissions = (bountyId: bigint | undefined) => {
     functionName: 'getBountySubmissions',
     args: bountyId ? [bountyId] : undefined,
     query: {
-      enabled: !!bountyId,
+      enabled: !!bountyId && !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -307,7 +470,7 @@ const useSubmission = (submissionId: bigint | undefined) => {
     functionName: 'getSubmission',
     args: submissionId ? [submissionId] : undefined,
     query: {
-      enabled: !!submissionId,
+      enabled: !!submissionId && !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -329,7 +492,7 @@ const useSubmitterBounties = (address: string | undefined) => {
     functionName: 'submitterBounties',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address,
+      enabled: !!address && !!contracts.AGRI_BOUNTIES,
       staleTime: 0,
       gcTime: 5000,
       refetchOnWindowFocus: true,
@@ -738,25 +901,25 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
           {showSubmissions ? 'Hide Submissions' : `View Submissions (${Number(bounty?.submissionCount || 0)})`}
         </Button>
 
-        {/* SUBMISSION BUTTON - Only for active bounties */}
-        {isActive && userAddress && (
-          <>
-            {!hasSubmitted ? (
-              <Button 
-                size="sm" 
-                onClick={() => setShowSubmissionForm(!showSubmissionForm)}
-                className="font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900"
-              >
-                <Send className="w-4 h-4 mr-1" />
-                {showSubmissionForm ? 'Cancel Submit' : 'Submit Solution'}
-              </Button>
-            ) : (
-              <Badge className="text-green-800 bg-green-100 border-green-300">
-                ✅ Solution Submitted
-              </Badge>
-            )}
-          </>
-        )}
+                 {/* SUBMISSION BUTTON - Only for active bounties and NOT for creators */}
+         {isActive && userAddress && !isCreator && (
+           <>
+             {!hasSubmitted ? (
+               <Button 
+                 size="sm" 
+                 onClick={() => setShowSubmissionForm(!showSubmissionForm)}
+                 className="font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900"
+               >
+                 <Send className="w-4 h-4 mr-1" />
+                 {showSubmissionForm ? 'Cancel Submit' : 'Submit Solution'}
+               </Button>
+             ) : (
+               <Badge className="text-green-800 bg-green-100 border-green-300">
+                 ✅ Solution Submitted
+               </Badge>
+             )}
+           </>
+         )}
 
         {/* CREATOR MANAGEMENT BUTTON */}
         {isCreator && (
@@ -770,23 +933,25 @@ const BountyCard = ({ bountyId, userAddress, refreshTrigger }: BountyCardProps) 
           </Button>
         )}
 
-        {/* STATUS MESSAGES */}
-        {!isActive && (
-          <div className="flex items-center gap-2 text-sm text-emerald-400">
-            <Info className="w-4 h-4" />
-            {isExpired ? "Bounty expired" : "Bounty completed"}
-          </div>
-        )}
-        
-        {!userAddress && (
-          <div className="text-sm italic text-emerald-400">
-            Connect wallet to submit solutions and vote
-          </div>
-        )}
+                 {/* STATUS MESSAGES */}
+         {!isActive && (
+           <div className="flex items-center gap-2 text-sm text-emerald-400">
+             <Info className="w-4 h-4" />
+             {isExpired ? "Bounty expired" : "Bounty completed"}
+           </div>
+         )}
+         
+         {!userAddress && (
+           <div className="text-sm italic text-emerald-400">
+             Connect wallet to submit solutions and vote
+           </div>
+         )}
+
+         
       </div>
 
-      {/* SUBMISSION FORM - Only show if user wants to submit */}
-      {showSubmissionForm && !hasSubmitted && isActive && userAddress && (
+             {/* SUBMISSION FORM - Only show if user wants to submit and is NOT the creator */}
+       {showSubmissionForm && !hasSubmitted && isActive && userAddress && !isCreator && (
         <div className="p-4 mb-4 border rounded-lg bg-emerald-900/20 border-emerald-700/50">
           <h4 className="mb-3 font-medium text-emerald-100">Submit Your Solution</h4>
           {isCreator && (
@@ -891,14 +1056,13 @@ interface CreateBountyFormProps {
 
 const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
   const [showForm, setShowForm] = useState(false)
-  const [newBounty, setNewBounty] = useState({
-    title: '',
-    requirements: '',
-    category: '',
-    reward: '',
-    duration: '1',
-    durationUnit: 'days'
-  })
+     const [newBounty, setNewBounty] = useState({
+     title: '',
+     requirements: '',
+     category: '',
+     reward: '',
+     duration: '1'
+   })
 
   const { createBounty, isConfirming } = useAgriBounties()
   const { approve } = useFarmToken()
@@ -917,34 +1081,12 @@ const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
       const feeAmount = (rewardAmount * BigInt(250)) / BigInt(10000)
       const totalAmount = rewardAmount + feeAmount
       
-      let durationInDays
-      const durationValue = Number(newBounty.duration)
+             const durationInDays = Number(newBounty.duration)
+       const contractDuration = Math.max(1, durationInDays)
       
-      switch (newBounty.durationUnit) {
-        case 'minutes':
-          durationInDays = durationValue / (24 * 60)
-          break
-        case 'hours':
-          durationInDays = durationValue / 24
-          break
-        case 'days':
-          durationInDays = durationValue
-          break
-        default:
-          durationInDays = durationValue
+      if (!contracts.AGRI_BOUNTIES) {
+        throw new Error('Contract address not available')
       }
-      
-      const contractDuration = Math.max(1, Math.ceil(durationInDays))
-      
-      if (durationInDays < 1) {
-        const userWantsToString = `${durationValue} ${newBounty.durationUnit}`
-        const willBeString = `${contractDuration} day${contractDuration > 1 ? 's' : ''}`
-        
-        if (!confirm(`⚠️ Contract minimum is 1 day.\n\nYou want: ${userWantsToString}\nWill be: ${willBeString}\n\nContinue anyway?`)) {
-          return
-        }
-      }
-      
       await approve(contracts.AGRI_BOUNTIES, totalAmount)
       
       await createBounty(
@@ -955,7 +1097,7 @@ const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
         BigInt(contractDuration)
       )
       
-      setNewBounty({ title: '', requirements: '', category: '', reward: '', duration: '1', durationUnit: 'days' })
+             setNewBounty({ title: '', requirements: '', category: '', reward: '', duration: '1' })
       setShowForm(false)
     } catch (error) {
       console.error('Error creating bounty:', error)
@@ -1012,60 +1154,51 @@ const CreateBountyForm = ({ userAddress }: CreateBountyFormProps) => {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-          <div className="grid grid-cols-3 gap-4">
-            <input
-              type="number"
-              placeholder="Reward (FARM tokens)"
-              min="50"
-              value={newBounty.reward}
-              onChange={(e) => setNewBounty({...newBounty, reward: e.target.value})}
-              className="p-3 border rounded-lg border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <input
-              type="number"
-              placeholder="Duration"
-              min="1"
-              value={newBounty.duration}
-              onChange={(e) => setNewBounty({...newBounty, duration: e.target.value})}
-              className="p-3 border rounded-lg border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <select
-              value={newBounty.durationUnit}
-              onChange={(e) => setNewBounty({...newBounty, durationUnit: e.target.value})}
-              className="p-3 border rounded-lg border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            >
-              <option value="minutes">Minutes</option>
-              <option value="hours">Hours</option>
-              <option value="days">Days</option>
-            </select>
-          </div>
+                     <div className="grid grid-cols-2 gap-4">
+             <input
+               type="number"
+               placeholder="Reward (FARM tokens)"
+               min="50"
+               value={newBounty.reward}
+               onChange={(e) => setNewBounty({...newBounty, reward: e.target.value})}
+               className="p-3 border rounded-lg border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+             />
+             <input
+               type="number"
+               placeholder="Duration (days)"
+               min="1"
+               value={newBounty.duration}
+               onChange={(e) => setNewBounty({...newBounty, duration: e.target.value})}
+               className="p-3 border rounded-lg border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+             />
+           </div>
           
-          {newBounty.reward && (
-            <Alert className={Number(newBounty.reward) < 50 ? "border-red-300 bg-red-50" : 
-              (newBounty.durationUnit !== 'days' && Number(newBounty.duration) < 1440) ? "border-orange-300 bg-orange-50" : "border-amber-300 bg-amber-50"}>
-              <Info className={`h-4 w-4 ${Number(newBounty.reward) < 50 ? "text-red-600" : 
-                (newBounty.durationUnit !== 'days' && Number(newBounty.duration) < 1440) ? "text-orange-600" : "text-amber-600"}`} />
-              <AlertDescription className={Number(newBounty.reward) < 50 ? "text-red-800" : 
-                (newBounty.durationUnit !== 'days' && Number(newBounty.duration) < 1440) ? "text-orange-800" : "text-amber-800"}>
-                {Number(newBounty.reward) < 50 ? (
-                  <>⚠️ Minimum reward is 50 FARM tokens</>
-                ) : (newBounty.durationUnit !== 'days' && Number(newBounty.duration) < 1440) ? (
-                  <>
-                    ⚠️ Contract minimum is 1 day. Your {newBounty.duration} {newBounty.durationUnit} will become 1 day | 
-                    Platform fee: {(Number(newBounty.reward) * 0.025).toFixed(2)} FARM | 
-                    Total: {(Number(newBounty.reward) * 1.025).toFixed(2)} FARM
-                  </>
-                ) : (
-                  <>
-                    Duration: {newBounty.duration} {newBounty.durationUnit} | 
-                    Platform fee: {(Number(newBounty.reward) * 0.025).toFixed(2)} FARM | 
-                    Total required: {(Number(newBounty.reward) * 1.025).toFixed(2)} FARM | 
-                    Your balance: {farmBalance.formatted} FARM
-                  </>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
+                     {newBounty.reward && (
+             <Alert className={Number(newBounty.reward) < 50 ? "border-red-300 bg-red-50" : 
+               Number(newBounty.duration) < 1 ? "border-orange-300 bg-orange-50" : "border-amber-300 bg-amber-50"}>
+               <Info className={`h-4 w-4 ${Number(newBounty.reward) < 50 ? "text-red-600" : 
+                 Number(newBounty.duration) < 1 ? "text-orange-600" : "text-amber-600"}`} />
+               <AlertDescription className={Number(newBounty.reward) < 50 ? "text-red-800" : 
+                 Number(newBounty.duration) < 1 ? "text-orange-800" : "text-amber-800"}>
+                 {Number(newBounty.reward) < 50 ? (
+                   <>⚠️ Minimum reward is 50 FARM tokens</>
+                 ) : Number(newBounty.duration) < 1 ? (
+                   <>
+                     ⚠️ Contract minimum is 1 day. Your {newBounty.duration} day(s) will become 1 day | 
+                     Platform fee: {(Number(newBounty.reward) * 0.025).toFixed(2)} FARM | 
+                     Total: {(Number(newBounty.reward) * 1.025).toFixed(2)} FARM
+                   </>
+                 ) : (
+                   <>
+                     Duration: {newBounty.duration} day(s) | 
+                     Platform fee: {(Number(newBounty.reward) * 0.025).toFixed(2)} FARM | 
+                     Total required: {(Number(newBounty.reward) * 1.025).toFixed(2)} FARM | 
+                     Your balance: {farmBalance.formatted} FARM
+                   </>
+                 )}
+               </AlertDescription>
+             </Alert>
+           )}
           
           <div className="flex gap-3">
             <Button 
@@ -1168,25 +1301,18 @@ export function BountyPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const forceRefreshBounties = useCallback(async () => {
     console.log('Force refresh bounties triggered - updating refresh trigger and invalidating queries')
-    setRefreshTrigger(prev => {
-      const newValue = prev + 1
-      console.log('Bounty refresh trigger updated from', prev, 'to', newValue)
-      return newValue
-    })
+    
+    // Update refresh trigger
+    setRefreshTrigger(prev => prev + 1)
     
     // Initial refresh
     invalidateQueries()
     
-    // Retry mechanism - sometimes blockchain state takes time to propagate
+    // Single retry after delay to allow blockchain state to propagate
     setTimeout(() => {
-      console.log('Bounty retry refresh #1 after 3 seconds')
+      console.log('Bounty retry refresh after 3 seconds')
       invalidateQueries()
     }, 3000)
-    
-    setTimeout(() => {
-      console.log('Bounty retry refresh #2 after 6 seconds')
-      invalidateQueries()
-    }, 6000)
   }, [invalidateQueries])
 
   // Track processed transaction hashes to avoid duplicate refreshes
@@ -1219,26 +1345,46 @@ export function BountyPage() {
     }
   }, [bountyContract.isSuccess, bountyContract.hash, bountyContract.isConfirming, bountyContract.isPending, forceRefreshBounties, processedTxHashes])
 
-  // Refresh bounties when user creates one (keep existing logic)
+  // Refresh bounties periodically - but only when not loading to prevent spam
   useEffect(() => {
+    if (isLoading) return // Don't refresh while already loading
+    
     const interval = setInterval(() => {
-      refetch()
-    }, 5000) // Check every 5 seconds
+      if (!isLoading) {
+        refetch()
+      }
+    }, 10000) // Check every 10 seconds instead of 5 to reduce load
     
     return () => clearInterval(interval)
-  }, [refetch])
+  }, [refetch, isLoading])
 
-  // Debug: Log contract addresses and user data
+  // Debug: Log contract addresses and user data - only when important values change
   useEffect(() => {
     console.log('🔍 Debug Info:')
-    console.log('Contract Address:', contracts.AGRI_BOUNTIES)
+    console.log('Contract Address:', contracts.AGRI_BOUNTIES || 'Not available')
     console.log('User Address:', address)
     console.log('Farm Balance:', farmBalance.formatted)
     console.log('User Profile:', userProfile)
     console.log('Creator Bounties:', creatorBounties)
     console.log('Total Bounties Found:', totalBounties)
     console.log('Selected Bounties:', selectedBounties)
-  }, [totalBounties, userProfile, creatorBounties, selectedBounties, farmBalance.formatted, address])
+  }, [address, farmBalance.formatted]) // Only log when user or balance changes, not on every bounty update
+
+  // Add safety check for contract availability AFTER all hooks
+  if (!contracts.AGRI_BOUNTIES) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Contract Not Available</h1>
+            <p className="text-gray-600">The AgriBounties contract address is not configured. Please check your environment variables.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
@@ -1326,14 +1472,14 @@ export function BountyPage() {
                       <p className="text-sm">Scanning bounties 1-20 on the blockchain...</p>
                     </div>
                   ) : selectedBounties.length === 0 ? (
-                    <div className="py-12 text-center text-emerald-200/80">
-                      <Target className="w-16 h-16 mx-auto mb-4 text-emerald-400/50" />
-                      <h3 className="mb-2 text-lg font-medium">No Bounties Found</h3>
-                      <p className="text-sm">Create the first bounty or check if your contract is deployed correctly!</p>
-                      <p className="mt-2 text-xs text-emerald-300">
-                        Searched bounties 1-20. Found: {totalBounties} | 
-                        Contract: {contracts.AGRI_BOUNTIES?.slice(0, 10)}...
-                      </p>
+                                         <div className="py-12 text-center text-emerald-200/80">
+                       <Target className="w-16 h-16 mx-auto mb-4 text-emerald-400/50" />
+                       <h3 className="mb-2 text-lg font-medium">No Bounties Available Yet</h3>
+                       <p className="text-sm">Be the first to create a bounty and start building the community!</p>
+                       <p className="mt-2 text-xs text-emerald-300">
+                         Contract connected successfully | 
+                         Ready to create bounties
+                       </p>
                       <Button 
                         onClick={() => refetch()}
                         variant="outline"

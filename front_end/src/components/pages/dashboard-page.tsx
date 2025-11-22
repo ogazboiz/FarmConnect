@@ -377,8 +377,8 @@ export function DashboardPage() {
                     variant="outline" 
                     className="w-full bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
                     onClick={() => {
-                      window.open(`https://mantlescan.xyz/address/${address}`, '_blank')
-                      toast.success('Opening Mantle explorer in new tab 🔍')
+                      window.open(`https://scan.test2.btcs.network/address/${address}`, '_blank')
+                      toast.success('Opening Core explorer in new tab 🔍')
                     }}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
@@ -402,7 +402,7 @@ export function DashboardPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <h3 className="mb-2 font-medium text-emerald-100">Network</h3>
-                    <p className="text-sm text-emerald-200/80">Mantle Sepolia Testnet</p>
+                    <p className="text-sm text-emerald-200/80">Core Testnet 2</p>
                   </div>
                   <div className="p-4 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                     <h3 className="mb-2 font-medium text-emerald-100">Environment</h3>

@@ -526,14 +526,14 @@ const selectedCropBatch = {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-emerald-200/80">
                             <span>Token ID: #{tokenId.toString()}</span>
-                            <span>On Mantle Sepolia</span>
+                            <span>On Core</span>
                           </div>
                         </div>
                         <Button 
                           size="sm" 
                           variant="ghost" 
                           className="text-emerald-300 hover:text-emerald-100 hover:bg-emerald-800/60"
-                          onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${address}`, '_blank')}
+                          onClick={() => window.open(`https://scan.test2.btcs.network/address/${address}`, '_blank')}
                         >
                           View on Explorer
                         </Button>
@@ -543,7 +543,7 @@ const selectedCropBatch = {
                   <Button
                     variant="outline"
                     className="w-full mt-4 bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
-                    onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${address}`, '_blank')}
+                    onClick={() => window.open(`https://scan.test2.btcs.network/address/${address}`, '_blank')}
                   >
                     View All Records on Explorer
                   </Button>
@@ -1236,7 +1236,7 @@ function CropDetailsModal({
                 size="sm" 
                 variant="ghost" 
                 className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100"
-                onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
+                onClick={() => window.open(`https://scan.test2.btcs.network/address/${tokenId.toString()}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
               </Button>
@@ -1250,7 +1250,7 @@ function CropDetailsModal({
                 size="sm" 
                 variant="ghost" 
                 className="w-6 h-6 p-0 text-emerald-300 hover:text-emerald-100"
-                onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/address/${cropBatch.farmer}`, '_blank')}
+                onClick={() => window.open(`https://scan.test2.btcs.network/address/${cropBatch.farmer}`, '_blank')}
               >
                 <ExternalLink className="w-3 h-3" />
               </Button>
@@ -1258,7 +1258,7 @@ function CropDetailsModal({
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Network</p>
-            <p className="font-medium text-emerald-100">Mantle Sepolia Testnet</p>
+            <p className="font-medium text-emerald-100">Core Testnet</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm text-emerald-200/80">Harvest Date</p>
@@ -1357,7 +1357,7 @@ function CropDetailsModal({
       <div className="flex flex-wrap gap-3 mt-6">
         <Button 
           className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
-          onClick={() => window.open(`https://explorer.sepolia.mantle.xyz/token/${tokenId.toString()}`, '_blank')}
+                           onClick={() => window.open(`https://scan.test2.btcs.network/address/${tokenId.toString()}`, '_blank')}
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           View on Explorer
