@@ -1,10 +1,11 @@
 // src/components/consumer/ConnectWalletModal.tsx
 "use client"
 
-import { useAppKit } from '@reown/appkit/react'
+import { useWalletOperations, useWalletQR } from "@/hooks/useWalletConnect"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wallet, X, Star, QrCode, Share, Gift } from "lucide-react"
+import { Wallet, X, Star, QrCode, Share, Gift, Smartphone, Monitor } from "lucide-react"
+import { useState, useEffect } from "react"
 
 interface ConnectWalletModalProps {
   isOpen?: boolean
@@ -12,14 +13,57 @@ interface ConnectWalletModalProps {
 }
 
 export function ConnectWalletModal({ isOpen = true, onClose }: ConnectWalletModalProps) {
-  const { open } = useAppKit()
+  const { 
+    connectAppKit, 
+    connectWalletConnect, 
+    isConnecting, 
+    error, 
+    clearError 
+  } = useWalletOperations()
+  
+  const { 
+    qrCodeUri, 
+    isGenerating, 
+    generateQRCode, 
+    clearQRCode 
+  } = useWalletQR()
+  
+  const [connectionMethod, setConnectionMethod] = useState<'appkit' | 'walletconnect'>('appkit')
+  const [walletConnectUri, setWalletConnectUri] = useState('')
 
-  const handleConnect = async () => {
+  // Clear QR code when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      clearQRCode()
+      clearError()
+    }
+  }, [isOpen, clearQRCode, clearError])
+
+  const handleAppKitConnect = async () => {
     try {
-      await open()
+      await connectAppKit()
       onClose()
     } catch (error) {
       console.error('Error connecting wallet:', error)
+    }
+  }
+
+  const handleWalletConnectConnect = async () => {
+    try {
+      if (walletConnectUri) {
+        await connectWalletConnect(walletConnectUri)
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error connecting via WalletConnect:', error)
+    }
+  }
+
+  const handleGenerateQR = async () => {
+    try {
+      await generateQRCode()
+    } catch (error) {
+      console.error('Error generating QR code:', error)
     }
   }
 
@@ -51,6 +95,97 @@ export function ConnectWalletModal({ isOpen = true, onClose }: ConnectWalletModa
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Connection Method Selection */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-slate-800 text-sm">Choose connection method:</h3>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant={connectionMethod === 'appkit' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setConnectionMethod('appkit')}
+                className="flex items-center gap-2"
+              >
+                <Monitor className="w-4 h-4" />
+                AppKit
+              </Button>
+              
+              <Button
+                variant={connectionMethod === 'walletconnect' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setConnectionMethod('walletconnect')}
+                className="flex items-center gap-2"
+              >
+                <Smartphone className="w-4 h-4" />
+                WalletConnect
+              </Button>
+            </div>
+          </div>
+
+          {/* Connection Interface */}
+          {connectionMethod === 'appkit' ? (
+            <div className="space-y-4">
+              <Button
+                onClick={handleAppKitConnect}
+                disabled={isConnecting}
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+                size="lg"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                {isConnecting ? 'Connecting...' : 'Connect with AppKit'}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* WalletConnect URI Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  WalletConnect URI
+                </label>
+                <input
+                  type="text"
+                  value={walletConnectUri}
+                  onChange={(e) => setWalletConnectUri(e.target.value)}
+                  placeholder="wc:..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              {/* QR Code Generation */}
+              <div className="space-y-2">
+                <Button
+                  onClick={handleGenerateQR}
+                  disabled={isGenerating}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  {isGenerating ? 'Generating...' : 'Generate QR Code'}
+                </Button>
+
+                {qrCodeUri && (
+                  <div className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-xs text-slate-600 mb-2">Scan with your wallet:</p>
+                    <div className="text-xs font-mono break-all text-slate-500">
+                      {qrCodeUri.substring(0, 50)}...
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Connect Button */}
+              <Button
+                onClick={handleWalletConnectConnect}
+                disabled={isConnecting || !walletConnectUri}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                size="lg"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                {isConnecting ? 'Connecting...' : 'Connect via WalletConnect'}
+              </Button>
+            </div>
+          )}
+
           {/* Benefits */}
           <div className="space-y-3">
             <h3 className="font-semibold text-slate-800 text-sm">What you can do:</h3>
@@ -90,15 +225,20 @@ export function ConnectWalletModal({ isOpen = true, onClose }: ConnectWalletModa
             </div>
           </div>
 
-          {/* Connect Button */}
-          <Button
-            onClick={handleConnect}
-            className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
-            size="lg"
-          >
-            <Wallet className="w-4 h-4 mr-2" />
-            Connect Wallet
-          </Button>
+          {/* Error Display */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">{error}</p>
+              <Button
+                onClick={clearError}
+                variant="ghost"
+                size="sm"
+                className="mt-2 text-red-600 hover:text-red-800"
+              >
+                Dismiss
+              </Button>
+            </div>
+          )}
 
           {/* Security Note */}
           <div className="text-center">

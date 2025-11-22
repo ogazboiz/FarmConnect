@@ -1,32 +1,32 @@
 "use client";
 import { createAppKit } from "@reown/appkit/react";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
-import { coreTestnet2} from "@reown/appkit/networks";
+import { mantleSepoliaTestnet, mantle } from "@reown/appkit/networks";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 import { ReactNode } from "react";
 
 // Custom Core Network definitions
-const coreMainnet: AppKitNetwork = {
-  id: 1116,
-  name: 'Core',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'CORE',
-    symbol: 'CORE',
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://rpc.coredao.org'],
-    },
-    public: {
-      http: ['https://rpc.coredao.org'],
-    },
-  },
-  blockExplorers: {
-    default: { name: 'CoreScan', url: 'https://scan.coredao.org' },
-  },
-  testnet: false,
-};
+// const coreMainnet: AppKitNetwork = {
+//   id: 1116,
+//   name: "Core",
+//   nativeCurrency: {
+//     decimals: 18,
+//     name: "CORE",
+//     symbol: "CORE",
+//   },
+//   rpcUrls: {
+//     default: {
+//       http: ["https://rpc.coredao.org"],
+//     },
+//     public: {
+//       http: ["https://rpc.coredao.org"],
+//     },
+//   },
+//   blockExplorers: {
+//     default: { name: "CoreScan", url: "https://scan.coredao.org" },
+//   },
+//   testnet: false,
+// };
 
 // const coreTestnet2: AppKitNetwork = {
 //   id: 1114,
@@ -51,17 +51,17 @@ const coreMainnet: AppKitNetwork = {
 // };
 
 // Environment detection
-const isMainnet = process.env.NEXT_PUBLIC_ENVIRONMENT === 'mainnet';
+const isMainnet = process.env.NEXT_PUBLIC_ENVIRONMENT === "mainnet";
 
 // Network configurations for AgriDAO - Multi-chain support
 const mainnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  coreMainnet,  // Primary: Core Mainnet
-     // Secondary: Mantle Mainnet
+  // coreMainnet, // Primary: Core Mainnet
+  // Secondary: Mantle Mainnet
+  mantle, // Primary: Mantle Testnet (LIVE DEPLOYMENT)
 ];
 
 const testnetNetworks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  coreTestnet2,         // Primary: Core Testnet2 (LIVE DEPLOYMENT)
-
+  mantleSepoliaTestnet, // Primary: Core Testnet2 (LIVE DEPLOYMENT)
 ];
 
 // Use appropriate networks based on environment
@@ -73,19 +73,25 @@ const projectId = "8387f0bbb57a265cd4dd96c3e658ac55";
 // 2. Create metadata for AgriDAO
 const metadata = {
   name: "AgriDAO",
-  description: "Decentralized agricultural platform connecting farmers with consumers through blockchain transparency",
+  description:
+    "Decentralized agricultural platform connecting farmers with consumers through blockchain transparency",
   url: "https://agridao.com", // Your actual domain
   icons: ["https://agridao.com/logo.png"], // Your AgriDAO logo
 };
 
 // Get primary network info for logging
 const primaryNetwork = supportedNetworks[0];
-const networkType = isMainnet ? 'Mainnet' : 'Testnet';
+const networkType = isMainnet ? "Mainnet" : "Testnet";
 
 // Log environment info for debugging
 console.log(`🌾 AgriDAO Environment: ${primaryNetwork.name} ${networkType}`);
-console.log(`📡 Supported Networks:`, supportedNetworks.map(n => `${n.name} (${n.id})`));
-console.log(`🚀 Primary Network: ${primaryNetwork.name} - Chain ID ${primaryNetwork.id}`);
+console.log(
+  `📡 Supported Networks:`,
+  supportedNetworks.map((n) => `${n.name} (${n.id})`)
+);
+console.log(
+  `🚀 Primary Network: ${primaryNetwork.name} - Chain ID ${primaryNetwork.id}`
+);
 
 if (!isMainnet && primaryNetwork.id === 1114) {
   console.log(`✅ Core Testnet2 LIVE contracts ready!`);
@@ -101,21 +107,23 @@ createAppKit({
   projectId,
   features: {
     analytics: true,
-    email: true,      // Enable email login
-    socials: ['google', 'x', 'github'], // Social logins
+    email: true, // Enable email login
+    socials: ["google", "x", "github"], // Social logins
   },
   // Environment-specific configurations
-  ...(isMainnet ? {
-    // Mainnet specific configurations
-    enableExplorer: true,
-    enableOnramp: true, // Enable for real token purchases
-    defaultNetwork: coreMainnet,
-  } : {
-    // Testnet specific configurations  
-    enableExplorer: true,
-    enableOnramp: false, // Disable on-ramp for testnets
-    defaultNetwork: coreTestnet2, // Default to Core Testnet2 (where contracts are live)
-  })
+  ...(isMainnet
+    ? {
+        // Mainnet specific configurations
+        enableExplorer: true,
+        enableOnramp: true, // Enable for real token purchases
+        defaultNetwork: mantle, // Default to Mantle Mainnet
+      }
+    : {
+        // Testnet specific configurations
+        enableExplorer: true,
+        enableOnramp: false, // Disable on-ramp for testnets
+        defaultNetwork: mantleSepoliaTestnet, // Default to Core Testnet2 (where contracts are live)
+      }),
 });
 
 interface AppKitProps {
@@ -131,6 +139,6 @@ export const NETWORK_INFO = {
   isMainnet,
   primaryNetwork,
   supportedNetworks,
-  coreTestnet2,
-  coreMainnet,
+  mantleSepoliaTestnet,
+  mantle,
 };

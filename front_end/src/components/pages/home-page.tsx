@@ -78,7 +78,7 @@ export function HomePage() {
   ]
 
   const stats = [
-    { number: "10,000+", label: "Farmers Connected", color: "text-emerald-400" },
+    { number: "1000+", label: "Farmers Connected", color: "text-emerald-400" },
     { number: "50M+", label: "Crops Tracked", color: "text-green-400" },
     { number: "$2.5M", label: "Rewards Distributed", color: "text-yellow-400" },
     { number: "25", label: "Countries Active", color: "text-lime-400" },
@@ -115,7 +115,7 @@ export function HomePage() {
           >
             <Badge className="mb-6 bg-gradient-to-r from-emerald-500/20 to-yellow-500/20 text-emerald-200 border-emerald-400/50 px-4 py-2 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Built on Mantle Network
+              Built on Base Network
             </Badge>
 
             <h1 className="text-3xl md:text-5xl font-bold mb-8 leading-tight drop-shadow-lg">
@@ -135,7 +135,7 @@ export function HomePage() {
               practices on the decentralized web.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            {/* <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               {!mounted ? (
                 <Button
                   size="lg"
@@ -172,7 +172,7 @@ export function HomePage() {
               >
                 Watch Demo
               </Button>
-            </div>
+            </div> */}
 
             {/* Feature Cards Preview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16">

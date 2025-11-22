@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi';
-import { coreTestnet2 } from 'wagmi/chains';
+import {  mantle, mantleSepoliaTestnet } from 'wagmi/chains';
 
 // AgriDAO Contract Addresses - Multi-chain Support
 export const AGRIDAO_CONTRACT_ADDRESSES = {
@@ -173,7 +173,7 @@ export const wagmiConfig = createConfig({
     [coreMainnet.id]: http('https://rpc.coredao.org'),
     [coreTestnet2.id]: http('https://rpc.test2.btcs.network'),
     [mantle.id]: http(),
-    [mantleSepoliaTestnet.id]: http(),
+    [mantleSepoliaTestnet.id]: http('https://rpc.sepolia.mantle.xyz'),
     [sepolia.id]: http(), // Default Sepolia RPC
   },
 });
