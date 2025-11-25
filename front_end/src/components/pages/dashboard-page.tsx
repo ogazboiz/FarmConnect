@@ -43,7 +43,7 @@ export function DashboardPage() {
               <h1 className="mb-4 text-4xl font-bold text-emerald-100">
                 Please connect your wallet to view your dashboard
               </h1>
-              <p className="text-emerald-200/80">Connect your wallet to start tracking your crops and earning rewards</p>
+              <p className="text-emerald-200/80">Connect your wallet to start tracking your crops and earning rewards. Get started today!</p>
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@ export function DashboardPage() {
               <h1 className="mb-4 text-4xl font-bold text-emerald-100">
                 Loading your dashboard...
               </h1>
-              <p className="text-emerald-200/80">Fetching your data from the blockchain</p>
+              <p className="text-emerald-200/80">Fetching your data from the blockchain. Please wait...</p>
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function DashboardPage() {
               </span>
             </h1>
             <p className="text-xl text-emerald-200/80">
-              Your decentralized agriculture platform is ready.
+              Your decentralized agriculture platform is ready. Manage your crops and earn rewards.
             </p>
             {address && (
               <div className="inline-block p-3 mt-2 border rounded-lg bg-emerald-800/40 border-emerald-700/40">
@@ -243,7 +243,7 @@ export function DashboardPage() {
                 ) : (
                   <div className="py-8 text-center">
                     <Sprout className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
-                    <p className="mb-4 text-emerald-200/80">No crops yet. Create your first crop batch!</p>
+                    <p className="mb-4 text-emerald-200/80">No crops yet. Create your first crop batch to get started!</p>
                     <Link href="/dashboard/crops">
                       <Button className="text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
                         <Plus className="w-4 h-4 mr-2" />
