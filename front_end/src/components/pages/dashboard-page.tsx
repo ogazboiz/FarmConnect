@@ -17,20 +17,27 @@ import {
   BarChart3,
   Calendar,
   Loader2,
+  RefreshCw,
+  Clock,
 } from "lucide-react"
 import Link from "next/link"
 import { useAccount } from "wagmi"
-import { useFarmTokenBalance, useGreenPointsBalance, useFarmerCrops, useFarmTokenInfo } from "@/hooks/useAgriDAO"
+import { useFarmTokenBalance, useGreenPointsBalance, useFarmerCrops, useFarmTokenInfo, useFarmerStats, useDAOMember } from "@/hooks/useAgriDAO"
 import { toast } from "react-hot-toast"
+import { useState, useCallback } from "react"
 
 export function DashboardPage() {
   const { address, isConnected } = useAccount();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Individual hooks
   const farmBalance = useFarmTokenBalance(address);
   const greenBalance = useGreenPointsBalance(address);
   const farmerCrops = useFarmerCrops(address);
   const farmTokenInfo = useFarmTokenInfo();
+  const farmerStats = useFarmerStats(address);
+  const daoMember = useDAOMember(address);
 
   // Show loading state
   if (!isConnected) {
@@ -52,9 +59,32 @@ export function DashboardPage() {
     );
   }
 
-  const isLoading = farmBalance.isLoading || greenBalance.isLoading || farmerCrops.isLoading;
+  // Refresh function to update all data
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      // Refetch all hooks that support refetch
+      await Promise.all([
+        farmBalance.refetch?.(),
+        greenBalance.refetch?.(),
+        farmerCrops.refetch?.(),
+        farmerStats.refetch?.(),
+        daoMember.refetch?.(),
+      ]);
+      
+      setLastUpdated(new Date());
+      toast.success('Dashboard data refreshed successfully! ✅');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      toast.error('Failed to refresh data. Please try again.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [farmBalance, greenBalance, farmerCrops, farmerStats, daoMember]);
 
-  if (isLoading) {
+  const isLoading = farmBalance.isLoading || greenBalance.isLoading || farmerCrops.isLoading || farmerStats.isLoading || daoMember.isLoading;
+
+  if (isLoading && !isRefreshing) {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
         <Header />
@@ -115,11 +145,22 @@ export function DashboardPage() {
     { action: "Ready to create crops", time: "Now", status: "success", type: "ready" },
   ];
 
+  // Dynamic upcoming tasks based on user progress
   const upcomingTasks = [
-    { task: "Create your first crop batch", due: "Today", priority: "high" },
-    { task: "Connect with other farmers", due: "This week", priority: "medium" },
+    ...(farmerCrops.count === 0 ? [{ task: "Create your first crop batch", due: "Today", priority: "high" }] : []),
+    ...(daoMember.data === null || daoMember.data === undefined ? [{ task: "Join the Farmer DAO", due: "This week", priority: "medium" }] : []),
     { task: "Explore bounties", due: "Anytime", priority: "low" },
   ];
+
+  // If user has completed everything, show different tasks
+  const allTasksCompleted = farmerCrops.count > 0 && daoMember.data !== null && daoMember.data !== undefined;
+  const finalTasks = allTasksCompleted
+    ? [
+        { task: "Expand your crop collection", due: "Ongoing", priority: "medium" },
+        { task: "Participate in DAO governance", due: "Active", priority: "high" },
+        { task: "Earn more GREEN points", due: "Anytime", priority: "low" },
+      ]
+    : upcomingTasks;
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-800">
@@ -129,23 +170,42 @@ export function DashboardPage() {
         <div className="container mx-auto">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="mb-2 text-4xl font-bold text-emerald-100">
-              Welcome to FarmConnect,{" "}
-              <span className="text-transparent bg-gradient-to-r from-emerald-300 to-yellow-300 bg-clip-text">
-                Farmer!
-              </span>
-            </h1>
-            <p className="text-xl text-emerald-200/80">
-              Your decentralized agriculture platform is ready. Manage your crops and earn rewards.
-            </p>
-            {address && (
-              <div className="inline-block p-3 mt-2 border rounded-lg bg-emerald-800/40 border-emerald-700/40">
-                <p className="text-sm text-emerald-200/80">Connected Wallet:</p>
-                <p className="font-mono text-sm text-emerald-300">
-                  {address.slice(0, 6)}...{address.slice(-4)}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 className="mb-2 text-4xl font-bold text-emerald-100">
+                  Welcome to FarmConnect,{" "}
+                  <span className="text-transparent bg-gradient-to-r from-emerald-300 to-yellow-300 bg-clip-text">
+                    Farmer!
+                  </span>
+                </h1>
+                <p className="text-xl text-emerald-200/80">
+                  Your decentralized agriculture platform is ready. Manage your crops and earn rewards.
                 </p>
+                {address && (
+                  <div className="inline-block p-3 mt-2 border rounded-lg bg-emerald-800/40 border-emerald-700/40">
+                    <p className="text-sm text-emerald-200/80">Connected Wallet:</p>
+                    <p className="font-mono text-sm text-emerald-300">
+                      {address.slice(0, 6)}...{address.slice(-4)}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="flex flex-col gap-2 sm:items-end">
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  variant="outline"
+                  className="bg-transparent border-emerald-600/50 text-emerald-200 hover:bg-emerald-800/60 hover:border-emerald-500"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+                </Button>
+                <div className="flex items-center gap-1 text-sm text-emerald-200/80">
+                  <Clock className="w-3 h-3" />
+                  <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Stats Grid */}
@@ -257,6 +317,56 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Farmer Statistics */}
+            <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-emerald-100">
+                  <Award className="w-5 h-5 text-yellow-400" />
+                  Farmer Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <div>
+                      <p className="font-medium text-emerald-100">Reputation</p>
+                      <p className="text-sm text-emerald-200/80">Your farmer reputation score</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-100">
+                        {farmerStats.data?.reputationFormatted || '0'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">Points</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <div>
+                      <p className="font-medium text-emerald-100">Total Scans</p>
+                      <p className="text-sm text-emerald-200/80">Products scanned by consumers</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-100">
+                        {farmerStats.data?.totalScans?.toString() || '0'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">Scans</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
+                    <div>
+                      <p className="font-medium text-emerald-100">Total Ratings</p>
+                      <p className="text-sm text-emerald-200/80">Customer ratings received</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-100">
+                        {farmerStats.data?.totalRatings?.toString() || '0'}
+                      </p>
+                      <p className="text-sm text-emerald-200/80">Ratings</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Token Information */}
             <Card className="border bg-emerald-800/40 backdrop-blur-sm border-emerald-700/40">
               <CardHeader>
@@ -319,7 +429,8 @@ export function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {upcomingTasks.map((task, index) => (
+                  {finalTasks.length > 0 ? (
+                    finalTasks.map((task, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-emerald-900/30 border-emerald-700/30">
                       <div>
                         <p className="font-medium text-emerald-100">{task.task}</p>
@@ -338,7 +449,13 @@ export function DashboardPage() {
                         {task.priority}
                       </Badge>
                     </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="py-4 text-center">
+                      <Award className="w-8 h-8 mx-auto mb-2 text-emerald-400 opacity-50" />
+                      <p className="text-sm text-emerald-200/80">All tasks completed! Keep up the great work! 🎉</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
